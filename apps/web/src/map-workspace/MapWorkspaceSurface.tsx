@@ -5,6 +5,7 @@ import { createStopId } from '../domain/types/stop';
 import type { WorkspaceToolMode } from '../App';
 import { MAP_WORKSPACE_BOOTSTRAP_CONFIG } from './mapBootstrapConfig';
 import {
+  getSourceRefsForLayerIds,
   type MapLibreFeatureGeometry,
   type MapLibreInteractionEvent,
   type MapLibreMap,
@@ -126,6 +127,54 @@ const resolveStreetLayerIdsFromStyle = (map: MapLibreMap): readonly string[] => 
 const isLineGeometry = (geometry: MapLibreFeatureGeometry | undefined): boolean =>
   geometry?.type === 'LineString' || geometry?.type === 'MultiLineString';
 
+const toFeatureSourceKey = (source: string | undefined, sourceLayer: string | undefined): string | null => {
+  if (!source) {
+    return null;
+  }
+
+  return `${source}:${sourceLayer ?? ''}`;
+};
+
+const hasStreetLineGeometryInSourceFallback = (
+  map: MapLibreMap,
+  event: MapLibreInteractionEvent,
+  streetLayerIds: readonly string[]
+): boolean => {
+  const styleDefinition = map.getStyle();
+  const sourceRefs = getSourceRefsForLayerIds(styleDefinition, streetLayerIds);
+
+  if (sourceRefs.length === 0) {
+    return false;
+  }
+
+  const clickedSourceKeys = new Set(
+    map
+      .queryRenderedFeatures(event.point)
+      .map((feature) =>
+        toFeatureSourceKey(feature.source, feature.sourceLayer ?? feature['source-layer'])
+      )
+      .filter((sourceKey): sourceKey is string => sourceKey !== null)
+  );
+
+  if (clickedSourceKeys.size === 0) {
+    return false;
+  }
+
+  return sourceRefs.some((sourceRef) => {
+    const sourceRefKey = toFeatureSourceKey(sourceRef.source, sourceRef.sourceLayer);
+
+    if (!sourceRefKey || !clickedSourceKeys.has(sourceRefKey)) {
+      return false;
+    }
+
+    const sourceFeatures = map.querySourceFeatures(
+      sourceRef.source,
+      sourceRef.sourceLayer ? { sourceLayer: sourceRef.sourceLayer } : undefined
+    );
+    return sourceFeatures.some((feature) => isLineGeometry(feature.geometry));
+  });
+};
+
 const isEligibleStopPlacementClick = (map: MapLibreMap, event: MapLibreInteractionEvent): boolean => {
   const streetLayerIds = resolveStreetLayerIdsFromStyle(map);
 
@@ -135,7 +184,13 @@ const isEligibleStopPlacementClick = (map: MapLibreMap, event: MapLibreInteracti
 
   // Stop placement is valid only when a rendered street line exists exactly at the clicked screen point.
   const renderedFeatures = map.queryRenderedFeatures(event.point, { layers: streetLayerIds });
-  return renderedFeatures.some((feature) => isLineGeometry(feature.geometry));
+  if (renderedFeatures.some((feature) => isLineGeometry(feature.geometry))) {
+    return true;
+  }
+
+  // Fallback: when rendered-layer hit granularity is insufficient, confirm street source presence
+  // at the clicked point and require real line geometry from the matched street source-layer.
+  return hasStreetLineGeometryInSourceFallback(map, event, streetLayerIds);
 };
 
 const createNeutralMapTelemetryHandlers = ({ setInteractionState }: NeutralMapTelemetryContracts): NeutralMapTelemetryHandlers => ({
