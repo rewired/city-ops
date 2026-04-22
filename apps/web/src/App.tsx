@@ -1,6 +1,10 @@
 import { useState, type ReactElement } from 'react';
 
-import { MapWorkspaceSurface } from './map-workspace/MapWorkspaceSurface';
+import type { StopId } from './domain/types/stop';
+import {
+  MapWorkspaceSurface,
+  type SelectedStopInspectorPayload
+} from './map-workspace/MapWorkspaceSurface';
 
 import './App.css';
 
@@ -14,11 +18,14 @@ export type WorkspaceToolMode = 'inspect' | 'place-stop';
  */
 export default function App(): ReactElement {
   const [activeToolMode, setActiveToolMode] = useState<WorkspaceToolMode>('inspect');
+  const [selectedStop, setSelectedStop] = useState<SelectedStopInspectorPayload | null>(null);
   const isStopPlacementModeActive = activeToolMode === 'place-stop';
 
   const handleStopPlacementModeToggle = (): void => {
     setActiveToolMode((currentMode) => (currentMode === 'place-stop' ? 'inspect' : 'place-stop'));
   };
+
+  const selectedStopId: StopId | null = selectedStop?.selectedStopId ?? null;
 
   return (
     <div className="app-shell" data-app-surface="desktop-shell">
@@ -43,12 +50,27 @@ export default function App(): ReactElement {
       </aside>
 
       <main className="workspace" aria-label="Main workspace">
-        <MapWorkspaceSurface activeToolMode={activeToolMode} />
+        <MapWorkspaceSurface
+          activeToolMode={activeToolMode}
+          selectedStopId={selectedStopId}
+          onStopSelectionChange={setSelectedStop}
+        />
       </main>
 
       <aside className="right-panel" aria-label="Inspector panel">
         <h2>Inspector</h2>
-        <p>Selection details and metrics will appear here.</p>
+        {selectedStop ? (
+          <div>
+            <p>Selected stop</p>
+            <p>ID: {selectedStop.selectedStopId}</p>
+            <p>Label: {selectedStop.label ?? '—'}</p>
+            <p>
+              Position: {selectedStop.lng.toFixed(5)}, {selectedStop.lat.toFixed(5)}
+            </p>
+          </div>
+        ) : (
+          <p>No stop selected.</p>
+        )}
       </aside>
 
       <footer className="status-bar" aria-label="Status bar">
