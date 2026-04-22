@@ -46,6 +46,8 @@ type MapLibreInteractionEventType = 'mousemove' | 'click';
 export interface MapLibreMap {
   /** Destroys the map instance and releases related resources. */
   remove(): void;
+  /** Recomputes map dimensions after container size changes. */
+  resize(): void;
   /** Adds a UI control to the map at a known anchor point. */
   addControl(control: unknown, position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'): void;
   /** Registers an interaction listener for the provided baseline event type. */

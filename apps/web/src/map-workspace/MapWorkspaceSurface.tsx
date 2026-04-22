@@ -78,7 +78,29 @@ export function MapWorkspaceSurface(): ReactElement {
     mapInstance.on('click', handleMapClick);
     mapInstanceRef.current = mapInstance;
 
+    const handleMapResize = (): void => {
+      mapInstanceRef.current?.resize();
+    };
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            handleMapResize();
+          })
+        : null;
+
+    if (resizeObserver) {
+      resizeObserver.observe(containerElement);
+    } else {
+      window.addEventListener('resize', handleMapResize);
+    }
+
     return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener('resize', handleMapResize);
+      }
+
       mapInstance.off('mousemove', handlePointerMove);
       mapInstance.off('click', handleMapClick);
       mapInstanceRef.current?.remove();

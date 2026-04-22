@@ -17,3 +17,6 @@ All notable changes to this project will be documented in this file.
 - Add ADR 0005 documenting the initial MapLibre workspace baseline decision and runtime-source constraints.
 - Add local typed pointer interaction state and MapLibre move/click handler plumbing in the map workspace with cleanup-safe unsubscribe behavior and neutral developer-facing overlay text.
 - Add ADR 0006 documenting neutral map workspace interaction plumbing and its non-goal constraints.
+- Add explicit map workspace resize handling with `ResizeObserver`-first wiring, window resize fallback, and cleanup-safe registration lifecycle.
+- Extend the typed MapLibre global surface with `resize(): void` to keep map runtime contracts explicit.
+- Add ADR 0007 documenting explicit map workspace resize handling decisions and constraints.
