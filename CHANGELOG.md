@@ -43,3 +43,6 @@ All notable changes to this project will be documented in this file.
 - Add a narrow stop-only selection state (`none` or one `StopId`) in `MapWorkspaceSurface` and keep it independent from pointer telemetry and placement feedback state.
 - Keep stop selection slice-local to placement interactions, selecting newly placed stops and clearing selection on invalid placement attempts.
 - Add ADR 0014 documenting local stop-only selection boundaries and explicit non-goals against generalized entity-selection frameworks.
+- Lift stop selection ownership to `App.tsx` via a typed map-to-shell callback contract for inspector rendering.
+- Add a minimal selected-stop inspector view in the right panel with empty state and stop id/label/lng-lat details only.
+- Add ADR 0015 documenting stop selection projection boundaries from map workspace to shell inspector.
