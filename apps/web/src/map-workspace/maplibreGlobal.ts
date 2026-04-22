@@ -12,6 +12,35 @@ interface MapConstructorOptions {
 }
 
 /**
+ * Screen-space coordinates emitted by pointer-like map interaction events.
+ */
+interface MapEventPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * Geographic coordinates emitted by map interaction events when available.
+ */
+interface MapEventLngLat {
+  readonly lng: number;
+  readonly lat: number;
+}
+
+/**
+ * Minimal interaction event shape consumed by the map workspace surface.
+ */
+interface MapLibreInteractionEvent {
+  readonly point: MapEventPoint;
+  readonly lngLat?: MapEventLngLat;
+}
+
+/**
+ * Interaction event names used by the workspace baseline.
+ */
+type MapLibreInteractionEventType = 'mousemove' | 'click';
+
+/**
  * Minimal MapLibre map API surface required by this slice for lifecycle-safe map rendering.
  */
 export interface MapLibreMap {
@@ -19,6 +48,10 @@ export interface MapLibreMap {
   remove(): void;
   /** Adds a UI control to the map at a known anchor point. */
   addControl(control: unknown, position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'): void;
+  /** Registers an interaction listener for the provided baseline event type. */
+  on(type: MapLibreInteractionEventType, listener: (event: MapLibreInteractionEvent) => void): void;
+  /** Removes a previously registered interaction listener for the provided baseline event type. */
+  off(type: MapLibreInteractionEventType, listener: (event: MapLibreInteractionEvent) => void): void;
 }
 
 /**

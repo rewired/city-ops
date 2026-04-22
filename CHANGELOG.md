@@ -15,4 +15,5 @@ All notable changes to this project will be documented in this file.
 - Add ADR 0004 documenting the map workspace surface scaffold decision and constraints.
 - Integrate a real MapLibre-powered workspace baseline in the central shell area with lifecycle-safe React map setup/cleanup and neutral map-ready overlay status.
 - Add ADR 0005 documenting the initial MapLibre workspace baseline decision and runtime-source constraints.
-
+- Add local typed pointer interaction state and MapLibre move/click handler plumbing in the map workspace with cleanup-safe unsubscribe behavior and neutral developer-facing overlay text.
+- Add ADR 0006 documenting neutral map workspace interaction plumbing and its non-goal constraints.
