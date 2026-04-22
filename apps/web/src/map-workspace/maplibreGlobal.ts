@@ -52,6 +52,14 @@ interface MapLibreStyleLayer {
 }
 
 /**
+ * Source descriptor extracted from style layers for feature queries at click locations.
+ */
+export interface MapLibreFeatureSourceRef {
+  readonly source: string;
+  readonly sourceLayer?: string;
+}
+
+/**
  * Minimal style document shape used for runtime layer/source inspection.
  */
 interface MapLibreStyleDefinition {
@@ -59,10 +67,31 @@ interface MapLibreStyleDefinition {
 }
 
 /**
+ * Minimal geometry shape needed to verify stop placement on line-like transport features.
+ */
+export interface MapLibreFeatureGeometry {
+  readonly type?: string;
+}
+
+/**
  * Minimal rendered feature shape used by local click eligibility validation.
  */
-interface MapLibreRenderedFeature {
+export interface MapLibreRenderedFeature {
   readonly layer?: { readonly id: string };
+  readonly source?: string;
+  readonly sourceLayer?: string;
+  readonly 'source-layer'?: string;
+  readonly geometry?: MapLibreFeatureGeometry;
+}
+
+/**
+ * Minimal source feature shape used by local click eligibility validation fallback.
+ */
+export interface MapLibreSourceFeature {
+  readonly source?: string;
+  readonly sourceLayer?: string;
+  readonly 'source-layer'?: string;
+  readonly geometry?: MapLibreFeatureGeometry;
 }
 
 /**
@@ -70,6 +99,13 @@ interface MapLibreRenderedFeature {
  */
 interface MapLibreRenderedFeatureQueryOptions {
   readonly layers?: readonly string[];
+}
+
+/**
+ * Query options for filtering source features to a specific source layer.
+ */
+interface MapLibreSourceFeatureQueryOptions {
+  readonly sourceLayer?: string;
 }
 
 /**
@@ -93,7 +129,43 @@ export interface MapLibreMap {
     point: MapEventPoint,
     options?: MapLibreRenderedFeatureQueryOptions
   ): readonly MapLibreRenderedFeature[];
+  /** Queries source features for a known source id and optional source-layer constraint. */
+  querySourceFeatures(sourceId: string, options?: MapLibreSourceFeatureQueryOptions): readonly MapLibreSourceFeature[];
 }
+
+/**
+ * Returns source references for the provided layer ids based on the active style definition.
+ */
+export const getSourceRefsForLayerIds = (
+  styleDefinition: MapLibreStyleDefinition | undefined,
+  layerIds: readonly string[]
+): readonly MapLibreFeatureSourceRef[] => {
+  if (!styleDefinition?.layers || layerIds.length === 0) {
+    return [];
+  }
+
+  const eligibleLayerIdSet = new Set(layerIds);
+  const sourceRefsByKey = new Map<string, MapLibreFeatureSourceRef>();
+
+  styleDefinition.layers.forEach((layer) => {
+    if (!eligibleLayerIdSet.has(layer.id) || !layer.source) {
+      return;
+    }
+
+    const sourceLayer = layer.sourceLayer ?? layer['source-layer'];
+    const sourceRef: MapLibreFeatureSourceRef = sourceLayer
+      ? {
+          source: layer.source,
+          sourceLayer
+        }
+      : {
+          source: layer.source
+        };
+    sourceRefsByKey.set(`${sourceRef.source}:${sourceRef.sourceLayer ?? ''}`, sourceRef);
+  });
+
+  return Array.from(sourceRefsByKey.values());
+};
 
 /**
  * Minimal marker API used to render lightweight stop markers on top of the map.
