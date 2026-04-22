@@ -34,3 +34,7 @@ All notable changes to this project will be documented in this file.
 - Persist valid stop placements in local `MapWorkspaceSurface` state with deterministic placeholder naming (`Stop 1`, `Stop 2`, ...).
 - Render visible map stop markers from local state and clean them up safely with map lifecycle teardown.
 - Add ADR 0011 documenting local stop state and marker rendering boundaries.
+- Narrow the MapLibre workspace typing around click-location feature queries with explicit rendered/source feature and geometry contracts.
+- Add a typed source-reference helper for style-layer-derived source queries used by stop-placement validation.
+- Update stop-placement eligibility checks to use line-geometry-aware rendered query checks with typed source-feature fallback.
+- Add ADR 0012 documenting the minimal MapLibre feature-query contract decision for stop-placement validation.
