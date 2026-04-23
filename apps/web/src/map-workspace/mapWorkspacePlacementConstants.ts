@@ -14,6 +14,21 @@ export const STREET_SNAP_DIRECT_HIT_QUERY_RADIUS_PIXELS = 0;
 export const STREET_SNAP_FALLBACK_QUERY_RADIUS_PIXELS = 8;
 
 /**
+ * Maximum pixel distance accepted for fallback snap candidates after direct-hit fails.
+ */
+export const STREET_SNAP_FALLBACK_MAX_PIXEL_TOLERANCE = 10;
+
+/**
+ * Maximum allowed feature/layer match-strength rank for fallback candidates (0 is strongest).
+ */
+export const STREET_SNAP_FALLBACK_MAX_FEATURE_MATCH_STRENGTH = 1;
+
+/**
+ * Minimum pixel-distance lead required over the second-best fallback candidate to avoid ambiguity.
+ */
+export const STREET_SNAP_FALLBACK_MIN_DISTANCE_ADVANTAGE_PIXELS = 1;
+
+/**
  * Screen-space offset used for deterministic fallback rendered-feature probes.
  */
 export interface StreetSnapFallbackQueryOffset {

@@ -12,6 +12,9 @@ import type { LineBuildSelectionState, WorkspaceToolMode } from '../App';
 import { MAP_WORKSPACE_BOOTSTRAP_CONFIG } from './mapBootstrapConfig';
 import {
   STREET_SNAP_DIRECT_HIT_QUERY_RADIUS_PIXELS,
+  STREET_SNAP_FALLBACK_MAX_FEATURE_MATCH_STRENGTH,
+  STREET_SNAP_FALLBACK_MAX_PIXEL_TOLERANCE,
+  STREET_SNAP_FALLBACK_MIN_DISTANCE_ADVANTAGE_PIXELS,
   STREET_SNAP_FALLBACK_QUERY_OFFSETS,
   STREET_SNAP_MAX_PIXEL_TOLERANCE
 } from './mapWorkspacePlacementConstants';
@@ -504,7 +507,7 @@ const resolveFallbackSnapCandidate = (
   event: MapLibreInteractionEvent,
   streetLayerIds: readonly string[]
 ): SnapCandidate | null => {
-  let bestCandidate: SnapCandidate | null = null;
+  const fallbackCandidates: SnapCandidate[] = [];
 
   for (const offset of STREET_SNAP_FALLBACK_QUERY_OFFSETS) {
     const queryPoint: ScreenPoint = { x: event.point.x + offset.deltaX, y: event.point.y + offset.deltaY };
@@ -515,7 +518,34 @@ const resolveFallbackSnapCandidate = (
       continue;
     }
 
-    bestCandidate = resolvePreferredSnapCandidate(bestCandidate, candidate);
+    fallbackCandidates.push(candidate);
+  }
+
+  if (fallbackCandidates.length === 0) {
+    return null;
+  }
+
+  const rankedFallbackCandidates = [...fallbackCandidates].sort(compareSnapCandidates);
+  const [bestCandidate, secondBestCandidate] = rankedFallbackCandidates;
+
+  if (!bestCandidate) {
+    return null;
+  }
+
+  if (
+    bestCandidate.pixelDistance > STREET_SNAP_FALLBACK_MAX_PIXEL_TOLERANCE ||
+    bestCandidate.ranking.featureLayerMatchStrength > STREET_SNAP_FALLBACK_MAX_FEATURE_MATCH_STRENGTH
+  ) {
+    return null;
+  }
+
+  if (!secondBestCandidate) {
+    return bestCandidate;
+  }
+
+  const distanceAdvantage = secondBestCandidate.pixelDistance - bestCandidate.pixelDistance;
+  if (distanceAdvantage < STREET_SNAP_FALLBACK_MIN_DISTANCE_ADVANTAGE_PIXELS) {
+    return null;
   }
 
   return bestCandidate;
@@ -531,12 +561,12 @@ const resolveSnappedStreetPosition = (
   }
 
   const directHitCandidate = resolveDirectHitSnapCandidate(map, event, streetLayerIds);
+  if (directHitCandidate) {
+    return directHitCandidate.snappedPosition;
+  }
+
   const fallbackCandidate = resolveFallbackSnapCandidate(map, event, streetLayerIds);
-  const bestCandidate =
-    directHitCandidate && fallbackCandidate
-      ? resolvePreferredSnapCandidate(directHitCandidate, fallbackCandidate)
-      : directHitCandidate ?? fallbackCandidate;
-  return bestCandidate?.snappedPosition ?? null;
+  return fallbackCandidate?.snappedPosition ?? null;
 };
 
 const createNeutralMapTelemetryHandlers = ({ setInteractionState }: NeutralMapTelemetryContracts): NeutralMapTelemetryHandlers => ({
