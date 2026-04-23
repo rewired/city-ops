@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-23
 
+- Slice 014g: extend the local MapLibre marker constructor typing with explicit stop-marker `anchor` and `offset` options to preserve strict typed API usage.
+- Slice 014g: centralize stop-marker visual anchor/offset constants in the map-workspace constants layer and consume them in marker creation.
+- Slice 014g: align stop-marker CSS box/affordance transform centering with explicit centered-anchor semantics for trustworthy stop-position perception.
+- Add ADR 0039 documenting stop-marker anchor/offset typing and visual-center alignment boundaries.
+
 - Slice 014f: replace key-based SVG remount refresh with explicit projection refresh triggers across pan/zoom/rotate lifecycle events (`start`/active/`end`) and coalesced refresh ticks.
 - Slice 014f: keep the existing SVG overlay architecture while recomputing projected polyline points from current map transform without forcing full overlay remount.
 - Slice 014f: clarify completed/draft line overlay semantics and styling as schematic stop-order connections (not street-routed yet), while preserving ordered stop selection plus explicit line completion behavior.

@@ -221,6 +221,7 @@ body {
 
 .map-workspace__stop-marker {
   position: relative;
+  box-sizing: border-box;
   width: 18px;
   height: 18px;
   --stop-marker-affordance-scale: 1;
@@ -240,6 +241,7 @@ body {
   border: 1px solid rgb(240 246 255 / 58%);
   opacity: 0;
   pointer-events: none;
+  transform-origin: center center;
   transform: scale(var(--stop-marker-affordance-scale));
   transition: transform 120ms ease, opacity 120ms ease;
 }

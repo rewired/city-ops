@@ -196,12 +196,40 @@ export interface MapLibreMarker {
 }
 
 /**
+ * Anchor positions supported by the minimal marker constructor surface used in this workspace.
+ */
+type MapLibreMarkerAnchor =
+  | 'center'
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right';
+
+/**
+ * Pixel offset tuple applied to marker placement after anchor resolution.
+ */
+type MapLibreMarkerOffset = readonly [number, number];
+
+/**
+ * Minimal constructor options accepted by the marker API used for stop rendering.
+ */
+interface MapLibreMarkerConstructorOptions {
+  readonly element?: HTMLElement;
+  readonly anchor?: MapLibreMarkerAnchor;
+  readonly offset?: MapLibreMarkerOffset;
+}
+
+/**
  * Minimal constructor API for `window.maplibregl` consumed by the workspace map component.
  */
 interface MapLibreGlobal {
   readonly Map: new (options: MapConstructorOptions) => MapLibreMap;
   readonly NavigationControl: new (options: { readonly visualizePitch: boolean }) => unknown;
-  readonly Marker: new (options?: { readonly element?: HTMLElement }) => MapLibreMarker;
+  readonly Marker: new (options?: MapLibreMarkerConstructorOptions) => MapLibreMarker;
 }
 
 declare global {

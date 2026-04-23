@@ -14,6 +14,7 @@ import {
   STREET_SNAP_MAX_PIXEL_TOLERANCE,
   STREET_SNAP_QUERY_WINDOW_PIXELS
 } from './mapWorkspacePlacementConstants';
+import { STOP_MARKER_ANCHOR, STOP_MARKER_OFFSET } from './mapWorkspaceMarkerConstants';
 import {
   getSourceRefsForLayerIds,
   type MapLibreFeatureGeometry,
@@ -600,7 +601,11 @@ const createStopMarker = (
     onMarkerClick(stop);
   });
 
-  return new window.maplibregl.Marker({ element: markerElement }).setLngLat([stop.position.lng, stop.position.lat]);
+  return new window.maplibregl.Marker({
+    element: markerElement,
+    anchor: STOP_MARKER_ANCHOR,
+    offset: STOP_MARKER_OFFSET
+  }).setLngLat([stop.position.lng, stop.position.lat]);
 };
 
 interface StopMarkerInteractionContext {
