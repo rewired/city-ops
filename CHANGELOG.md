@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-23
 
+- Slice 013: add canonical time-band model primitives (`TimeBandId`, `MVP_TIME_BAND_IDS`, `TIME_BAND_DISPLAY_LABELS`) as the single source for MVP service-band semantics.
+- Slice 013: store completed-line frequency configuration in session state as explicit per-canonical-band values (including unset state).
+- Slice 013: enable line-selected inspector per-band interval editing for completed lines with canonical band ordering/labels.
+- Slice 013 validation posture: accept positive minute values, treat empty values as unset, reject non-positive values; non-goals remain simulation/routing/demand/economy/persistence changes.
+
 - Lift completed line session state ownership to `App.tsx` and expose map-surface callbacks for session line and selected-line mutation.
 - Extend the `line-selected` inspector with one editable minute-interval input per canonical MVP time band.
 - Add minimal frequency validation in inspector editing: empty values remain unset, while zero/negative values show inline feedback and are rejected from session state updates.
