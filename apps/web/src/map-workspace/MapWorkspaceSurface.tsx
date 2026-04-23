@@ -83,6 +83,7 @@ interface MapWorkspaceSurfaceProps {
   readonly lineBuildSelection: LineBuildSelectionState;
   readonly sessionLines: readonly Line[];
   readonly selectedLineId: Line['id'] | null;
+  readonly onPlacedStopCountChange: (nextCount: number) => void;
   readonly onStopSelectionChange: (nextSelection: StopSelectionState | null) => void;
   readonly onLineBuildSelectionChange: (nextSelection: LineBuildSelectionState) => void;
   readonly onSessionLinesChange: (updater: (currentLines: readonly Line[]) => readonly Line[]) => void;
@@ -522,6 +523,7 @@ export function MapWorkspaceSurface({
   selectedStopId,
   sessionLines,
   selectedLineId,
+  onPlacedStopCountChange,
   onStopSelectionChange,
   onLineBuildSelectionChange,
   onSessionLinesChange,
@@ -566,6 +568,10 @@ export function MapWorkspaceSurface({
   useEffect(() => {
     onLineBuildSelectionChange({ selectedStopIds: draftLineState.stopIds });
   }, [draftLineState.stopIds, onLineBuildSelectionChange]);
+
+  useEffect(() => {
+    onPlacedStopCountChange(placedStops.length);
+  }, [onPlacedStopCountChange, placedStops.length]);
 
   useEffect(() => {
     if (activeToolMode === 'build-line') {

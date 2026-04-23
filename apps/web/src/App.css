@@ -211,6 +211,19 @@ body {
   color: #9fb0cb;
 }
 
+.inspector-network-summary {
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid #2f415f;
+  border-radius: 8px;
+  background: #172233;
+}
+
+.inspector-network-summary h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .inspector-frequency-editor {
   display: grid;
   gap: 10px;
