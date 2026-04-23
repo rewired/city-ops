@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-23
 
+- Slice 014n: keep street-snap fallback strictly secondary by returning direct-hit candidates immediately when available.
+- Slice 014n: add stricter fallback acceptance gating (tighter fallback tolerance, minimum feature-match quality, and ambiguity rejection for near-equal fallback candidates).
+- Slice 014n: centralize fallback acceptance thresholds in map workspace placement constants to avoid component-local literals.
+- Add ADR 0046 documenting strict-secondary fallback gating and ambiguity rejection boundaries.
+
 - Slice 014m: extend street snap candidate ranking with deterministic metadata precedence (direct-hit provenance, then feature/layer match strength, then pixel distance).
 - Slice 014m: centralize snap candidate ordering in one compare helper and reuse it across line-segment, direct-hit, fallback, and final candidate resolution paths for consistent selection behavior.
 - Add ADR 0045 documenting deterministic street snap ranking and shared compare semantics.
