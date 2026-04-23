@@ -11,6 +11,10 @@ import { createStopId } from '../domain/types/stop';
 import type { LineBuildSelectionState, WorkspaceToolMode } from '../App';
 import { MAP_WORKSPACE_BOOTSTRAP_CONFIG } from './mapBootstrapConfig';
 import {
+  STREET_SNAP_MAX_PIXEL_TOLERANCE,
+  STREET_SNAP_QUERY_WINDOW_PIXELS
+} from './mapWorkspacePlacementConstants';
+import {
   getSourceRefsForLayerIds,
   type MapLibreFeatureGeometry,
   type MapLibreInteractionEvent,
@@ -105,6 +109,21 @@ interface ProjectedLineSegment {
   readonly points: string;
 }
 
+interface ScreenPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+interface GeographicPoint {
+  readonly lng: number;
+  readonly lat: number;
+}
+
+interface SnapCandidate {
+  readonly snappedPosition: GeographicPoint;
+  readonly pixelDistance: number;
+}
+
 const STREET_LAYER_HINTS = ['road', 'street', 'highway', 'bridge', 'tunnel', 'transport', 'path'] as const;
 const STREET_SOURCE_HINTS = ['road', 'street', 'transport', 'highway'] as const;
 const STOP_LABEL_PREFIX = 'Stop';
@@ -167,6 +186,31 @@ const resolveStreetLayerIdsFromStyle = (map: MapLibreMap): readonly string[] => 
 const isLineGeometry = (geometry: MapLibreFeatureGeometry | undefined): boolean =>
   geometry?.type === 'LineString' || geometry?.type === 'MultiLineString';
 
+const isCoordinatePair = (value: unknown): value is readonly [number, number] =>
+  Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number';
+
+const isLineStringCoordinates = (value: unknown): value is readonly (readonly [number, number])[] =>
+  Array.isArray(value) && value.every((coordinatePair) => isCoordinatePair(coordinatePair));
+
+const isMultiLineStringCoordinates = (value: unknown): value is readonly (readonly (readonly [number, number])[])[] =>
+  Array.isArray(value) && value.every((lineCoordinates) => isLineStringCoordinates(lineCoordinates));
+
+const toLineCoordinateCollections = (geometry: MapLibreFeatureGeometry | undefined): readonly (readonly (readonly [number, number])[])[] => {
+  if (!geometry) {
+    return [];
+  }
+
+  if (geometry.type === 'LineString' && isLineStringCoordinates(geometry.coordinates)) {
+    return [geometry.coordinates];
+  }
+
+  if (geometry.type === 'MultiLineString' && isMultiLineStringCoordinates(geometry.coordinates)) {
+    return geometry.coordinates;
+  }
+
+  return [];
+};
+
 const toFeatureSourceKey = (source: string | undefined, sourceLayer: string | undefined): string | null => {
   if (!source) {
     return null;
@@ -215,9 +259,11 @@ const hasStreetLineGeometryInSourceFallback = (
   });
 };
 
-const isEligibleStopPlacementClick = (map: MapLibreMap, event: MapLibreInteractionEvent): boolean => {
-  const streetLayerIds = resolveStreetLayerIdsFromStyle(map);
-
+const isEligibleStopPlacementClickForLayers = (
+  map: MapLibreMap,
+  event: MapLibreInteractionEvent,
+  streetLayerIds: readonly string[]
+): boolean => {
   if (streetLayerIds.length === 0) {
     return false;
   }
@@ -231,6 +277,119 @@ const isEligibleStopPlacementClick = (map: MapLibreMap, event: MapLibreInteracti
   // Fallback: when rendered-layer hit granularity is insufficient, confirm street source presence
   // at the clicked point and require real line geometry from the matched street source-layer.
   return hasStreetLineGeometryInSourceFallback(map, event, streetLayerIds);
+};
+
+const toNearbyQueryPoints = (point: ScreenPoint): readonly ScreenPoint[] => {
+  const queryPoints: ScreenPoint[] = [point];
+
+  for (let deltaX = -STREET_SNAP_QUERY_WINDOW_PIXELS; deltaX <= STREET_SNAP_QUERY_WINDOW_PIXELS; deltaX += STREET_SNAP_QUERY_WINDOW_PIXELS) {
+    for (let deltaY = -STREET_SNAP_QUERY_WINDOW_PIXELS; deltaY <= STREET_SNAP_QUERY_WINDOW_PIXELS; deltaY += STREET_SNAP_QUERY_WINDOW_PIXELS) {
+      if (deltaX === 0 && deltaY === 0) {
+        continue;
+      }
+
+      queryPoints.push({ x: point.x + deltaX, y: point.y + deltaY });
+    }
+  }
+
+  return queryPoints;
+};
+
+const resolveNearestPointOnSegment = (
+  point: ScreenPoint,
+  segmentStart: ScreenPoint,
+  segmentEnd: ScreenPoint
+): { readonly ratio: number; readonly distance: number } => {
+  const deltaX = segmentEnd.x - segmentStart.x;
+  const deltaY = segmentEnd.y - segmentStart.y;
+  const segmentLengthSquared = deltaX * deltaX + deltaY * deltaY;
+
+  if (segmentLengthSquared === 0) {
+    const distanceToDegenerateSegment = Math.hypot(point.x - segmentStart.x, point.y - segmentStart.y);
+    return { ratio: 0, distance: distanceToDegenerateSegment };
+  }
+
+  const projectedRatio =
+    ((point.x - segmentStart.x) * deltaX + (point.y - segmentStart.y) * deltaY) / segmentLengthSquared;
+  const clampedRatio = Math.min(1, Math.max(0, projectedRatio));
+  const nearestX = segmentStart.x + clampedRatio * deltaX;
+  const nearestY = segmentStart.y + clampedRatio * deltaY;
+  const distance = Math.hypot(point.x - nearestX, point.y - nearestY);
+
+  return { ratio: clampedRatio, distance };
+};
+
+const resolveSnapCandidateForLineCoordinates = (
+  map: MapLibreMap,
+  clickPoint: ScreenPoint,
+  coordinates: readonly (readonly [number, number])[]
+): SnapCandidate | null => {
+  if (coordinates.length < 2) {
+    return null;
+  }
+
+  let nearestCandidate: SnapCandidate | null = null;
+
+  for (let index = 0; index < coordinates.length - 1; index += 1) {
+    const segmentStartCoordinate = coordinates[index];
+    const segmentEndCoordinate = coordinates[index + 1];
+
+    if (!segmentStartCoordinate || !segmentEndCoordinate) {
+      continue;
+    }
+
+    const segmentStartPoint = map.project(segmentStartCoordinate);
+    const segmentEndPoint = map.project(segmentEndCoordinate);
+    const nearestOnSegment = resolveNearestPointOnSegment(clickPoint, segmentStartPoint, segmentEndPoint);
+
+    if (nearestOnSegment.distance > STREET_SNAP_MAX_PIXEL_TOLERANCE) {
+      continue;
+    }
+
+    const snappedPosition: GeographicPoint = {
+      lng: segmentStartCoordinate[0] + (segmentEndCoordinate[0] - segmentStartCoordinate[0]) * nearestOnSegment.ratio,
+      lat: segmentStartCoordinate[1] + (segmentEndCoordinate[1] - segmentStartCoordinate[1]) * nearestOnSegment.ratio
+    };
+    const nextCandidate: SnapCandidate = { snappedPosition, pixelDistance: nearestOnSegment.distance };
+
+    if (!nearestCandidate || nextCandidate.pixelDistance < nearestCandidate.pixelDistance) {
+      nearestCandidate = nextCandidate;
+    }
+  }
+
+  return nearestCandidate;
+};
+
+const resolveSnappedStreetPosition = (
+  map: MapLibreMap,
+  event: MapLibreInteractionEvent,
+  streetLayerIds: readonly string[]
+): Readonly<{ lng: number; lat: number }> | null => {
+  if (streetLayerIds.length === 0) {
+    return null;
+  }
+
+  const candidateFeatures = toNearbyQueryPoints(event.point).flatMap((queryPoint) =>
+    map.queryRenderedFeatures(queryPoint, { layers: streetLayerIds })
+  );
+  let bestCandidate: SnapCandidate | null = null;
+
+  for (const feature of candidateFeatures) {
+    const lineCollections = toLineCoordinateCollections(feature.geometry);
+    for (const lineCoordinates of lineCollections) {
+      const candidate = resolveSnapCandidateForLineCoordinates(map, event.point, lineCoordinates);
+
+      if (!candidate) {
+        continue;
+      }
+
+      if (!bestCandidate || candidate.pixelDistance < bestCandidate.pixelDistance) {
+        bestCandidate = candidate;
+      }
+    }
+  }
+
+  return bestCandidate?.snappedPosition ?? null;
 };
 
 const createNeutralMapTelemetryHandlers = ({ setInteractionState }: NeutralMapTelemetryContracts): NeutralMapTelemetryHandlers => ({
@@ -257,7 +416,10 @@ const handleStopPlacementClick = (
   { map, setInteractionState, setPlacementAttemptResult, onStopSelectionChange, onValidPlacement }: PlacementGameplayContracts,
   event: MapLibreInteractionEvent
 ): void => {
-  if (!event.lngLat || !isEligibleStopPlacementClick(map, event)) {
+  const streetLayerIds = resolveStreetLayerIdsFromStyle(map);
+  const snappedPosition = resolveSnappedStreetPosition(map, event, streetLayerIds);
+
+  if (!event.lngLat || !isEligibleStopPlacementClickForLayers(map, event, streetLayerIds) || !snappedPosition) {
     setPlacementAttemptResult('invalid-target');
     setInteractionState({
       status: 'placement-rejected',
@@ -268,12 +430,12 @@ const handleStopPlacementClick = (
     return;
   }
 
-  const placedStop = onValidPlacement(event.lngLat.lng, event.lngLat.lat);
+  const placedStop = onValidPlacement(snappedPosition.lng, snappedPosition.lat);
   onStopSelectionChange(toStopSelectionState(placedStop));
   setPlacementAttemptResult('placed');
   setInteractionState({
     status: 'click-captured',
-    pointer: createPointerState(event.point.x, event.point.y, event.lngLat.lng, event.lngLat.lat)
+    pointer: createPointerState(event.point.x, event.point.y, snappedPosition.lng, snappedPosition.lat)
   });
 };
 
