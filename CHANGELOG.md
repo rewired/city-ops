@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-23
 
+- Slice 014e: split stop-placement target handling into explicit street eligibility and snap-resolution phases.
+- Slice 014e: add nearest-point snapping from click position to rendered street line (`LineString`/`MultiLineString`) geometry and place stops at snapped lng/lat.
+- Slice 014e: centralize map-workspace street snap query/tolerance pixels in a dedicated map-workspace constants module.
+- Add ADR 0037 documenting street-placement snap resolution boundaries and non-goals.
+
 - Slice 014d: align `.app-material-icon` with Material Symbols ligature rendering expectations (`display`, `normal` style/weight, and WebKit ligature feature setting) while preserving the existing Material icon baseline and typed icon name flow.
 - Add ADR 0036 documenting Material Symbols ligature rendering contract alignment and accessibility non-goals.
 

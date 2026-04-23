@@ -71,6 +71,7 @@ interface MapLibreStyleDefinition {
  */
 export interface MapLibreFeatureGeometry {
   readonly type?: string;
+  readonly coordinates?: unknown;
 }
 
 /**
