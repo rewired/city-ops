@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-23
 
+- Slice 014f: replace key-based SVG remount refresh with explicit projection refresh triggers across pan/zoom/rotate lifecycle events (`start`/active/`end`) and coalesced refresh ticks.
+- Slice 014f: keep the existing SVG overlay architecture while recomputing projected polyline points from current map transform without forcing full overlay remount.
+- Slice 014f: clarify completed/draft line overlay semantics and styling as schematic stop-order connections (not street-routed yet), while preserving ordered stop selection plus explicit line completion behavior.
+- Add ADR 0038 documenting map overlay refresh lifecycle wiring and schematic line copy boundaries.
+
 - Slice 014e: split stop-placement target handling into explicit street eligibility and snap-resolution phases.
 - Slice 014e: add nearest-point snapping from click position to rendered street line (`LineString`/`MultiLineString`) geometry and place stops at snapped lng/lat.
 - Slice 014e: centralize map-workspace street snap query/tolerance pixels in a dedicated map-workspace constants module.

@@ -38,7 +38,18 @@ export interface MapLibreInteractionEvent {
 /**
  * Interaction event names used by the workspace baseline.
  */
-type MapLibreInteractionEventType = 'mousemove' | 'click' | 'move';
+type MapLibreInteractionEventType =
+  | 'mousemove'
+  | 'click'
+  | 'movestart'
+  | 'move'
+  | 'moveend'
+  | 'zoomstart'
+  | 'zoom'
+  | 'zoomend'
+  | 'rotatestart'
+  | 'rotate'
+  | 'rotateend';
 
 /**
  * Minimal style-layer shape required for local stop-placement eligibility checks.
