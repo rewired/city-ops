@@ -152,8 +152,9 @@ body {
 }
 
 .map-workspace__line-segment--completed {
-  stroke: rgb(127 176 245 / 85%);
-  stroke-width: 4;
+  stroke: rgb(118 178 255 / 86%);
+  stroke-width: 4.5;
+  stroke-dasharray: 10 2;
   pointer-events: stroke;
   cursor: pointer;
 }
@@ -166,9 +167,10 @@ body {
 }
 
 .map-workspace__line-segment--draft {
-  stroke: rgb(246 212 110 / 92%);
-  stroke-width: 3;
-  stroke-dasharray: 6 5;
+  stroke: rgb(255 216 105 / 95%);
+  stroke-width: 3.5;
+  stroke-dasharray: 5 6;
+  filter: drop-shadow(0 0 5px rgb(255 216 105 / 45%));
   pointer-events: none;
 }
 
@@ -199,6 +201,13 @@ body {
   right: 14px;
   bottom: 14px;
   max-width: min(52ch, calc(100% - 28px));
+  text-transform: none;
+}
+
+.map-workspace__overlay--line-note {
+  left: 14px;
+  bottom: 14px;
+  max-width: min(56ch, calc(100% - 28px));
   text-transform: none;
 }
 

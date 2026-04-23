@@ -81,6 +81,10 @@ interface MapWorkspaceResizeBinding {
   readonly dispose: () => void;
 }
 
+interface MapProjectionRefreshBinding {
+  readonly dispose: () => void;
+}
+
 interface MapWorkspaceSurfaceProps {
   readonly activeToolMode: WorkspaceToolMode;
   readonly selectedStopId: StopId | null;
@@ -137,9 +141,24 @@ const PLACEMENT_FEEDBACK_MESSAGES = {
   attemptInvalidTarget: 'Last attempt: blocked (street segment required).'
 } as const;
 const BUILD_LINE_FEEDBACK_MESSAGES = {
-  instruction: 'Click existing stop markers in order to draft a line.',
+  instruction: 'Click existing stop markers in order to draft a schematic stop-order line (not street-routed yet).',
   minimumStopRequirement: `Minimum stops to complete: ${MINIMUM_STOPS_REQUIRED_TO_COMPLETE_LINE}.`
 } as const;
+const LINE_OVERLAY_COPY = {
+  completed: 'Completed lines: schematic stop-order connections (not street-routed yet).',
+  draft: 'Draft line: schematic stop-order preview (not street-routed yet).'
+} as const;
+const MAP_PROJECTION_REFRESH_EVENTS = [
+  'movestart',
+  'move',
+  'moveend',
+  'zoomstart',
+  'zoom',
+  'zoomend',
+  'rotatestart',
+  'rotate',
+  'rotateend'
+] as const;
 const INITIAL_DRAFT_LINE_STATE: DraftLineState = { stopIds: [], metadata: null };
 
 const toStopSelectionState = (stop: Stop): StopSelectionState => ({ selectedStopId: stop.id });
@@ -504,6 +523,43 @@ const setupMapResizeBinding = (containerElement: HTMLDivElement, mapRef: { reado
   };
 };
 
+const setupMapProjectionRefreshBinding = (
+  map: MapLibreMap,
+  onRefreshRequested: () => void
+): MapProjectionRefreshBinding => {
+  let isRefreshQueued = false;
+  let animationFrameId: number | null = null;
+
+  const queueProjectionRefresh = (): void => {
+    if (isRefreshQueued) {
+      return;
+    }
+
+    isRefreshQueued = true;
+    animationFrameId = window.requestAnimationFrame(() => {
+      isRefreshQueued = false;
+      animationFrameId = null;
+      onRefreshRequested();
+    });
+  };
+
+  MAP_PROJECTION_REFRESH_EVENTS.forEach((eventName) => {
+    map.on(eventName, queueProjectionRefresh);
+  });
+
+  return {
+    dispose: () => {
+      MAP_PROJECTION_REFRESH_EVENTS.forEach((eventName) => {
+        map.off(eventName, queueProjectionRefresh);
+      });
+
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+    }
+  };
+};
+
 const createMapWorkspaceInstance = (containerElement: HTMLDivElement): MapLibreMap => {
   const mapInstance = new window.maplibregl.Map({
     container: containerElement,
@@ -843,14 +899,12 @@ export function MapWorkspaceSurface({
       return;
     }
 
-    const onMapMove = (): void => {
+    const projectionBinding = setupMapProjectionRefreshBinding(mapInstance, () => {
       setProjectionRefreshTick((currentTick) => currentTick + 1);
-    };
-
-    mapInstance.on('move', onMapMove);
+    });
 
     return () => {
-      mapInstance.off('move', onMapMove);
+      projectionBinding.dispose();
     };
   }, []);
 
@@ -966,7 +1020,7 @@ export function MapWorkspaceSurface({
   return (
     <section className="map-workspace" aria-label="Map workspace surface">
       <div ref={mapContainerRef} className="map-workspace__map" aria-label="CityOps baseline map" />
-      <svg className="map-workspace__line-overlay" aria-hidden="true" key={projectionRefreshTick}>
+      <svg className="map-workspace__line-overlay" aria-hidden="true" data-projection-refresh-tick={projectionRefreshTick}>
         {projectedCompletedSegments.map((segment) => (
           <polyline
             key={segment.key}
@@ -1016,6 +1070,7 @@ export function MapWorkspaceSurface({
           <strong>{BUILD_LINE_MODE_INDICATOR_LABEL}</strong>
           <span> · {buildLineUiFeedback.modeInstruction}</span>
           <span> · {buildLineUiFeedback.minimumStopRequirement}</span>
+          <span> · {LINE_OVERLAY_COPY.draft}</span>
           <span>{` · Draft stops: ${buildLineUiFeedback.draftStopCount}`}</span>
           <div className="map-workspace__overlay-button-row">
             <button type="button" onClick={handleDraftCancel}>
@@ -1025,6 +1080,13 @@ export function MapWorkspaceSurface({
               Complete line
             </button>
           </div>
+        </div>
+      ) : null}
+
+      {sessionLines.length > 0 ? (
+        <div className="map-workspace__overlay map-workspace__overlay--line-note" aria-label="Line overlay interpretation">
+          <strong>Line overlay note</strong>
+          <span> · {LINE_OVERLAY_COPY.completed}</span>
         </div>
       ) : null}
     </section>
