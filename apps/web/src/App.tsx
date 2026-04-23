@@ -36,6 +36,18 @@ type LineFrequencyInputByTimeBand = Readonly<Record<TimeBandId, string>>;
 
 type LineFrequencyValidationByTimeBand = Readonly<Record<TimeBandId, string | null>>;
 
+interface SelectedLineStructureSummary {
+  readonly stopCount: number;
+  readonly configuredTimeBandCount: number;
+  readonly unconfiguredTimeBandCount: number;
+}
+
+interface StaticNetworkSummaryKpis {
+  readonly totalStopCount: number;
+  readonly completedLineCount: number;
+  readonly selectedCompletedLine: SelectedLineStructureSummary | null;
+}
+
 /**
  * Enumerates the inspector's mutually exclusive visual states.
  */
@@ -110,10 +122,43 @@ function resolveInspectorPanelState(
 }
 
 /**
+ * Projects a minimal structural-only network KPI summary from current in-memory planning state.
+ */
+function projectStaticNetworkSummaryKpis(
+  totalStopCount: number,
+  sessionLines: readonly Line[],
+  selectedLine: Line | null
+): StaticNetworkSummaryKpis {
+  if (!selectedLine) {
+    return {
+      totalStopCount,
+      completedLineCount: sessionLines.length,
+      selectedCompletedLine: null
+    };
+  }
+
+  const configuredTimeBandCount = MVP_TIME_BAND_IDS.filter((timeBandId) => {
+    const frequencyValue = selectedLine.frequencyByTimeBand[timeBandId];
+    return frequencyValue !== null && frequencyValue !== undefined;
+  }).length;
+
+  return {
+    totalStopCount,
+    completedLineCount: sessionLines.length,
+    selectedCompletedLine: {
+      stopCount: selectedLine.stopIds.length,
+      configuredTimeBandCount,
+      unconfiguredTimeBandCount: MVP_TIME_BAND_IDS.length - configuredTimeBandCount
+    }
+  };
+}
+
+/**
  * Renders the initial desktop-only CityOps application shell layout.
  */
 export default function App(): ReactElement {
   const [activeToolMode, setActiveToolMode] = useState<WorkspaceToolMode>('inspect');
+  const [placedStopCount, setPlacedStopCount] = useState(0);
   const [selectedStop, setSelectedStop] = useState<StopSelectionState | null>(null);
   const [lineBuildSelection, setLineBuildSelection] =
     useState<LineBuildSelectionState>(INITIAL_LINE_BUILD_SELECTION_STATE);
@@ -135,6 +180,11 @@ export default function App(): ReactElement {
   const selectedLine = sessionLines.find((line) => line.id === selectedLineId) ?? null;
   const selectedStopId: StopId | null = selectedStop?.selectedStopId ?? null;
   const inspectorPanelState = resolveInspectorPanelState(selectedLine, selectedStop);
+  const staticNetworkSummaryKpis = projectStaticNetworkSummaryKpis(
+    placedStopCount,
+    sessionLines,
+    selectedLine
+  );
 
   useEffect(() => {
     if (!selectedLine) {
@@ -276,6 +326,7 @@ export default function App(): ReactElement {
           lineBuildSelection={lineBuildSelection}
           sessionLines={sessionLines}
           selectedLineId={selectedLineId}
+          onPlacedStopCountChange={setPlacedStopCount}
           onStopSelectionChange={setSelectedStop}
           onLineBuildSelectionChange={setLineBuildSelection}
           onSessionLinesChange={setSessionLines}
@@ -286,6 +337,20 @@ export default function App(): ReactElement {
       <aside className="right-panel" aria-label="Inspector panel">
         <h2>Inspector</h2>
         <p>Active mode: {activeToolMode}</p>
+        <section className="inspector-network-summary" aria-label="Static network summary">
+          <h3>Static network summary</h3>
+          <p>Total stops: {staticNetworkSummaryKpis.totalStopCount}</p>
+          <p>Completed lines: {staticNetworkSummaryKpis.completedLineCount}</p>
+          {staticNetworkSummaryKpis.selectedCompletedLine ? (
+            <div>
+              <p>Selected line stops: {staticNetworkSummaryKpis.selectedCompletedLine.stopCount}</p>
+              <p>Configured time bands: {staticNetworkSummaryKpis.selectedCompletedLine.configuredTimeBandCount}</p>
+              <p>Unconfigured time bands: {staticNetworkSummaryKpis.selectedCompletedLine.unconfiguredTimeBandCount}</p>
+            </div>
+          ) : (
+            <p>Selected completed line: none</p>
+          )}
+        </section>
         <p>MVP time bands: {MVP_TIME_BAND_IDS.map((timeBandId) => TIME_BAND_DISPLAY_LABELS[timeBandId]).join(', ')}</p>
         {inspectorPanelState.mode === 'line-selected' ? (
           <div>

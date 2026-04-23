@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-23
 
+- Slice 014: add a compact static network summary in the inspector with structural-only KPI counts for total stops and completed lines.
+- Slice 014: add selected completed-line structural KPI details (stop count plus configured/unconfigured canonical time-band counts) with explicit empty-state messaging.
+- Slice 014: expose placed-stop count from map workspace to shell through a minimal callback boundary to support truthful shell-level structural summaries.
+- Add ADR 0032 documenting static-network-summary KPI boundaries and explicit non-goals against simulation/demand/economy analytics.
+
 - Slice 013: add canonical time-band model primitives (`TimeBandId`, `MVP_TIME_BAND_IDS`, `TIME_BAND_DISPLAY_LABELS`) as the single source for MVP service-band semantics.
 - Slice 013: store completed-line frequency configuration in session state as explicit per-canonical-band values (including unset state).
 - Slice 013: enable line-selected inspector per-band interval editing for completed lines with canonical band ordering/labels.
