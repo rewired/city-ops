@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "cityops-selected-line-export-v2",
+  "exportKind": "single-line",
+  "createdAtIsoUtc": "2026-04-24T13:52:15.274Z",
+  "sourceMetadata": {
+    "source": "cityops-web"
+  },
+  "line": {
+    "id": "line-1",
+    "label": "Line 1",
+    "orderedStopIds": [
+      "stop-1",
+      "stop-2",
+      "stop-3",
+      "stop-4",
+      "stop-5",
+      "stop-6",
+      "stop-7"
+    ],
+    "frequencyByTimeBand": {
+      "morning-rush": 10,
+      "late-morning": 20,
+      "midday": 20,
+      "afternoon": 20,
+      "evening-rush": 10,
+      "evening": 20,
+      "night": 30
+    },
+    "routeSegments": [
+      {
+        "id": "line-1-segment-1",
+        "lineId": "line-1",
+        "fromStopId": "stop-1",
+        "toStopId": "stop-2",
+        "orderedGeometry": [
+          [
+            9.937775244903044,
+            53.54617919372632
+          ],
+          [
+            9.9445087704859,
+            53.54610568198643
+          ]
+        ],
+        "distanceMeters": 444.9542067643613,
+        "inMotionTravelMinutes": 0.9887871261430251,
+        "dwellMinutes": 0.5,
+        "totalTravelMinutes": 1.4887871261430252,
+        "status": "fallback-routed"
+      },
+      {
+        "id": "line-1-segment-2",
+        "lineId": "line-1",
+        "fromStopId": "stop-2",
+        "toStopId": "stop-3",
+        "orderedGeometry": [
+          [
+            9.9445087704859,
+            53.54610568198643
+          ],
+          [
+            9.952521562091288,
+            53.546451073818844
+          ]
+        ],
+        "distanceMeters": 530.7888608410942,
+        "inMotionTravelMinutes": 1.1795308018690982,
+        "dwellMinutes": 0.5,
+        "totalTravelMinutes": 1.6795308018690982,
+        "status": "fallback-routed"
+      },
+      {
+        "id": "line-1-segment-3",
+        "lineId": "line-1",
+        "fromStopId": "stop-3",
+        "toStopId": "stop-4",
+        "orderedGeometry": [
+          [
+            9.952521562091288,
+            53.546451073818844
+          ],
+          [
+            9.954341069964816,
+            53.54788943018046
+          ]
+        ],
+        "distanceMeters": 200.076832248594,
+        "inMotionTravelMinutes": 0.44461518277465334,
+        "dwellMinutes": 0.5,
+        "totalTravelMinutes": 0.9446151827746534,
+        "status": "fallback-routed"
+      },
+      {
+        "id": "line-1-segment-4",
+        "lineId": "line-1",
+        "fromStopId": "stop-4",
+        "toStopId": "stop-5",
+        "orderedGeometry": [
+          [
+            9.954341069964816,
+            53.54788943018046
+          ],
+          [
+            9.951336898616933,
+            53.54940466424221
+          ]
+        ],
+        "distanceMeters": 260.343325946787,
+        "inMotionTravelMinutes": 0.5785407243261933,
+        "dwellMinutes": 0.5,
+        "totalTravelMinutes": 1.0785407243261933,
+        "status": "fallback-routed"
+      },
+      {
+        "id": "line-1-segment-5",
+        "lineId": "line-1",
+        "fromStopId": "stop-5",
+        "toStopId": "stop-6",
+        "orderedGeometry": [
+          [
+            9.951336898616933,
+            53.54940466424221
+          ],
+          [
+            9.94119643052645,
+            53.54792982121404
+          ]
+        ],
+        "distanceMeters": 689.7137671329407,
+        "inMotionTravelMinutes": 1.5326972602954239,
+        "dwellMinutes": 0.5,
+        "totalTravelMinutes": 2.032697260295424,
+        "status": "fallback-routed"
+      },
+      {
+        "id": "line-1-segment-6",
+        "lineId": "line-1",
+        "fromStopId": "stop-6",
+        "toStopId": "stop-7",
+        "orderedGeometry": [
+          [
+            9.94119643052645,
+            53.54792982121404
+          ],
+          [
+            9.936068148532865,
+            53.54755408015202
+          ]
+        ],
+        "distanceMeters": 341.37541946331635,
+        "inMotionTravelMinutes": 0.7586120432518141,
+        "dwellMinutes": 0.5,
+        "totalTravelMinutes": 1.258612043251814,
+        "status": "fallback-routed"
+      }
+    ]
+  },
+  "stops": [
+    {
+      "id": "stop-1",
+      "position": {
+        "lng": 9.937775244903044,
+        "lat": 53.54617919372632
+      },
+      "label": "Stop 1"
+    },
+    {
+      "id": "stop-2",
+      "position": {
+        "lng": 9.9445087704859,
+        "lat": 53.54610568198643
+      },
+      "label": "Stop 2"
+    },
+    {
+      "id": "stop-3",
+      "position": {
+        "lng": 9.952521562091288,
+        "lat": 53.546451073818844
+      },
+      "label": "Stop 3"
+    },
+    {
+      "id": "stop-4",
+      "position": {
+        "lng": 9.954341069964816,
+        "lat": 53.54788943018046
+      },
+      "label": "Stop 4"
+    },
+    {
+      "id": "stop-5",
+      "position": {
+        "lng": 9.951336898616933,
+        "lat": 53.54940466424221
+      },
+      "label": "Stop 5"
+    },
+    {
+      "id": "stop-6",
+      "position": {
+        "lng": 9.94119643052645,
+        "lat": 53.54792982121404
+      },
+      "label": "Stop 6"
+    },
+    {
+      "id": "stop-7",
+      "position": {
+        "lng": 9.936068148532865,
+        "lat": 53.54755408015202
+      },
+      "label": "Stop 7"
+    }
+  ],
+  "metadata": {
+    "lineCount": 1,
+    "stopCount": 7,
+    "routeSegmentCount": 6,
+    "includedTimeBandIds": [
+      "morning-rush",
+      "late-morning",
+      "midday",
+      "afternoon",
+      "evening-rush",
+      "evening",
+      "night"
+    ]
+  }
+}
