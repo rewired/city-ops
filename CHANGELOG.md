@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 015f: add a lightweight Vitest test runner baseline for `apps/web` with `test` and `test:watch` scripts.
+- Slice 015f: add root-level `test:web` and `test` scripts to aggregate web package unit-test execution through existing pnpm workspace tooling.
+- Slice 015f: add focused unit coverage for fallback line-routing helper behavior (segment cardinality/order, deterministic ids, aggregate distance/time compatibility, fallback status preservation, and explicit insufficient-stop failure contract).
+- Add ADR 0052 documenting unit-test runner adoption and fallback-routing test boundaries.
+
 - Slice 015e: add a compact line-selected inspector `Route baseline` block with aggregate route-segment metrics (segment count, total distance, in-motion minutes, dwell minutes, and total line minutes).
 - Slice 015e: add per-segment structural/debug rows (from/to stop ids, distance/travel values, and explicit route-status labels including `Fallback routed`).
 - Slice 015e: show explicit fallback-routing disclaimer text when any segment status is `fallback-routed`, avoiding accuracy claims.
