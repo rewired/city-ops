@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 029b: replace split selected/non-selected completed-line foreground layers with one unfiltered completed-line foreground layer using data-driven `selected` paint expressions.
+- Slice 029b: add a completed-line casing layer beneath the foreground layer for map-contrast readability while preserving completed-line selection emphasis.
+- Slice 029b: preserve completed-line click selection semantics by binding interactions to the unified foreground layer and removing duplicate selected-layer handlers.
+- Add ADR 0079 documenting unified completed-line foreground rendering and optional casing-layer rationale.
+
 - Slice 029a: split map workspace synchronization into immediate source `setData(...)` updates when source handles already exist versus style-ready fallback creation when source/layer registration is still required.
 - Slice 029a: limit `runWhenMapStyleReady(...)` usage in `MapWorkspaceSurface.tsx` to safe source/layer creation paths and avoid delaying reactive stop/line/vehicle data writes unnecessarily.
 - Add ADR 0078 documenting source/layer ensure-versus-data-write lifecycle separation and explicit non-goals.
