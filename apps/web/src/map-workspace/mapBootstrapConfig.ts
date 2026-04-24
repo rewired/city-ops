@@ -18,7 +18,7 @@ export interface MapBootstrapConfig {
  * Centralized Hamburg startup map bootstrap settings for desktop MVP stop-placement readability.
  */
 export const MAP_WORKSPACE_BOOTSTRAP_CONFIG: MapBootstrapConfig = {
-  styleUrl: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  styleUrl: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
   center: [9.993682, 53.551086],
   zoom: 12,
   minZoom: 10,
