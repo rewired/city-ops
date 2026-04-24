@@ -16,35 +16,15 @@ body {
 .app-shell {
   display: grid;
   grid-template-columns: 260px 1fr 300px;
-  grid-template-rows: 72px 64px 1fr;
+  grid-template-rows: 64px 1fr;
   grid-template-areas:
-    'header header header'
-    'controls controls controls'
+    'top-bar top-bar top-bar'
     'left workspace right';
   min-height: 100vh;
 }
-
-.app-header {
-  grid-area: header;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 0 20px;
-  border-bottom: 1px solid #263142;
-  background: #141c29;
-}
-
-.app-header h1,
-.app-header h2,
 .left-panel h2,
 .right-panel h2 {
   margin: 0;
-}
-
-.app-header p {
-  margin: 0;
-  color: #9fb0cb;
-  font-size: 0.9rem;
 }
 
 .left-panel,
@@ -583,14 +563,22 @@ body {
 }
 
 .simulation-control-bar {
-  grid-area: controls;
+  grid-area: top-bar;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   gap: 16px;
   align-items: center;
-  padding: 10px 20px;
+  padding: 8px 20px;
   border-bottom: 1px solid #263142;
   background: #141c29;
+}
+
+.simulation-control-bar__brand {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .simulation-control-bar__clock-readout {
@@ -603,7 +591,7 @@ body {
 .simulation-control-bar__controls {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
 }
 
@@ -627,25 +615,31 @@ body {
 }
 
 .simulation-control-bar__speed-control {
-  display: grid;
-  gap: 2px;
-  min-width: 220px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.simulation-control-bar__speed-label {
+.simulation-control-bar__speed-button {
+  border: 1px solid #425b83;
+  border-radius: 8px;
+  background: #1d2a3f;
+  color: #d9e7fd;
+  min-width: 42px;
+  height: 34px;
+  padding: 0 8px;
   font-size: 0.75rem;
-  color: #cfe0fb;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.simulation-control-bar__speed-control input[type='range'] {
-  width: 100%;
+.simulation-control-bar__speed-button[aria-pressed='true'] {
+  border-color: #f5c358;
+  background: #2f466f;
 }
 
-.simulation-control-bar__speed-ticks {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.7rem;
-  color: #9fb0cb;
+.simulation-control-bar__session-actions {
+  justify-self: end;
 }
 
 .session-actions {
