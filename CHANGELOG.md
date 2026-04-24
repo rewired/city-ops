@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 036: switch `MAP_WORKSPACE_BOOTSTRAP_CONFIG.styleUrl` from CARTO Positron to CARTO Dark Matter GL (`https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json`) for a dark, MapLibre-compatible no-key startup basemap.
+- Slice 036: preserve centralized bootstrap ownership of style URL and keep attribution behavior unchanged without introducing API-key/secret-dependent providers.
+- Slice 036 non-goals preserved: no map interaction/lifecycle behavior changes and no style URL duplication outside bootstrap config.
+- Add ADR 0090 documenting dark basemap bootstrap decision, no-key provider constraint, and explicit non-goals.
+
 - Slice 035: replace the split app header + simulation controls stack with one integrated top bar containing CityOps brand, day/time + active time-band readout, play/pause/reset controls, discrete `1x`/`5x`/`10x`/`20x` speed buttons, and compact session load/export actions.
 - Slice 035: update the desktop shell grid to a single `top-bar` structural row and remove separate `header`/`controls` layout rows.
 - Slice 035 non-goals preserved: no simulation-clock semantic changes, no new speed ids, no session import/export contract changes, and no mobile or multimodal scope expansion.
