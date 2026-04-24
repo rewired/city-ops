@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 022V (vehicle projection): derive current-minute bus vehicle projections from theoretical departures plus stored route segments/timing, with map-native GeoJSON rendering output and projection-only status semantics.
+- Slice 022V non-goals preserved: no demand/economy/passenger/fleet/depot/layover/dispatch/persistence/backend/import/savegame/scenario/replay/mobile/multimodal scope expansion.
+- Add ADR 0072 documenting the post-departure-schedule derived vehicle projection rationale and visual-projection-only bus boundary.
+
 - Slice 026: derive `currentSimulationMinuteOfDay` and active time band in `App.tsx`, then feed existing departure schedule projection plus completed lines/route segments into the vehicle projection module for one canonical current-minute projection pass.
 - Slice 026: add compact network projected-vehicle totals (projected and degraded projected counts) to the existing inspector summary area.
 - Slice 026: add a selected-line projected vehicles section showing count, active departure minutes, and degraded note when applicable using selected-line vehicle projection output.
