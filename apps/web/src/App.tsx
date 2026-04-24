@@ -85,11 +85,6 @@ export default function App(): ReactElement {
 
   return (
     <div className="app-shell" data-app-surface="desktop-shell">
-      <header className="app-header" aria-label="Application header">
-        <h1>CityOps</h1>
-        <p>Desktop transit planning shell (bus-first MVP).</p>
-      </header>
-
       <SimulationControlBar
         clockController={clockController}
         sessionActions={

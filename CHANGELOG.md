@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 035: replace the split app header + simulation controls stack with one integrated top bar containing CityOps brand, day/time + active time-band readout, play/pause/reset controls, discrete `1x`/`5x`/`10x`/`20x` speed buttons, and compact session load/export actions.
+- Slice 035: update the desktop shell grid to a single `top-bar` structural row and remove separate `header`/`controls` layout rows.
+- Slice 035 non-goals preserved: no simulation-clock semantic changes, no new speed ids, no session import/export contract changes, and no mobile or multimodal scope expansion.
+- Add ADR 0089 documenting unified top-bar composition boundaries and explicit non-goals.
+
 - Slice 027: apply a UI-only post-slice density/declutter pass that keeps planning summaries foregrounded while moving lower-priority diagnostics behind collapsed disclosure blocks in the inspector/map overlays.
 - Slice 027 non-goals preserved: no simulation/routing/projection/loader/export semantics changes, no persistence/backends/scenario/replay/etc., and no mobile/multimodal expansion.
 - Add ADR 0085 documenting dev UI density/disclosure rationale (including intentional non-use of browser zoom detection) and explicit non-goals.
