@@ -6,6 +6,7 @@ import {
 } from '../domain/constants/lineBuilding';
 import type { Line } from '../domain/types/line';
 import { createLineId, createUnsetLineFrequencyByTimeBand } from '../domain/types/line';
+import { buildFallbackLineRouteSegments } from '../domain/routing/fallbackLineRouting';
 import type { Stop, StopId } from '../domain/types/stop';
 import { createStopId } from '../domain/types/stop';
 import type { LineBuildSelectionState, WorkspaceToolMode } from '../App';
@@ -1316,10 +1317,16 @@ export function MapWorkspaceSurface({
 
     onSessionLinesChange((currentLines) => {
       const createdLineOrdinal = currentLines.length + 1;
+      const nextCreatedLineId = createLineId(`line-${createdLineOrdinal}`);
       const createdLine: Line = {
         ...nextLine,
-        id: createLineId(`line-${createdLineOrdinal}`),
-        label: `${LINE_BUILD_PLACEHOLDER_LABEL_PREFIX} ${createdLineOrdinal}`
+        id: nextCreatedLineId,
+        label: `${LINE_BUILD_PLACEHOLDER_LABEL_PREFIX} ${createdLineOrdinal}`,
+        routeSegments: buildFallbackLineRouteSegments({
+          lineId: nextCreatedLineId,
+          orderedStopIds: draftStopIds,
+          placedStops
+        })
       };
       createdLineId = createdLine.id;
       return [...currentLines, createdLine];

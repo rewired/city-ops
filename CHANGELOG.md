@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 015c: add pure fallback line-routing helper (`buildFallbackLineRouteSegments`) that validates ordered stop sequences, builds deterministic per-pair route segments, supports explicit closure semantics, computes fallback geometry/distance/travel times, and marks segments as `fallback-routed`.
+- Slice 015c: update map workspace line completion to populate completed lines with fallback-derived `routeSegments` while preserving existing draft preview behavior.
+- Add ADR 0049 documenting fallback route-segment generation boundaries and explicit non-goals.
+
 - Slice 015b: add canonical routing baseline constants in `apps/web/src/domain/constants/routing.ts` for fallback bus speed, default dwell minutes, and minimum in-motion travel minutes.
 - Slice 015b: add route travel-timing helpers in `apps/web/src/domain/types/lineRoute.ts` that consume canonical routing constants instead of local numeric defaults.
 - Add ADR 0048 documenting canonical routing baseline constant ownership and helper import boundaries.
