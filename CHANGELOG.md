@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 033: keep selected-line identity, frequency editing, and compact readiness/service/departure/vehicle summaries always visible while adding an always-visible blockers/warnings summary line whenever issues exist.
+- Slice 033: move heavy selected-line diagnostics behind disclosures (full readiness issue list, detailed service notes, upcoming departure lists, and projected vehicle departure-minute lists) while preserving existing projection wiring.
+- Slice 033 non-goals preserved: no simulation/domain/projection behavior changes and no new transport-mode/mobile scope.
+- Add ADR 0087 documenting selected-line inspector disclosure boundaries, critical blocker visibility, and explicit non-goals.
+
 - Slice 032: refactor the left-panel workspace mode control to show a compact current-mode chip and icon-first mode buttons with explicit `aria-pressed` active state semantics.
 - Slice 032: tighten `.tool-mode-control*` spacing/button density while preserving desktop keyboard focus visibility and accessible names via `aria-label`/`title`.
 - Slice 032 non-goals preserved: no tool removals, no workspace mode behavior changes, and no simulation/domain scope expansion.
