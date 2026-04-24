@@ -1,68 +1,111 @@
+import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 import type { Line, LineFrequencyByTimeBand, LineId } from './line';
 import type { LineRouteSegment } from './lineRoute';
-import type { Stop, StopId, StopPosition } from './stop';
+import type { Stop, StopId } from './stop';
+import type { TimeBandId } from './timeBand';
 
 /**
- * Canonical schema version identifier for selected-line export payloads.
+ * Canonical schema version literal for single-line JSON export payloads.
  */
-export const SELECTED_LINE_EXPORT_SCHEMA_VERSION = 'cityops-selected-line-export-v1' as const;
+export const SELECTED_LINE_EXPORT_SCHEMA_VERSION = 'cityops-selected-line-export-v2' as const;
 
 /**
- * Discriminator literal for payloads that export one selected line.
+ * Discriminator literal for payloads that export one completed selected line.
  */
-export type SelectedLineExportKind = 'selected-line';
+export const SELECTED_LINE_EXPORT_KIND = 'single-line' as const;
 
 /**
- * Lightweight metadata for traceability of one selected-line export payload.
+ * Flexible source metadata object attached to export payloads for origin traceability.
  */
-export interface SelectedLineExportMetadata {
-  readonly exportedAtIsoUtc: string;
-  readonly source: 'cityops-web';
-}
+export type SelectedLineExportSourceMetadata = Readonly<Record<string, string | number | boolean | null>>;
 
 /**
- * Exported stop shape used by selected-line payloads.
+ * Selected line block emitted by the export builder with ordered stop ids and stored route segments.
  */
-export interface SelectedLineExportedStop {
-  readonly id: StopId;
-  readonly label?: Stop['label'];
-  readonly position: StopPosition;
-}
-
-/**
- * Exported route segment shape kept field-for-field aligned with canonical `LineRouteSegment` truth.
- */
-export interface SelectedLineExportedRouteSegment {
-  readonly id: LineRouteSegment['id'];
-  readonly lineId: LineRouteSegment['lineId'];
-  readonly fromStopId: LineRouteSegment['fromStopId'];
-  readonly toStopId: LineRouteSegment['toStopId'];
-  readonly orderedGeometry: LineRouteSegment['orderedGeometry'];
-  readonly distanceMeters: LineRouteSegment['distanceMeters'];
-  readonly inMotionTravelMinutes: LineRouteSegment['inMotionTravelMinutes'];
-  readonly dwellMinutes: LineRouteSegment['dwellMinutes'];
-  readonly totalTravelMinutes: LineRouteSegment['totalTravelMinutes'];
-  readonly status: LineRouteSegment['status'];
-}
-
-/**
- * Exported selected-line block containing structural line truth plus selected stop and segment payloads.
- */
-export interface SelectedLineExportedLine {
+export interface SelectedLineExportLine {
   readonly id: LineId;
   readonly label: Line['label'];
-  readonly stopIds: readonly StopId[];
+  readonly orderedStopIds: readonly StopId[];
   readonly frequencyByTimeBand: LineFrequencyByTimeBand;
-  readonly routeSegments: readonly SelectedLineExportedRouteSegment[];
-  readonly stops: readonly SelectedLineExportedStop[];
+  readonly routeSegments: readonly LineRouteSegment[];
 }
 
 /**
- * Root payload shape for selected-line exports, including schema versioning and typed discriminator.
+ * Exported stop shape containing only fields needed to reconstruct selected-line references.
+ */
+export interface SelectedLineExportStop {
+  readonly id: StopId;
+  readonly position: Stop['position'];
+  readonly label?: Stop['label'];
+}
+
+/**
+ * Summary metadata for payload cardinality and included time-band coverage.
+ */
+export interface SelectedLineExportCountsMetadata {
+  readonly lineCount: 1;
+  readonly stopCount: number;
+  readonly routeSegmentCount: number;
+  readonly includedTimeBandIds: readonly TimeBandId[];
+}
+
+/**
+ * Root payload contract for a single selected-line export JSON document.
  */
 export interface SelectedLineExportPayload {
   readonly schemaVersion: typeof SELECTED_LINE_EXPORT_SCHEMA_VERSION;
-  readonly kind: SelectedLineExportKind;
-  readonly metadata: SelectedLineExportMetadata;
-  readonly selectedLine: SelectedLineExportedLine;
+  readonly exportKind: typeof SELECTED_LINE_EXPORT_KIND;
+  readonly createdAtIsoUtc: string;
+  readonly sourceMetadata: SelectedLineExportSourceMetadata;
+  readonly line: SelectedLineExportLine;
+  readonly stops: readonly SelectedLineExportStop[];
+  readonly metadata: SelectedLineExportCountsMetadata;
 }
+
+/**
+ * Input contract for building a selected-line export payload from canonical in-memory state.
+ */
+export interface BuildSelectedLineExportPayloadInput {
+  readonly selectedLine: Line;
+  readonly placedStops: readonly Stop[];
+  readonly createdAtIsoUtc: string;
+  readonly sourceMetadata?: SelectedLineExportSourceMetadata;
+}
+
+/**
+ * Builds a deterministic single-line export payload that excludes unrelated UI or transient shell state.
+ */
+export const buildSelectedLineExportPayload = ({
+  selectedLine,
+  placedStops,
+  createdAtIsoUtc,
+  sourceMetadata
+}: BuildSelectedLineExportPayloadInput): SelectedLineExportPayload => {
+  const referencedStopIds = new Set(selectedLine.stopIds);
+  const stops = placedStops.filter((stop) => referencedStopIds.has(stop.id));
+  const includedTimeBandIds = MVP_TIME_BAND_IDS.filter((timeBandId) => {
+    const frequencyValue = selectedLine.frequencyByTimeBand[timeBandId];
+    return frequencyValue !== null && frequencyValue !== undefined;
+  });
+
+  return {
+    schemaVersion: SELECTED_LINE_EXPORT_SCHEMA_VERSION,
+    exportKind: SELECTED_LINE_EXPORT_KIND,
+    createdAtIsoUtc,
+    sourceMetadata: sourceMetadata ?? {},
+    line: {
+      id: selectedLine.id,
+      label: selectedLine.label,
+      orderedStopIds: selectedLine.stopIds,
+      frequencyByTimeBand: selectedLine.frequencyByTimeBand,
+      routeSegments: selectedLine.routeSegments
+    },
+    stops,
+    metadata: {
+      lineCount: 1,
+      stopCount: stops.length,
+      routeSegmentCount: selectedLine.routeSegments.length,
+      includedTimeBandIds
+    }
+  };
+};

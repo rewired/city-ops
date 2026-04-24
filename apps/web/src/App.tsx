@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { MVP_TIME_BAND_IDS, TIME_BAND_DISPLAY_LABELS } from './domain/constants/timeBands';
 import { createLineFrequencyMinutes, type Line } from './domain/types/line';
 import type { LineRouteSegment, RouteStatus } from './domain/types/lineRoute';
+import { buildSelectedLineExportPayload } from './domain/types/selectedLineExport';
 import type { Stop, StopId } from './domain/types/stop';
 import type { TimeBandId } from './domain/types/timeBand';
 import {
@@ -115,6 +116,20 @@ const formatDistanceMeters = (distanceMeters: number): string => `${distanceMete
 
 const formatTravelMinutes = (travelMinutes: number): string => `${travelMinutes.toFixed(2)} min`;
 
+const buildSelectedLineExportFilename = (lineId: Line['id']): string => `cityops-line-${lineId}.json`;
+
+const downloadJsonFile = (filename: string, payload: unknown): void => {
+  const jsonBlob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const objectUrl = URL.createObjectURL(jsonBlob);
+  const temporaryAnchor = document.createElement('a');
+  temporaryAnchor.href = objectUrl;
+  temporaryAnchor.download = filename;
+  document.body.appendChild(temporaryAnchor);
+  temporaryAnchor.click();
+  temporaryAnchor.remove();
+  URL.revokeObjectURL(objectUrl);
+};
+
 const projectRouteBaselineAggregateMetrics = (
   routeSegments: readonly LineRouteSegment[]
 ): RouteBaselineAggregateMetrics => ({
@@ -220,6 +235,10 @@ export default function App(): ReactElement {
   const selectedLineRouteBaselineMetrics = selectedLine
     ? projectRouteBaselineAggregateMetrics(selectedLine.routeSegments)
     : null;
+  const selectedCompletedLineForExport =
+    inspectorPanelState.mode === 'line-selected'
+      ? sessionLines.find((line) => line.id === inspectorPanelState.selectedLine.id) ?? null
+      : null;
 
   useEffect(() => {
     if (!selectedLine) {
@@ -302,6 +321,26 @@ export default function App(): ReactElement {
             }
           : line
       )
+    );
+  };
+
+  const handleSelectedLineExport = (): void => {
+    if (!selectedCompletedLineForExport) {
+      return;
+    }
+
+    const exportPayload = buildSelectedLineExportPayload({
+      selectedLine: selectedCompletedLineForExport,
+      placedStops: sessionStops,
+      createdAtIsoUtc: new Date().toISOString(),
+      sourceMetadata: {
+        source: 'cityops-web'
+      }
+    });
+
+    downloadJsonFile(
+      buildSelectedLineExportFilename(selectedCompletedLineForExport.id),
+      exportPayload
     );
   };
 
@@ -394,6 +433,11 @@ export default function App(): ReactElement {
             <p>ID/Label: {`${inspectorPanelState.selectedLine.id} / ${inspectorPanelState.selectedLine.label}`}</p>
             <p>Stop count: {inspectorPanelState.selectedLine.stopIds.length}</p>
             <p>Ordered stops: {inspectorPanelState.selectedLine.stopIds.join(' → ')}</p>
+            {selectedCompletedLineForExport ? (
+              <button type="button" onClick={handleSelectedLineExport}>
+                Export line JSON
+              </button>
+            ) : null}
             <section className="inspector-route-baseline" aria-label="Route baseline">
               <h3>Route baseline</h3>
               <div className="inspector-route-baseline__totals">
