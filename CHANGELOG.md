@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 018c: introduce pure line-readiness diagnostics at the domain boundary to keep readiness evaluation deterministic and UI-agnostic.
+- Slice 018c: add typed readiness issue code/severity constants plus a typed status projection contract for selected-line readiness output.
+- Slice 018c: add a selected-line inspector readiness section that projects readiness status, issue summaries, and compact diagnostic details.
+- Slice 018c: add fixture-backed readiness test coverage for deterministic ready/blocked/partial classification and issue projection behavior.
+- Slice 018c non-goals preserved: no simulation, economy, demand, import, or persistence scope expansion.
+
 - Slice 018b: project selected-line readiness in `App.tsx` via the pure domain `evaluateLineServiceReadiness(selectedLine, placedStops)` evaluator instead of component-local readiness semantics.
 - Slice 018b: add a compact line-selected readiness inspector section covering status, configured/missing time-band counts, route-segment count, blocker/warning counts, and a short issue list with code tags.
 - Slice 018b non-goals: no simulation/demand/economy/revenue/satisfaction/vehicle KPIs added to inspector output.
