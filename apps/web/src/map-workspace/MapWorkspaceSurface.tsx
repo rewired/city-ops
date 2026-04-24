@@ -27,7 +27,7 @@ import {
   MAP_LAYER_ID_STOPS_CIRCLE,
   MAP_LAYER_ID_VEHICLES
 } from './mapRenderConstants';
-import { syncAllMapWorkspaceSources } from './mapWorkspaceSourceSync';
+import { syncAllMapWorkspaceSources, syncExistingMapWorkspaceSourceData } from './mapWorkspaceSourceSync';
 import {
   getSourceRefsForLayerIds,
   type MapLibreFeatureGeometry,
@@ -1096,6 +1096,20 @@ export function MapWorkspaceSurface({
       return;
     }
 
+    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
+      map: mapInstance,
+      stopSync: {
+        stops: placedStops,
+        selectedStopId,
+        draftStopIds: draftStopIdSet,
+        isBuildLineModeActive: activeToolMode === 'build-line'
+      }
+    });
+
+    if (sourceSyncDiagnostics) {
+      return;
+    }
+
     return runWhenMapStyleReady(mapInstance, () => {
       syncAllMapWorkspaceSources({
         map: mapInstance,
@@ -1116,8 +1130,30 @@ export function MapWorkspaceSurface({
       return;
     }
 
+    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
+      map: mapInstance,
+      lineSync: {
+        sessionLines,
+        selectedLineId,
+        draftStopIds: draftLineState.stopIds,
+        stopsById: new Map(placedStops.map((stop) => [stop.id, stop] as const))
+      }
+    });
+
+    if (sourceSyncDiagnostics) {
+      setFeatureDiagnostics((currentDiagnostics) => ({
+        ...currentDiagnostics,
+        lines: {
+          ...currentDiagnostics.lines,
+          builderFeatureCount: sourceSyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
+          sourceFeatureCount: sourceSyncDiagnostics.lineSourceFeatureCount
+        }
+      }));
+      return;
+    }
+
     return runWhenMapStyleReady(mapInstance, () => {
-      const sourceSyncDiagnostics = syncAllMapWorkspaceSources({
+      const styleReadySyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
         lineSync: {
           sessionLines,
@@ -1131,8 +1167,9 @@ export function MapWorkspaceSurface({
         ...currentDiagnostics,
         lines: {
           ...currentDiagnostics.lines,
-          builderFeatureCount: sourceSyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
-          sourceFeatureCount: sourceSyncDiagnostics.lineSourceFeatureCount
+          builderFeatureCount:
+            styleReadySyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
+          sourceFeatureCount: styleReadySyncDiagnostics.lineSourceFeatureCount
         }
       }));
     });
@@ -1145,8 +1182,27 @@ export function MapWorkspaceSurface({
       return;
     }
 
+    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
+      map: mapInstance,
+      vehicleSync: {
+        vehicleNetworkProjection
+      }
+    });
+
+    if (sourceSyncDiagnostics) {
+      setFeatureDiagnostics((currentDiagnostics) => ({
+        ...currentDiagnostics,
+        vehicles: {
+          ...currentDiagnostics.vehicles,
+          builderFeatureCount: sourceSyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
+          sourceFeatureCount: sourceSyncDiagnostics.vehicleSourceFeatureCount
+        }
+      }));
+      return;
+    }
+
     return runWhenMapStyleReady(mapInstance, () => {
-      const sourceSyncDiagnostics = syncAllMapWorkspaceSources({
+      const styleReadySyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
         vehicleSync: {
           vehicleNetworkProjection
@@ -1157,8 +1213,9 @@ export function MapWorkspaceSurface({
         ...currentDiagnostics,
         vehicles: {
           ...currentDiagnostics.vehicles,
-          builderFeatureCount: sourceSyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
-          sourceFeatureCount: sourceSyncDiagnostics.vehicleSourceFeatureCount
+          builderFeatureCount:
+            styleReadySyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
+          sourceFeatureCount: styleReadySyncDiagnostics.vehicleSourceFeatureCount
         }
       }));
     });
