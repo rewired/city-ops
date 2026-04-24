@@ -117,10 +117,11 @@ interface CompletedLineFeatureInteractionBinding {
 interface MapWorkspaceSurfaceProps {
   readonly activeToolMode: WorkspaceToolMode;
   readonly selectedStopId: StopId | null;
+  readonly placedStops: readonly Stop[];
   readonly lineBuildSelection: LineBuildSelectionState;
   readonly sessionLines: readonly Line[];
   readonly selectedLineId: Line['id'] | null;
-  readonly onPlacedStopCountChange: (nextCount: number) => void;
+  readonly onPlacedStopsChange: (updater: (currentStops: readonly Stop[]) => readonly Stop[]) => void;
   readonly onStopSelectionChange: (nextSelection: StopSelectionState | null) => void;
   readonly onLineBuildSelectionChange: (nextSelection: LineBuildSelectionState) => void;
   readonly onSessionLinesChange: (updater: (currentLines: readonly Line[]) => readonly Line[]) => void;
@@ -1032,9 +1033,10 @@ const buildLineModeUiFeedback = (activeToolMode: WorkspaceToolMode, draftStopIds
 export function MapWorkspaceSurface({
   activeToolMode,
   selectedStopId,
+  placedStops,
   sessionLines,
   selectedLineId,
-  onPlacedStopCountChange,
+  onPlacedStopsChange,
   onStopSelectionChange,
   onLineBuildSelectionChange,
   onSessionLinesChange,
@@ -1047,7 +1049,6 @@ export function MapWorkspaceSurface({
     pointer: null
   });
   const [placementAttemptResult, setPlacementAttemptResult] = useState<PlacementAttemptResult>('none');
-  const [placedStops, setPlacedStops] = useState<readonly Stop[]>([]);
   const [draftLineState, setDraftLineState] = useState<DraftLineState>(INITIAL_DRAFT_LINE_STATE);
   const activeToolModeRef = useRef<WorkspaceToolMode>(activeToolMode);
   const sessionLineCountRef = useRef(sessionLines.length);
@@ -1123,10 +1124,6 @@ export function MapWorkspaceSurface({
   }, [draftLineState.stopIds, onLineBuildSelectionChange]);
 
   useEffect(() => {
-    onPlacedStopCountChange(placedStops.length);
-  }, [onPlacedStopCountChange, placedStops.length]);
-
-  useEffect(() => {
     if (activeToolMode === 'build-line') {
       return;
     }
@@ -1155,7 +1152,7 @@ export function MapWorkspaceSurface({
       },
       onValidPlacement: (lng, lat) => {
         let createdStop!: Stop;
-        setPlacedStops((currentStops) => {
+        onPlacedStopsChange((currentStops) => {
           const nextOrdinal = currentStops.length + 1;
           const nextStop = buildDeterministicStop(nextOrdinal, lng, lat);
           createdStop = nextStop;
@@ -1169,7 +1166,7 @@ export function MapWorkspaceSurface({
     return () => {
       interactions.dispose();
     };
-  }, [activeToolMode, onStopSelectionChange]);
+  }, [activeToolMode, onPlacedStopsChange, onStopSelectionChange]);
 
   useEffect(() => {
     const mapInstance = mapInstanceRef.current;
