@@ -22,7 +22,6 @@ import {
 } from './mapWorkspacePlacementConstants';
 import {
   MAP_LAYER_ID_COMPLETED_LINES,
-  MAP_LAYER_ID_COMPLETED_LINES_SELECTED,
   MAP_LAYER_ID_DRAFT_LINE,
   MAP_LAYER_ID_STOPS_CIRCLE,
   MAP_LAYER_ID_VEHICLES
@@ -623,8 +622,7 @@ const decodeLineIdFromFeatureProperties = (properties: Record<string, unknown> |
 const hasInteractiveSelectionFeatureAtPoint = (map: MapLibreMap, event: MapLibreInteractionEvent): boolean => {
   const interactiveSelectionLayers: readonly string[] = [
     MAP_LAYER_ID_STOPS_CIRCLE,
-    MAP_LAYER_ID_COMPLETED_LINES,
-    MAP_LAYER_ID_COMPLETED_LINES_SELECTED
+    MAP_LAYER_ID_COMPLETED_LINES
   ];
   const renderedFeatures = map.queryRenderedFeatures(event.point, { layers: interactiveSelectionLayers });
 
@@ -816,12 +814,10 @@ const bindCompletedLineFeatureInteractions = (
   onCompletedLineClick: (event: MapLibreInteractionEvent) => void
 ): CompletedLineFeatureInteractionBinding => {
   map.on('click', MAP_LAYER_ID_COMPLETED_LINES, onCompletedLineClick);
-  map.on('click', MAP_LAYER_ID_COMPLETED_LINES_SELECTED, onCompletedLineClick);
 
   return {
     dispose: () => {
       map.off('click', MAP_LAYER_ID_COMPLETED_LINES, onCompletedLineClick);
-      map.off('click', MAP_LAYER_ID_COMPLETED_LINES_SELECTED, onCompletedLineClick);
     }
   };
 };
@@ -1231,7 +1227,6 @@ export function MapWorkspaceSurface({
     const refreshRenderedFeatureDiagnostics = (): void => {
       const lineRenderedFeatureCount = countRenderedFeaturesForLayers(mapInstance, [
         MAP_LAYER_ID_COMPLETED_LINES,
-        MAP_LAYER_ID_COMPLETED_LINES_SELECTED,
         MAP_LAYER_ID_DRAFT_LINE
       ]);
       const vehicleRenderedFeatureCount = countRenderedFeaturesForLayers(mapInstance, [MAP_LAYER_ID_VEHICLES]);

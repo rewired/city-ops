@@ -3,13 +3,11 @@ import type { LineVehicleNetworkProjection } from '../domain/types/lineVehiclePr
 import type { Stop, StopId } from '../domain/types/stop';
 import { buildCompletedLineFeatureCollection, buildDraftLineFeatureCollection } from './lineGeoJson';
 import {
-  MAP_COMPLETED_LINE_LAYER_FILTER,
+  MAP_COMPLETED_LINE_CASING_LAYER_PAINT,
   MAP_COMPLETED_LINE_LAYER_PAINT,
-  MAP_COMPLETED_LINE_SELECTED_LAYER_FILTER,
-  MAP_COMPLETED_LINE_SELECTED_LAYER_PAINT,
   MAP_DRAFT_LINE_LAYER_PAINT,
+  MAP_LAYER_ID_COMPLETED_LINES_CASING,
   MAP_LAYER_ID_COMPLETED_LINES,
-  MAP_LAYER_ID_COMPLETED_LINES_SELECTED,
   MAP_LAYER_ID_DRAFT_LINE,
   MAP_LAYER_ID_STOPS_CIRCLE,
   MAP_LAYER_ID_STOPS_LABEL,
@@ -77,8 +75,8 @@ export interface MapWorkspaceSourceSyncDiagnostics {
 }
 
 const CUSTOM_LAYER_ORDER = [
+  MAP_LAYER_ID_COMPLETED_LINES_CASING,
   MAP_LAYER_ID_COMPLETED_LINES,
-  MAP_LAYER_ID_COMPLETED_LINES_SELECTED,
   MAP_LAYER_ID_DRAFT_LINE,
   MAP_LAYER_ID_STOPS_CIRCLE,
   MAP_LAYER_ID_STOPS_LABEL,
@@ -168,23 +166,21 @@ const ensureAllMapWorkspaceRenderSourcesAndLayers = (map: MapLibreMap): void => 
     });
   }
 
+  if (!map.getLayer(MAP_LAYER_ID_COMPLETED_LINES_CASING)) {
+    map.addLayer({
+      id: MAP_LAYER_ID_COMPLETED_LINES_CASING,
+      type: 'line',
+      source: MAP_SOURCE_ID_COMPLETED_LINES,
+      paint: MAP_COMPLETED_LINE_CASING_LAYER_PAINT
+    });
+  }
+
   if (!map.getLayer(MAP_LAYER_ID_COMPLETED_LINES)) {
     map.addLayer({
       id: MAP_LAYER_ID_COMPLETED_LINES,
       type: 'line',
       source: MAP_SOURCE_ID_COMPLETED_LINES,
-      filter: MAP_COMPLETED_LINE_LAYER_FILTER,
       paint: MAP_COMPLETED_LINE_LAYER_PAINT
-    });
-  }
-
-  if (!map.getLayer(MAP_LAYER_ID_COMPLETED_LINES_SELECTED)) {
-    map.addLayer({
-      id: MAP_LAYER_ID_COMPLETED_LINES_SELECTED,
-      type: 'line',
-      source: MAP_SOURCE_ID_COMPLETED_LINES,
-      filter: MAP_COMPLETED_LINE_SELECTED_LAYER_FILTER,
-      paint: MAP_COMPLETED_LINE_SELECTED_LAYER_PAINT
     });
   }
 
