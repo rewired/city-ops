@@ -1,7 +1,9 @@
+import { TIME_BAND_DISPLAY_LABELS } from '../constants/timeBands';
 import { evaluateLineServiceReadiness } from '../readiness/lineServiceReadiness';
 import type { Line } from '../types/line';
 import type {
   LineServicePlanProjection,
+  LineSelectedServiceInspectorProjection,
   LineServiceProjectionNote,
   LineServiceProjectionResult,
   LineServiceProjectionStatus,
@@ -47,6 +49,13 @@ const resolveProjectionStatus = (
   return 'configured';
 };
 
+const SERVICE_STATUS_LABELS: Readonly<Record<LineServiceProjectionStatus, string>> = {
+  blocked: 'Blocked',
+  'not-configured': 'Not configured',
+  configured: 'Configured',
+  degraded: 'Configured with warnings'
+};
+
 /**
  * Projects one completed line into active-time-band service-plan metrics and status.
  *
@@ -84,6 +93,46 @@ export const projectLineServicePlanForLine = (
     status: resolveProjectionStatus(readiness.status, currentBandHeadwayMinutes),
     readiness,
     ...(notes !== undefined ? { notes } : {})
+  };
+};
+
+/**
+ * Projects compact selected-line inspector fields from one line service projection result.
+ *
+ * This keeps status/headway/departure labels and readiness note slicing outside React components.
+ */
+export const projectLineSelectedServiceInspector = (
+  lineProjection: LineServiceProjectionResult,
+  maxNotesVisible = 3
+): LineSelectedServiceInspectorProjection => {
+  const boundedMaxNotesVisible = Number.isFinite(maxNotesVisible)
+    ? Math.max(0, Math.floor(maxNotesVisible))
+    : 0;
+  const noteMessages = (lineProjection.notes ?? [])
+    .slice(0, boundedMaxNotesVisible)
+    .map((note) => note.message);
+
+  return {
+    activeTimeBandId: lineProjection.activeTimeBandId,
+    activeTimeBandLabel: TIME_BAND_DISPLAY_LABELS[lineProjection.activeTimeBandId],
+    status: lineProjection.status,
+    statusLabel: SERVICE_STATUS_LABELS[lineProjection.status],
+    currentBandHeadwayMinutes: lineProjection.currentBandHeadwayMinutes,
+    headwayLabel:
+      lineProjection.currentBandHeadwayMinutes === null
+        ? 'No active-band headway configured.'
+        : `${lineProjection.currentBandHeadwayMinutes} min`,
+    theoreticalDeparturesPerHour: lineProjection.theoreticalDeparturesPerHour,
+    theoreticalDeparturesPerHourLabel:
+      lineProjection.theoreticalDeparturesPerHour === null
+        ? null
+        : `${lineProjection.theoreticalDeparturesPerHour.toFixed(2)} departures/hour`,
+    totalRouteTravelMinutes: lineProjection.totalRouteTravelMinutes,
+    totalRouteTravelMinutesLabel: `${lineProjection.totalRouteTravelMinutes.toFixed(2)} min`,
+    routeSegmentCount: lineProjection.routeSegmentCount,
+    blockerCount: lineProjection.readiness.summary.errorIssueCount,
+    warningCount: lineProjection.readiness.summary.warningIssueCount,
+    noteMessages
   };
 };
 

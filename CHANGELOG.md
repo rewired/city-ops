@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 021: add a compact line-selected service inspector projection helper (`projectLineSelectedServiceInspector`) that derives active-band label, service status label, headway/departure labels, route-time/segment totals, blocker/warning counts, and a bounded note list from canonical line service projection output.
+- Slice 021: refactor `App.tsx` line-selected inspector and status-bar selected-line frequency hint to consume domain projection output instead of ad-hoc active-band frequency semantics in React.
+- Slice 021 non-goals preserved: no demand/economy/vehicle/satisfaction KPI additions.
+- Add ADR 0065 documenting compact line-selected service inspector projection ownership and UI consumption boundary.
+
 - Slice 020: add canonical line service plan projection types for active-band status, per-line projection output, optional projection notes, and network-level summary totals.
 - Slice 020: add pure line service plan projection helpers that reuse `evaluateLineServiceReadiness` and derive active-band headway, theoretical departures per hour, route segment count, and total route travel minutes.
 - Slice 020: add deterministic projection status semantics (`blocked`, `not-configured`, `configured`, `degraded`) with explicit warning-based degradation handling.

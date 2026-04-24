@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
 import { MVP_TIME_BAND_IDS, TIME_BAND_DISPLAY_LABELS } from './domain/constants/timeBands';
-import { evaluateLineServiceReadiness } from './domain/readiness/lineServiceReadiness';
+import {
+  projectLineSelectedServiceInspector,
+  projectLineServicePlanForLine
+} from './domain/projection/lineServicePlanProjection';
 import {
   applySimulationClockCommand,
   createInitialSimulationClockState,
@@ -253,16 +256,16 @@ export default function App(): ReactElement {
   const selectedLineRouteBaselineMetrics = selectedLine
     ? projectRouteBaselineAggregateMetrics(selectedLine.routeSegments)
     : null;
-  const selectedLineReadiness = selectedLine
-    ? evaluateLineServiceReadiness(selectedLine, sessionStops)
+  const selectedLineServiceProjection = selectedLine
+    ? projectLineServicePlanForLine(selectedLine, sessionStops, activeSimulationTimeBandId)
+    : null;
+  const selectedLineServiceInspectorProjection = selectedLineServiceProjection
+    ? projectLineSelectedServiceInspector(selectedLineServiceProjection, MAX_READINESS_ISSUES_VISIBLE)
     : null;
   const selectedCompletedLineForExport =
     inspectorPanelState.mode === 'line-selected'
       ? sessionLines.find((line) => line.id === inspectorPanelState.selectedLine.id) ?? null
       : null;
-  const selectedLineCurrentTimeBandFrequency = selectedLine
-    ? selectedLine.frequencyByTimeBand[activeSimulationTimeBandId] ?? null
-    : null;
 
   useEffect(() => {
     if (!selectedLine) {
@@ -508,27 +511,56 @@ export default function App(): ReactElement {
             <p>ID/Label: {`${inspectorPanelState.selectedLine.id} / ${inspectorPanelState.selectedLine.label}`}</p>
             <p>Stop count: {inspectorPanelState.selectedLine.stopIds.length}</p>
             <p>Ordered stops: {inspectorPanelState.selectedLine.stopIds.join(' → ')}</p>
-            {selectedLineReadiness ? (
+            {selectedLineServiceInspectorProjection ? (
+              <section className="inspector-line-service-plan" aria-label="Line service plan">
+                <h3>Line service plan</h3>
+                <p>Active time band: {selectedLineServiceInspectorProjection.activeTimeBandLabel}</p>
+                <p>Current service status: {selectedLineServiceInspectorProjection.statusLabel}</p>
+                <p>Configured headway: {selectedLineServiceInspectorProjection.headwayLabel}</p>
+                {selectedLineServiceInspectorProjection.theoreticalDeparturesPerHourLabel ? (
+                  <p>
+                    Theoretical departures/hour:{' '}
+                    {selectedLineServiceInspectorProjection.theoreticalDeparturesPerHourLabel}
+                  </p>
+                ) : null}
+                <p>Total stored route time: {selectedLineServiceInspectorProjection.totalRouteTravelMinutesLabel}</p>
+                <p>Route segment count: {selectedLineServiceInspectorProjection.routeSegmentCount}</p>
+                <p>Blocker issues: {selectedLineServiceInspectorProjection.blockerCount}</p>
+                <p>Warning issues: {selectedLineServiceInspectorProjection.warningCount}</p>
+                {selectedLineServiceInspectorProjection.noteMessages.length > 0 ? (
+                  <ul className="inspector-line-readiness__issues">
+                    {selectedLineServiceInspectorProjection.noteMessages.map((message, index) => (
+                      <li key={`line-service-note-${index}`}>{message}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No service notes.</p>
+                )}
+              </section>
+            ) : null}
+            {selectedLineServiceProjection ? (
               <section className="inspector-line-readiness" aria-label="Line readiness">
                 <h3>Line readiness</h3>
-                <p>Status: {selectedLineReadiness.status}</p>
-                <p>Configured time bands: {selectedLineReadiness.summary.configuredTimeBandCount}</p>
+                <p>Status: {selectedLineServiceProjection.readiness.status}</p>
+                <p>Configured time bands: {selectedLineServiceProjection.readiness.summary.configuredTimeBandCount}</p>
                 <p>
                   Missing/unset time bands:{' '}
-                  {selectedLineReadiness.summary.canonicalTimeBandCount -
-                    selectedLineReadiness.summary.configuredTimeBandCount}
+                  {selectedLineServiceProjection.readiness.summary.canonicalTimeBandCount -
+                    selectedLineServiceProjection.readiness.summary.configuredTimeBandCount}
                 </p>
-                <p>Route segments: {selectedLineReadiness.summary.routeSegmentCount}</p>
-                <p>Blocker issues: {selectedLineReadiness.summary.errorIssueCount}</p>
-                <p>Warning issues: {selectedLineReadiness.summary.warningIssueCount}</p>
-                {selectedLineReadiness.issues.length > 0 ? (
+                <p>Route segments: {selectedLineServiceProjection.readiness.summary.routeSegmentCount}</p>
+                <p>Blocker issues: {selectedLineServiceProjection.readiness.summary.errorIssueCount}</p>
+                <p>Warning issues: {selectedLineServiceProjection.readiness.summary.warningIssueCount}</p>
+                {selectedLineServiceProjection.readiness.issues.length > 0 ? (
                   <ul className="inspector-line-readiness__issues">
-                    {selectedLineReadiness.issues.slice(0, MAX_READINESS_ISSUES_VISIBLE).map((issue, index) => (
+                    {selectedLineServiceProjection.readiness.issues
+                      .slice(0, MAX_READINESS_ISSUES_VISIBLE)
+                      .map((issue, index) => (
                       <li key={`${issue.code}-${index}`}>
                         <span>{issue.message}</span>{' '}
                         {issue.code ? <code className="inspector-line-readiness__code">{issue.code}</code> : null}
                       </li>
-                    ))}
+                      ))}
                   </ul>
                 ) : (
                   <p>No readiness issues.</p>
@@ -678,12 +710,8 @@ export default function App(): ReactElement {
         </div>
         {selectedLine ? (
           <div className="status-bar__line-frequency-hint">
-            <span>Selected line band interval:</span>
-            <span>
-              {selectedLineCurrentTimeBandFrequency === null
-                ? 'Unset'
-                : `${selectedLineCurrentTimeBandFrequency} min`}
-            </span>
+            <span>Selected line service plan:</span>
+            <span>{selectedLineServiceInspectorProjection?.headwayLabel ?? 'No line selected.'}</span>
           </div>
         ) : null}
       </footer>
