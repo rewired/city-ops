@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 015d: update completed-line GeoJSON assembly to prefer persisted `routeSegments` geometry over stop-order fallback when routed segment coordinates are available.
+- Slice 015d: flatten completed-line segment geometries in segment order and de-duplicate shared adjacent boundary coordinates to avoid duplicate vertices.
+- Slice 015d: preserve completed-line feature properties (`lineId`, `selected`) to keep existing feature-first map selection behavior unchanged.
+- Add ADR 0050 documenting route-segment-first completed-line geometry projection and explicit draft-preview non-goal.
+
 - Slice 015c: add pure fallback line-routing helper (`buildFallbackLineRouteSegments`) that validates ordered stop sequences, builds deterministic per-pair route segments, supports explicit closure semantics, computes fallback geometry/distance/travel times, and marks segments as `fallback-routed`.
 - Slice 015c: update map workspace line completion to populate completed lines with fallback-derived `routeSegments` while preserving existing draft preview behavior.
 - Add ADR 0049 documenting fallback route-segment generation boundaries and explicit non-goals.
