@@ -28,6 +28,9 @@ const formatMinuteOfDayNumber = (minuteOfDay: number): string => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
+const formatIssueSummaryLabel = (blockerCount: number, warningCount: number): string =>
+  `Issues: ${blockerCount} blocker${blockerCount === 1 ? '' : 's'} / ${warningCount} warning${warningCount === 1 ? '' : 's'}`;
+
 /** Renders selected-line inspector sections and forwards edits through narrow callbacks. */
 export function SelectedLineInspector({
   panelState,
@@ -40,6 +43,16 @@ export function SelectedLineInspector({
   selectedLineVehicleProjection,
   onFrequencyChange
 }: SelectedLineInspectorProps): ReactElement {
+  const readinessBlockerCount = selectedLineServiceProjection?.readiness.summary.errorIssueCount ?? 0;
+  const readinessWarningCount = selectedLineServiceProjection?.readiness.summary.warningIssueCount ?? 0;
+  const serviceBlockerCount = selectedLineServiceInspectorProjection?.blockerCount ?? 0;
+  const serviceWarningCount = selectedLineServiceInspectorProjection?.warningCount ?? 0;
+  const issueSummaryBlockerCount = Math.max(readinessBlockerCount, serviceBlockerCount);
+  const issueSummaryWarningCount = Math.max(readinessWarningCount, serviceWarningCount);
+  const hasAnyIssues = issueSummaryBlockerCount > 0 || issueSummaryWarningCount > 0;
+  const readinessCriticalIssues =
+    selectedLineServiceProjection?.readiness.issues.filter((issue) => issue.severity === 'error').slice(0, 2) ?? [];
+
   return (
     <div className="selected-line-inspector">
       <section className="inspector-card" aria-label="Selected line identity">
@@ -82,6 +95,25 @@ export function SelectedLineInspector({
         ))}
       </section>
 
+      {hasAnyIssues ? (
+        <section className="inspector-card inspector-line-readiness" aria-label="Line blocker and warning summary">
+          <h3>Blockers and warnings</h3>
+          <p className="inspector-line-readiness__status">
+            {formatIssueSummaryLabel(issueSummaryBlockerCount, issueSummaryWarningCount)}
+          </p>
+          {readinessCriticalIssues.length > 0 ? (
+            <ul className="inspector-line-readiness__issues" aria-label="Critical readiness blockers">
+              {readinessCriticalIssues.map((issue, index) => (
+                <li key={`critical-readiness-issue-${issue.code}-${index}`}>
+                  <span>{issue.message}</span>{' '}
+                  {issue.code ? <code className="inspector-line-readiness__code">{issue.code}</code> : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+
       {selectedLineServiceProjection ? (
         <section className="inspector-card inspector-line-readiness" aria-label="Service readiness summary">
           <h3>Service readiness summary</h3>
@@ -114,29 +146,17 @@ export function SelectedLineInspector({
             </tbody>
           </table>
           {selectedLineServiceProjection.readiness.issues.length > 0 ? (
-            <>
+            <details className="inspector-details" aria-label="Full readiness issue list">
+              <summary>Show full readiness issue list</summary>
               <ul className="inspector-line-readiness__issues">
-                {selectedLineServiceProjection.readiness.issues.slice(0, 3).map((issue, index) => (
-                  <li key={`${issue.code}-${index}`}>
+                {selectedLineServiceProjection.readiness.issues.map((issue, index) => (
+                  <li key={`${issue.code}-full-${index}`}>
                     <span>{issue.message}</span>{' '}
                     {issue.code ? <code className="inspector-line-readiness__code">{issue.code}</code> : null}
                   </li>
                 ))}
               </ul>
-              {selectedLineServiceProjection.readiness.issues.length > 3 ? (
-                <details className="inspector-details" aria-label="All readiness issues">
-                  <summary>Show all readiness issues</summary>
-                  <ul className="inspector-line-readiness__issues">
-                    {selectedLineServiceProjection.readiness.issues.slice(3).map((issue, index) => (
-                      <li key={`${issue.code}-extra-${index}`}>
-                        <span>{issue.message}</span>{' '}
-                        {issue.code ? <code className="inspector-line-readiness__code">{issue.code}</code> : null}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              ) : null}
-            </>
+            </details>
           ) : (
             <p>No readiness issues.</p>
           )}
@@ -175,14 +195,21 @@ export function SelectedLineInspector({
                   {selectedLineServiceInspectorProjection.blockerCount} / {selectedLineServiceInspectorProjection.warningCount}
                 </td>
               </tr>
+              <tr>
+                <th scope="row">Service notes</th>
+                <td>{selectedLineServiceInspectorProjection.noteMessages.length}</td>
+              </tr>
             </tbody>
           </table>
           {selectedLineServiceInspectorProjection.noteMessages.length > 0 ? (
-            <ul className="inspector-line-readiness__issues">
-              {selectedLineServiceInspectorProjection.noteMessages.slice(0, 3).map((message, index) => (
-                <li key={`line-service-note-${index}`}>{message}</li>
-              ))}
-            </ul>
+            <details className="inspector-details" aria-label="Detailed service notes">
+              <summary>Show service notes and render timing details</summary>
+              <ul className="inspector-line-readiness__issues">
+                {selectedLineServiceInspectorProjection.noteMessages.map((message, index) => (
+                  <li key={`line-service-note-${index}`}>{message}</li>
+                ))}
+              </ul>
+            </details>
           ) : (
             <p>No service notes.</p>
           )}
@@ -225,15 +252,18 @@ export function SelectedLineInspector({
             </tbody>
           </table>
 
-          {selectedLineDepartureInspectorProjection.upcomingDepartureLabels.length > 0 ? (
-            <ul className="inspector-simple-list" aria-label="Upcoming departures">
-              {selectedLineDepartureInspectorProjection.upcomingDepartureLabels.map((label) => (
-                <li key={label}>{label}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>No departure raster available for the active time band.</p>
-          )}
+          <details className="inspector-details" aria-label="Detailed upcoming departures">
+            <summary>Show upcoming departures</summary>
+            {selectedLineDepartureInspectorProjection.upcomingDepartureLabels.length > 0 ? (
+              <ul className="inspector-simple-list" aria-label="Upcoming departures">
+                {selectedLineDepartureInspectorProjection.upcomingDepartureLabels.map((label) => (
+                  <li key={label}>{label}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No departure raster available for the active time band.</p>
+            )}
+          </details>
         </section>
       ) : null}
 
@@ -255,8 +285,8 @@ export function SelectedLineInspector({
           {selectedLineVehicleProjection.departureScheduleStatus === 'degraded' ? (
             <p>Degraded note: {selectedLineVehicleProjection.note ?? 'Degraded departure projection in active time band.'}</p>
           ) : null}
-          <details className="inspector-details" aria-label="Projected vehicle departure minutes">
-            <summary>Projected vehicle departure minutes</summary>
+          <details className="inspector-details" aria-label="Detailed projected vehicle departures">
+            <summary>Show projected vehicle departure minutes</summary>
             {selectedLineVehicleProjection.vehicles.length > 0 ? (
               <ul className="inspector-simple-list">
                 {selectedLineVehicleProjection.vehicles.map((vehicle) => (
