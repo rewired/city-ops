@@ -245,6 +245,8 @@ export interface MapLibreMap {
     pointOrBox: MapEventPoint | MapLibreRenderedFeatureQueryBox,
     options?: MapLibreRenderedFeatureQueryOptions
   ): readonly MapLibreRenderedFeature[];
+  /** Queries rendered features across the current viewport, optionally filtered by style layer ids. */
+  queryRenderedFeatures(options?: MapLibreRenderedFeatureQueryOptions): readonly MapLibreRenderedFeature[];
   /** Queries source features for a known source id and optional source-layer constraint. */
   querySourceFeatures(sourceId: string, options?: MapLibreSourceFeatureQueryOptions): readonly MapLibreSourceFeature[];
   /** Projects geographic coordinates into current map viewport screen-space coordinates. */
