@@ -76,12 +76,10 @@ export default function App(): ReactElement {
     readonly shortLabel: string;
     readonly accessibleLabel: string;
   }> = [
-    { mode: 'inspect', shortLabel: 'INSP', accessibleLabel: 'Inspect workspace' },
+    { mode: 'inspect', shortLabel: 'Inspect', accessibleLabel: 'Inspect workspace' },
     { mode: 'place-stop', shortLabel: 'STOP', accessibleLabel: 'Place stop tool' },
     { mode: 'build-line', shortLabel: 'LINE', accessibleLabel: 'Build line tool' }
   ];
-  const activeToolModeControlOption =
-    toolModeControlOptions.find((option) => option.mode === sessionController.activeToolMode) ?? null;
 
   return (
     <div className="app-shell" data-app-surface="desktop-shell">
@@ -117,32 +115,26 @@ export default function App(): ReactElement {
       />
 
       <aside className="left-panel" aria-label="Tools and navigation panel">
-        <h2>Tools</h2>
-        <div className="tool-mode-control" aria-label="Active workspace tool">
-          <div className="tool-mode-control__status-row">
-            <span className="tool-mode-control__label">Mode</span>
-            <span className="tool-mode-control__badge" aria-live="polite">
-              {activeToolModeControlOption?.shortLabel ?? sessionController.activeToolMode}
-            </span>
-          </div>
-          <div className="tool-mode-control__button-row" role="group" aria-label="Workspace mode selection">
-            {toolModeControlOptions.map((toolModeControlOption) => (
-              <button
-                key={toolModeControlOption.mode}
-                type="button"
-                className="tool-mode-control__button"
-                aria-pressed={sessionController.activeToolMode === toolModeControlOption.mode}
-                aria-label={toolModeControlOption.accessibleLabel}
-                title={toolModeControlOption.accessibleLabel}
-                onClick={() => {
-                  sessionController.handleToolModeSelection(toolModeControlOption.mode);
-                }}
-              >
-                <MaterialIcon name={WORKSPACE_MODE_ICONS[toolModeControlOption.mode]} />
-              </button>
-            ))}
-          </div>
-        </div>
+        <nav className="tool-mode-rail" role="group" aria-label="Workspace mode selection">
+          {toolModeControlOptions.map((toolModeControlOption) => (
+            <button
+              key={toolModeControlOption.mode}
+              type="button"
+              className="tool-mode-rail__button"
+              aria-pressed={sessionController.activeToolMode === toolModeControlOption.mode}
+              aria-label={toolModeControlOption.accessibleLabel}
+              title={toolModeControlOption.accessibleLabel}
+              onClick={() => {
+                sessionController.handleToolModeSelection(toolModeControlOption.mode);
+              }}
+            >
+              <MaterialIcon name={WORKSPACE_MODE_ICONS[toolModeControlOption.mode]} />
+              <span className="tool-mode-rail__label" aria-hidden="true">
+                {toolModeControlOption.shortLabel}
+              </span>
+            </button>
+          ))}
+        </nav>
       </aside>
 
       <main className="workspace" aria-label="Main workspace">
