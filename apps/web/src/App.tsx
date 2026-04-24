@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { MVP_TIME_BAND_IDS, TIME_BAND_DISPLAY_LABELS } from './domain/constants/timeBands';
 import { createLineFrequencyMinutes, type Line } from './domain/types/line';
 import type { LineRouteSegment, RouteStatus } from './domain/types/lineRoute';
-import type { StopId } from './domain/types/stop';
+import type { Stop, StopId } from './domain/types/stop';
 import type { TimeBandId } from './domain/types/timeBand';
 import {
   MapWorkspaceSurface,
@@ -190,7 +190,7 @@ function projectStaticNetworkSummaryKpis(
  */
 export default function App(): ReactElement {
   const [activeToolMode, setActiveToolMode] = useState<WorkspaceToolMode>('inspect');
-  const [placedStopCount, setPlacedStopCount] = useState(0);
+  const [sessionStops, setSessionStops] = useState<readonly Stop[]>([]);
   const [selectedStop, setSelectedStop] = useState<StopSelectionState | null>(null);
   const [lineBuildSelection, setLineBuildSelection] =
     useState<LineBuildSelectionState>(INITIAL_LINE_BUILD_SELECTION_STATE);
@@ -213,7 +213,7 @@ export default function App(): ReactElement {
   const selectedStopId: StopId | null = selectedStop?.selectedStopId ?? null;
   const inspectorPanelState = resolveInspectorPanelState(selectedLine, selectedStop);
   const staticNetworkSummaryKpis = projectStaticNetworkSummaryKpis(
-    placedStopCount,
+    sessionStops.length,
     sessionLines,
     selectedLine
   );
@@ -358,10 +358,11 @@ export default function App(): ReactElement {
         <MapWorkspaceSurface
           activeToolMode={activeToolMode}
           selectedStopId={selectedStopId}
+          placedStops={sessionStops}
           lineBuildSelection={lineBuildSelection}
           sessionLines={sessionLines}
           selectedLineId={selectedLineId}
-          onPlacedStopCountChange={setPlacedStopCount}
+          onPlacedStopsChange={setSessionStops}
           onStopSelectionChange={setSelectedStop}
           onLineBuildSelectionChange={setLineBuildSelection}
           onSessionLinesChange={setSessionLines}

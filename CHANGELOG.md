@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 015h: lift canonical placed-stop session ownership to `App.tsx` as `readonly Stop[]` and derive inspector/network stop counts from that single source of truth.
+- Slice 015h: update `MapWorkspaceSurface` to consume injected `placedStops` plus immutable stop-appender callback, removing local stop ownership and count-export callback flow.
+- Slice 015h: reuse injected canonical stops for stop/line GeoJSON source synchronization and fallback line-segment generation during draft completion.
+- Add ADR 0054 documenting canonical shell-owned stop state and map-surface stop sync boundary.
+
 - Slice 015g: formalize the routing-support boundary for completed lines so canonical `routeSegments` are introduced now for deterministic map projection and structural inspector baselines, without claiming full routing simulation completeness.
 - Slice 015g: keep fallback routing explicitly deterministic and limited (ordered adjacent stop-pair resolution with deterministic ids/order), and clarify that fallback geometry/time outputs are continuity baselines rather than final service truth.
 - Slice 015g: keep completed-line rendering segment-first by preferring persisted route-segment geometry for GeoJSON assembly, with stop-order fallback only when routed coordinates are unavailable.
