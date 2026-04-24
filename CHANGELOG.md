@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 029: add a shared `syncAllMapWorkspaceSources(...)` map workspace helper to ensure stop/completed-line/draft-line/vehicle sources and layers, synchronize source data, enforce deterministic custom layer order, and return source readback diagnostics.
+- Slice 029: replace duplicated map source/layer orchestration across map load, style-ready stop/line/vehicle effects, and lifecycle update paths with the shared helper to keep behavior consistent.
+- Add ADR 0077 documenting unified map source synchronization helper ownership, layer-order enforcement rationale, and explicit non-goals.
+
 - Slice 023a: fix loaded-session MapLibre synchronization by ensuring stop, completed-line, draft-line, and vehicle sources/layers are synchronized during map load and style-ready updates.
 - Slice 023a: remove load-handler stale-closure risk by reading current placed-stop, selection, draft, session-line, and vehicle-projection values from lifecycle-safe refs.
 - Slice 023a: add compact HUD line GeoJSON diagnostic count (`Line features`) while preserving existing vehicle feature diagnostics.

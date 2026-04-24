@@ -259,6 +259,8 @@ export interface MapLibreMap {
   getLayer(layerId: string): MapLibreLayerSpecification | undefined;
   /** Registers a style layer bound to an existing source id. */
   addLayer(layer: MapLibreLayerSpecification): void;
+  /** Reorders an existing layer before another layer id, or to the top when `beforeLayerId` is omitted. */
+  moveLayer(layerId: string, beforeLayerId?: string): void;
   /** Returns whether the current style is fully loaded and ready for source/layer mutations. */
   isStyleLoaded(): boolean;
   /** Registers a listener for feature interactions constrained to one style layer id. */

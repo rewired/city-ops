@@ -21,33 +21,16 @@ import {
   STREET_SNAP_MAX_PIXEL_TOLERANCE
 } from './mapWorkspacePlacementConstants';
 import {
-  MAP_COMPLETED_LINE_LAYER_FILTER,
-  MAP_COMPLETED_LINE_LAYER_PAINT,
-  MAP_COMPLETED_LINE_SELECTED_LAYER_FILTER,
-  MAP_COMPLETED_LINE_SELECTED_LAYER_PAINT,
-  MAP_DRAFT_LINE_LAYER_PAINT,
   MAP_LAYER_ID_COMPLETED_LINES,
   MAP_LAYER_ID_COMPLETED_LINES_SELECTED,
   MAP_LAYER_ID_DRAFT_LINE,
   MAP_LAYER_ID_STOPS_CIRCLE,
-  MAP_LAYER_ID_STOPS_LABEL,
-  MAP_LAYER_ID_VEHICLES,
-  MAP_SOURCE_ID_COMPLETED_LINES,
-  MAP_SOURCE_ID_DRAFT_LINE,
-  MAP_SOURCE_ID_STOPS,
-  MAP_SOURCE_ID_VEHICLES,
-  MAP_STOP_CIRCLE_LAYER_STYLE,
-  MAP_STOP_LABEL_LAYER_LAYOUT,
-  MAP_STOP_LABEL_LAYER_PAINT,
-  MAP_VEHICLE_CIRCLE_LAYER_PAINT
+  MAP_LAYER_ID_VEHICLES
 } from './mapRenderConstants';
-import { buildCompletedLineFeatureCollection, buildDraftLineFeatureCollection } from './lineGeoJson';
-import { buildStopFeatureCollection } from './stopGeoJson';
-import { buildVehicleFeatureCollection } from './vehicleGeoJson';
+import { syncAllMapWorkspaceSources } from './mapWorkspaceSourceSync';
 import {
   getSourceRefsForLayerIds,
   type MapLibreFeatureGeometry,
-  type MapLibreGeoJsonSource,
   type MapLibreInteractionEvent,
   type MapLibreMap
 } from './maplibreGlobal';
@@ -755,112 +738,6 @@ const createMapWorkspaceInstance = (containerElement: HTMLDivElement): MapLibreM
   return mapInstance;
 };
 
-const ensureLineRenderSourcesAndLayers = (map: MapLibreMap): void => {
-  if (!map.getSource(MAP_SOURCE_ID_COMPLETED_LINES)) {
-    map.addSource(MAP_SOURCE_ID_COMPLETED_LINES, {
-      type: 'geojson',
-      data: buildCompletedLineFeatureCollection({
-        lines: [],
-        stopsById: new Map(),
-        selectedLineId: null
-      })
-    });
-  }
-
-  if (!map.getSource(MAP_SOURCE_ID_DRAFT_LINE)) {
-    map.addSource(MAP_SOURCE_ID_DRAFT_LINE, {
-      type: 'geojson',
-      data: buildDraftLineFeatureCollection({
-        draftStopIds: [],
-        stopsById: new Map()
-      })
-    });
-  }
-
-  if (!map.getLayer(MAP_LAYER_ID_COMPLETED_LINES)) {
-    map.addLayer({
-      id: MAP_LAYER_ID_COMPLETED_LINES,
-      type: 'line',
-      source: MAP_SOURCE_ID_COMPLETED_LINES,
-      filter: MAP_COMPLETED_LINE_LAYER_FILTER,
-      paint: MAP_COMPLETED_LINE_LAYER_PAINT
-    });
-  }
-
-  if (!map.getLayer(MAP_LAYER_ID_COMPLETED_LINES_SELECTED)) {
-    map.addLayer({
-      id: MAP_LAYER_ID_COMPLETED_LINES_SELECTED,
-      type: 'line',
-      source: MAP_SOURCE_ID_COMPLETED_LINES,
-      filter: MAP_COMPLETED_LINE_SELECTED_LAYER_FILTER,
-      paint: MAP_COMPLETED_LINE_SELECTED_LAYER_PAINT
-    });
-  }
-
-  if (!map.getLayer(MAP_LAYER_ID_DRAFT_LINE)) {
-    map.addLayer({
-      id: MAP_LAYER_ID_DRAFT_LINE,
-      type: 'line',
-      source: MAP_SOURCE_ID_DRAFT_LINE,
-      paint: MAP_DRAFT_LINE_LAYER_PAINT
-    });
-  }
-};
-
-const ensureStopRenderSourceAndLayers = (map: MapLibreMap): void => {
-  if (!map.getSource(MAP_SOURCE_ID_STOPS)) {
-    map.addSource(MAP_SOURCE_ID_STOPS, {
-      type: 'geojson',
-      data: buildStopFeatureCollection({
-        stops: [],
-        selectedStopId: null,
-        draftStopIds: new Set(),
-        buildLineInteractive: false
-      })
-    });
-  }
-
-  if (!map.getLayer(MAP_LAYER_ID_STOPS_CIRCLE)) {
-    map.addLayer({
-      id: MAP_LAYER_ID_STOPS_CIRCLE,
-      type: 'circle',
-      source: MAP_SOURCE_ID_STOPS,
-      paint: MAP_STOP_CIRCLE_LAYER_STYLE
-    });
-  }
-
-  if (!map.getLayer(MAP_LAYER_ID_STOPS_LABEL)) {
-    map.addLayer({
-      id: MAP_LAYER_ID_STOPS_LABEL,
-      type: 'symbol',
-      source: MAP_SOURCE_ID_STOPS,
-      layout: MAP_STOP_LABEL_LAYER_LAYOUT,
-      paint: MAP_STOP_LABEL_LAYER_PAINT
-    });
-  }
-};
-
-const ensureVehicleRenderSourceAndLayer = (map: MapLibreMap): void => {
-  if (!map.getSource(MAP_SOURCE_ID_VEHICLES)) {
-    map.addSource(MAP_SOURCE_ID_VEHICLES, {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: []
-      }
-    });
-  }
-
-  if (!map.getLayer(MAP_LAYER_ID_VEHICLES)) {
-    map.addLayer({
-      id: MAP_LAYER_ID_VEHICLES,
-      type: 'circle',
-      source: MAP_SOURCE_ID_VEHICLES,
-      paint: MAP_VEHICLE_CIRCLE_LAYER_PAINT
-    });
-  }
-};
-
 const runWhenMapStyleReady = (map: MapLibreMap, callback: () => void): (() => void) | void => {
   if (map.isStyleLoaded()) {
     callback();
@@ -881,91 +758,6 @@ const runWhenMapStyleReady = (map: MapLibreMap, callback: () => void): (() => vo
   return () => {
     map.off('styledata', onStyleData);
   };
-};
-
-const syncStopSourceData = ({
-  map,
-  stops,
-  selectedStopId,
-  draftStopIds,
-  isBuildLineModeActive
-}: {
-  readonly map: MapLibreMap;
-  readonly stops: readonly Stop[];
-  readonly selectedStopId: StopId | null;
-  readonly draftStopIds: ReadonlySet<StopId>;
-  readonly isBuildLineModeActive: boolean;
-}): void => {
-  const stopSource = map.getSource(MAP_SOURCE_ID_STOPS) as MapLibreGeoJsonSource | undefined;
-
-  if (!stopSource) {
-    return;
-  }
-
-  stopSource.setData(
-    buildStopFeatureCollection({
-      stops,
-      selectedStopId,
-      draftStopIds,
-      buildLineInteractive: isBuildLineModeActive
-    })
-  );
-};
-
-const syncLineSourceData = ({
-  map,
-  sessionLines,
-  selectedLineId,
-  draftStopIds,
-  stopsById
-}: {
-  readonly map: MapLibreMap;
-  readonly sessionLines: readonly Line[];
-  readonly selectedLineId: Line['id'] | null;
-  readonly draftStopIds: readonly StopId[];
-  readonly stopsById: ReadonlyMap<StopId, Stop>;
-}): number => {
-  const completedLineSource = map.getSource(MAP_SOURCE_ID_COMPLETED_LINES) as MapLibreGeoJsonSource | undefined;
-  const draftLineSource = map.getSource(MAP_SOURCE_ID_DRAFT_LINE) as MapLibreGeoJsonSource | undefined;
-  const completedLineFeatureCollection = buildCompletedLineFeatureCollection({
-    lines: sessionLines,
-    stopsById,
-    selectedLineId
-  });
-  const draftLineFeatureCollection = buildDraftLineFeatureCollection({
-    draftStopIds,
-    stopsById
-  });
-
-  completedLineSource?.setData(completedLineFeatureCollection);
-  draftLineSource?.setData(draftLineFeatureCollection);
-
-  return completedLineFeatureCollection.features.length + draftLineFeatureCollection.features.length;
-};
-
-const syncVehicleSourceData = ({
-  map,
-  vehicleNetworkProjection
-}: {
-  readonly map: MapLibreMap;
-  readonly vehicleNetworkProjection: LineVehicleNetworkProjection;
-}): number => {
-  const vehicleSource = map.getSource(MAP_SOURCE_ID_VEHICLES) as MapLibreGeoJsonSource | undefined;
-  const vehicleFeatureCollection = buildVehicleFeatureCollection({
-    vehicleNetworkProjection
-  });
-
-  vehicleSource?.setData(vehicleFeatureCollection);
-
-  return vehicleFeatureCollection.features.length;
-};
-
-const countSourceFeatures = (map: MapLibreMap, sourceId: string): number => {
-  if (!map.getSource(sourceId)) {
-    return 0;
-  }
-
-  return map.querySourceFeatures(sourceId).length;
 };
 
 const countRenderedFeaturesForLayers = (map: MapLibreMap, layerIds: readonly string[]): number => {
@@ -1203,27 +995,39 @@ export function MapWorkspaceSurface({
     const mapInstance = createMapWorkspaceInstance(containerElement);
     mapInstanceRef.current = mapInstance;
     const onMapLoad = (): void => {
-      ensureLineRenderSourcesAndLayers(mapInstance);
-      ensureStopRenderSourceAndLayers(mapInstance);
-      ensureVehicleRenderSourceAndLayer(mapInstance);
-      syncStopSourceData({
+      const sourceSyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
-        stops: placedStopsRef.current,
-        selectedStopId: selectedStopIdRef.current,
-        draftStopIds: draftStopIdSetRef.current,
-        isBuildLineModeActive: activeToolModeRef.current === 'build-line'
+        stopSync: {
+          stops: placedStopsRef.current,
+          selectedStopId: selectedStopIdRef.current,
+          draftStopIds: draftStopIdSetRef.current,
+          isBuildLineModeActive: activeToolModeRef.current === 'build-line'
+        },
+        lineSync: {
+          sessionLines: sessionLinesRef.current,
+          selectedLineId: selectedLineIdRef.current,
+          draftStopIds: draftStopIdsRef.current,
+          stopsById: stopsByIdRef.current
+        },
+        vehicleSync: {
+          vehicleNetworkProjection: vehicleNetworkProjectionRef.current
+        }
       });
-      syncLineSourceData({
-        map: mapInstance,
-        sessionLines: sessionLinesRef.current,
-        selectedLineId: selectedLineIdRef.current,
-        draftStopIds: draftStopIdsRef.current,
-        stopsById: stopsByIdRef.current
-      });
-      syncVehicleSourceData({
-        map: mapInstance,
-        vehicleNetworkProjection: vehicleNetworkProjectionRef.current
-      });
+
+      setFeatureDiagnostics((currentDiagnostics) => ({
+        ...currentDiagnostics,
+        lines: {
+          ...currentDiagnostics.lines,
+          builderFeatureCount: sourceSyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
+          sourceFeatureCount: sourceSyncDiagnostics.lineSourceFeatureCount
+        },
+        vehicles: {
+          ...currentDiagnostics.vehicles,
+          builderFeatureCount:
+            sourceSyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
+          sourceFeatureCount: sourceSyncDiagnostics.vehicleSourceFeatureCount
+        }
+      }));
     };
     mapInstance.on('load', onMapLoad);
     const mapResizeBinding = setupMapResizeBinding(containerElement, mapInstanceRef);
@@ -1293,13 +1097,14 @@ export function MapWorkspaceSurface({
     }
 
     return runWhenMapStyleReady(mapInstance, () => {
-      ensureStopRenderSourceAndLayers(mapInstance);
-      syncStopSourceData({
+      syncAllMapWorkspaceSources({
         map: mapInstance,
-        stops: placedStops,
-        selectedStopId,
-        draftStopIds: draftStopIdSet,
-        isBuildLineModeActive: activeToolMode === 'build-line'
+        stopSync: {
+          stops: placedStops,
+          selectedStopId,
+          draftStopIds: draftStopIdSet,
+          isBuildLineModeActive: activeToolMode === 'build-line'
+        }
       });
     });
   }, [activeToolMode, draftStopIdSet, placedStops, selectedStopId]);
@@ -1312,23 +1117,22 @@ export function MapWorkspaceSurface({
     }
 
     return runWhenMapStyleReady(mapInstance, () => {
-      ensureLineRenderSourcesAndLayers(mapInstance);
-      const lineBuilderFeatureCount = syncLineSourceData({
+      const sourceSyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
-        sessionLines,
-        selectedLineId,
-        draftStopIds: draftLineState.stopIds,
-        stopsById: new Map(placedStops.map((stop) => [stop.id, stop] as const))
+        lineSync: {
+          sessionLines,
+          selectedLineId,
+          draftStopIds: draftLineState.stopIds,
+          stopsById: new Map(placedStops.map((stop) => [stop.id, stop] as const))
+        }
       });
-      const lineSourceFeatureCount =
-        countSourceFeatures(mapInstance, MAP_SOURCE_ID_COMPLETED_LINES) + countSourceFeatures(mapInstance, MAP_SOURCE_ID_DRAFT_LINE);
 
       setFeatureDiagnostics((currentDiagnostics) => ({
         ...currentDiagnostics,
         lines: {
           ...currentDiagnostics.lines,
-          builderFeatureCount: lineBuilderFeatureCount,
-          sourceFeatureCount: lineSourceFeatureCount
+          builderFeatureCount: sourceSyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
+          sourceFeatureCount: sourceSyncDiagnostics.lineSourceFeatureCount
         }
       }));
     });
@@ -1342,19 +1146,19 @@ export function MapWorkspaceSurface({
     }
 
     return runWhenMapStyleReady(mapInstance, () => {
-      ensureVehicleRenderSourceAndLayer(mapInstance);
-      const vehicleBuilderFeatureCount = syncVehicleSourceData({
+      const sourceSyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
-        vehicleNetworkProjection
+        vehicleSync: {
+          vehicleNetworkProjection
+        }
       });
-      const vehicleSourceFeatureCount = countSourceFeatures(mapInstance, MAP_SOURCE_ID_VEHICLES);
 
       setFeatureDiagnostics((currentDiagnostics) => ({
         ...currentDiagnostics,
         vehicles: {
           ...currentDiagnostics.vehicles,
-          builderFeatureCount: vehicleBuilderFeatureCount,
-          sourceFeatureCount: vehicleSourceFeatureCount
+          builderFeatureCount: sourceSyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
+          sourceFeatureCount: sourceSyncDiagnostics.vehicleSourceFeatureCount
         }
       }));
     });
