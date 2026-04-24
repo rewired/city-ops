@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 032: refactor the left-panel workspace mode control to show a compact current-mode chip and icon-first mode buttons with explicit `aria-pressed` active state semantics.
+- Slice 032: tighten `.tool-mode-control*` spacing/button density while preserving desktop keyboard focus visibility and accessible names via `aria-label`/`title`.
+- Slice 032 non-goals preserved: no tool removals, no workspace mode behavior changes, and no simulation/domain scope expansion.
+- Add ADR 0086 documenting tool-mode control compaction, icon-first accessibility semantics, and explicit non-goals.
+
 - Slice 031: add a reusable native `<details>/<summary>` `DebugDisclosure` UI component for keyboard-accessible collapsed diagnostics sections.
 - Slice 031: keep compact map workspace overlays visible by default while relocating map telemetry, interaction lifecycle text, feature-count diagnostics, and draft metadata into a collapsed debug disclosure block.
 - Slice 031 non-goals preserved: no map interaction/sync/rendering/projection semantics changes and no simulation/domain behavior changes.

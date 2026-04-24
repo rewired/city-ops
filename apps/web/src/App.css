@@ -62,40 +62,69 @@ body {
 
 .tool-mode-control {
   display: grid;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.tool-mode-control p {
-  margin: 0;
+.tool-mode-control__status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-mode-control__label {
   color: #9fb0cb;
-  text-transform: capitalize;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tool-mode-control__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 2px 8px;
+  border: 1px solid #5773a4;
+  border-radius: 999px;
+  background: #1b2940;
+  color: #d5e3f9;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 
 .tool-mode-control__button-row {
-  display: grid;
-  gap: 8px;
-  justify-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .tool-mode-control__button {
-  display: inline-flex;
+  display: inline-grid;
+  place-items: center;
   align-items: center;
-  gap: 8px;
-  width: fit-content;
-  padding: 8px 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: 1px solid #425b83;
-  border-radius: 8px;
+  border-radius: 7px;
   background: #1d2a3f;
   color: #e8eef9;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
 }
 
 .tool-mode-control__button[aria-pressed='true'] {
   border-color: #7aa2e0;
   background: #26406a;
+}
+
+.tool-mode-control__button:focus-visible {
+  outline: 2px solid #8eb6f6;
+  outline-offset: 2px;
 }
 
 .app-material-icon {
