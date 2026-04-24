@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 015b: add canonical routing baseline constants in `apps/web/src/domain/constants/routing.ts` for fallback bus speed, default dwell minutes, and minimum in-motion travel minutes.
+- Slice 015b: add route travel-timing helpers in `apps/web/src/domain/types/lineRoute.ts` that consume canonical routing constants instead of local numeric defaults.
+- Add ADR 0048 documenting canonical routing baseline constant ownership and helper import boundaries.
+
 - Slice 015a: add canonical line-route domain primitives (`LineSegmentId`, `RouteGeometryCoordinate`, branded route distance/travel time, and explicit `RouteStatus` with `fallback-routed`) in `apps/web/src/domain/types/lineRoute.ts`.
 - Slice 015a: extend canonical `Line` with readonly typed `routeSegments` using `LineRouteSegment[]`, and initialize new lines with an empty route-segment list in map workspace line completion flow.
 - Add ADR 0047 documenting the canonical line-route segment type surface and line-level route-segment ownership boundary.
