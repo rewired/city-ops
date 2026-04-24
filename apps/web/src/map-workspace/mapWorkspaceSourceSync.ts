@@ -85,6 +85,19 @@ const CUSTOM_LAYER_ORDER = [
   MAP_LAYER_ID_VEHICLES
 ] as const;
 
+const WORKSPACE_SOURCE_IDS = [
+  MAP_SOURCE_ID_COMPLETED_LINES,
+  MAP_SOURCE_ID_DRAFT_LINE,
+  MAP_SOURCE_ID_STOPS,
+  MAP_SOURCE_ID_VEHICLES
+] as const;
+
+/**
+ * Returns whether all workspace-owned GeoJSON sources already exist on the current map style.
+ */
+export const hasAllMapWorkspaceRenderSources = (map: MapLibreMap): boolean =>
+  WORKSPACE_SOURCE_IDS.every((sourceId) => map.getSource(sourceId) !== undefined);
+
 const countSourceFeatures = (map: MapLibreMap, sourceId: string): number => {
   if (!map.getSource(sourceId)) {
     return 0;
@@ -215,17 +228,12 @@ const ensureAllMapWorkspaceRenderSourcesAndLayers = (map: MapLibreMap): void => 
   enforceCustomLayerOrder(map);
 };
 
-/**
- * Synchronizes all workspace-owned map sources/layers in one pass and returns source readback diagnostics.
- */
-export const syncAllMapWorkspaceSources = ({
+const syncMapWorkspaceSourceData = ({
   map,
   stopSync,
   lineSync,
   vehicleSync
 }: SyncAllMapWorkspaceSourcesInput): MapWorkspaceSourceSyncDiagnostics => {
-  ensureAllMapWorkspaceRenderSourcesAndLayers(map);
-
   let stopBuilderFeatureCount: number | undefined;
   let lineBuilderFeatureCount: number | undefined;
   let vehicleBuilderFeatureCount: number | undefined;
@@ -283,4 +291,26 @@ export const syncAllMapWorkspaceSources = ({
     ...(vehicleBuilderFeatureCount === undefined ? {} : { vehicleBuilderFeatureCount }),
     vehicleSourceFeatureCount: countSourceFeatures(map, MAP_SOURCE_ID_VEHICLES)
   };
+};
+
+/**
+ * Synchronizes source data immediately when all workspace sources already exist.
+ * Returns null when at least one source handle is still missing.
+ */
+export const syncExistingMapWorkspaceSourceData = (
+  input: SyncAllMapWorkspaceSourcesInput
+): MapWorkspaceSourceSyncDiagnostics | null => {
+  if (!hasAllMapWorkspaceRenderSources(input.map)) {
+    return null;
+  }
+
+  return syncMapWorkspaceSourceData(input);
+};
+
+/**
+ * Synchronizes all workspace-owned map sources/layers in one pass and returns source readback diagnostics.
+ */
+export const syncAllMapWorkspaceSources = (input: SyncAllMapWorkspaceSourcesInput): MapWorkspaceSourceSyncDiagnostics => {
+  ensureAllMapWorkspaceRenderSourcesAndLayers(input.map);
+  return syncMapWorkspaceSourceData(input);
 };

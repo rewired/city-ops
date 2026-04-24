@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-24
 
+- Slice 029a: split map workspace synchronization into immediate source `setData(...)` updates when source handles already exist versus style-ready fallback creation when source/layer registration is still required.
+- Slice 029a: limit `runWhenMapStyleReady(...)` usage in `MapWorkspaceSurface.tsx` to safe source/layer creation paths and avoid delaying reactive stop/line/vehicle data writes unnecessarily.
+- Add ADR 0078 documenting source/layer ensure-versus-data-write lifecycle separation and explicit non-goals.
+
 - Slice 029: add a shared `syncAllMapWorkspaceSources(...)` map workspace helper to ensure stop/completed-line/draft-line/vehicle sources and layers, synchronize source data, enforce deterministic custom layer order, and return source readback diagnostics.
 - Slice 029: replace duplicated map source/layer orchestration across map load, style-ready stop/line/vehicle effects, and lifecycle update paths with the shared helper to keep behavior consistent.
 - Add ADR 0077 documenting unified map source synchronization helper ownership, layer-order enforcement rationale, and explicit non-goals.
