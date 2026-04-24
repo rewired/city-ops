@@ -8,7 +8,11 @@ import {
   type LineRouteSegment
 } from '../types/lineRoute';
 import { createStopId, type Stop } from '../types/stop';
-import { projectLineServicePlan, projectLineServicePlanForLine } from './lineServicePlanProjection';
+import {
+  projectLineSelectedServiceInspector,
+  projectLineServicePlan,
+  projectLineServicePlanForLine
+} from './lineServicePlanProjection';
 
 const lineAId = createLineId('line-a');
 const lineBId = createLineId('line-b');
@@ -144,5 +148,49 @@ describe('projectLineServicePlan', () => {
     expect(projection.summary.totalRouteSegmentCount).toBe(4);
     expect(projection.summary.totalRouteTravelMinutes).toBe(20);
     expect(projection.summary.totalTheoreticalDeparturesPerHour).toBe(10);
+  });
+});
+
+describe('projectLineSelectedServiceInspector', () => {
+  it('returns compact configured projection fields with bounded note list', () => {
+    const degradedLine: Line = {
+      ...createBaseLine(lineAId),
+      routeSegments: [
+        createSegment(1, lineAId, stopA, stopB, 4, 'fallback-routed'),
+        createSegment(2, lineAId, stopB, stopC, 6, 'fallback-routed')
+      ]
+    };
+    const lineProjection = projectLineServicePlanForLine(degradedLine, placedStops, 'morning-rush');
+
+    const inspectorProjection = projectLineSelectedServiceInspector(lineProjection, 1);
+
+    expect(inspectorProjection.activeTimeBandLabel).toBe('Morning rush');
+    expect(inspectorProjection.status).toBe('degraded');
+    expect(inspectorProjection.statusLabel).toBe('Configured with warnings');
+    expect(inspectorProjection.headwayLabel).toBe('6 min');
+    expect(inspectorProjection.theoreticalDeparturesPerHourLabel).toBe('10.00 departures/hour');
+    expect(inspectorProjection.totalRouteTravelMinutesLabel).toBe('10.00 min');
+    expect(inspectorProjection.routeSegmentCount).toBe(2);
+    expect(inspectorProjection.blockerCount).toBe(0);
+    expect(inspectorProjection.warningCount).toBeGreaterThan(0);
+    expect(inspectorProjection.noteMessages).toHaveLength(1);
+  });
+
+  it('projects an explicit unconfigured headway message when no active-band frequency exists', () => {
+    const notConfiguredLine: Line = {
+      ...createBaseLine(lineAId),
+      frequencyByTimeBand: {
+        ...createBaseLine(lineAId).frequencyByTimeBand,
+        'morning-rush': null
+      }
+    };
+    const lineProjection = projectLineServicePlanForLine(notConfiguredLine, placedStops, 'morning-rush');
+
+    const inspectorProjection = projectLineSelectedServiceInspector(lineProjection);
+
+    expect(inspectorProjection.status).toBe('not-configured');
+    expect(inspectorProjection.headwayLabel).toBe('No active-band headway configured.');
+    expect(inspectorProjection.theoreticalDeparturesPerHour).toBeNull();
+    expect(inspectorProjection.theoreticalDeparturesPerHourLabel).toBeNull();
   });
 });

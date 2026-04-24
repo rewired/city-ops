@@ -51,6 +51,43 @@ export interface LineServiceProjectionResult {
 }
 
 /**
+ * Compact line-selected inspector projection derived from one line service projection result.
+ */
+export interface LineSelectedServiceInspectorProjection {
+  /** Active time-band identifier used for this inspector projection. */
+  readonly activeTimeBandId: TimeBandId;
+  /** Active time-band display label for compact UI rendering. */
+  readonly activeTimeBandLabel: string;
+  /** Current line service projection status for the active band. */
+  readonly status: LineServiceProjectionStatus;
+  /** Human-readable status label for inspector/status-bar rendering. */
+  readonly statusLabel: string;
+  /** Active-band headway in minutes, or `null` when unset/invalid. */
+  readonly currentBandHeadwayMinutes: number | null;
+  /**
+   * Active-band headway label.
+   * Uses an explicit unconfigured message when no valid active-band headway exists.
+   */
+  readonly headwayLabel: string;
+  /** Theoretical departures per hour (`60 / headway`) when configured, otherwise `null`. */
+  readonly theoreticalDeparturesPerHour: number | null;
+  /** Human-readable departures-per-hour label when configured, otherwise `null`. */
+  readonly theoreticalDeparturesPerHourLabel: string | null;
+  /** Sum of stored route-segment travel minutes for this line. */
+  readonly totalRouteTravelMinutes: number;
+  /** Human-readable total route-travel-time label for compact inspector rendering. */
+  readonly totalRouteTravelMinutesLabel: string;
+  /** Number of stored route segments on the selected line. */
+  readonly routeSegmentCount: number;
+  /** Number of blocker readiness issues. */
+  readonly blockerCount: number;
+  /** Number of warning readiness issues. */
+  readonly warningCount: number;
+  /** Short note list forwarded from readiness diagnostics (message-only projection). */
+  readonly noteMessages: readonly string[];
+}
+
+/**
  * Network-level summary for all projected completed lines in one active time band.
  */
 export interface LineServiceProjectionSummary {
