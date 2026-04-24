@@ -1,3 +1,8 @@
+import {
+  DEFAULT_ROUTE_DWELL_MINUTES_PER_SEGMENT,
+  FALLBACK_BUS_SPEED_METERS_PER_MINUTE,
+  MINIMUM_IN_MOTION_TRAVEL_MINUTES
+} from '../constants/routing';
 import type { LineId } from './line';
 import type { StopId } from './stop';
 
@@ -43,6 +48,15 @@ export interface LineRouteSegment {
 }
 
 /**
+ * Baseline fallback travel timing breakdown for one routed line segment.
+ */
+export interface BaselineRouteTravelTiming {
+  readonly inMotionTravelMinutes: RouteTravelMinutes;
+  readonly dwellMinutes: RouteTravelMinutes;
+  readonly totalTravelMinutes: RouteTravelMinutes;
+}
+
+/**
  * Creates a branded line-segment identifier from a deterministic raw segment key.
  */
 export const createLineSegmentId = (rawLineSegmentId: string): LineSegmentId =>
@@ -68,4 +82,31 @@ export const createRouteTravelMinutes = (rawTravelMinutes: number): RouteTravelM
   }
 
   return rawTravelMinutes as RouteTravelMinutes;
+};
+
+/**
+ * Computes baseline fallback in-motion minutes from routed segment distance using canonical routing constants.
+ */
+export const calculateFallbackInMotionTravelMinutes = (distanceMeters: RouteDistanceMeters): RouteTravelMinutes => {
+  const rawInMotionMinutes = distanceMeters / FALLBACK_BUS_SPEED_METERS_PER_MINUTE;
+
+  if (distanceMeters === 0) {
+    return createRouteTravelMinutes(0);
+  }
+
+  return createRouteTravelMinutes(Math.max(MINIMUM_IN_MOTION_TRAVEL_MINUTES, rawInMotionMinutes));
+};
+
+/**
+ * Builds canonical fallback travel timing for one route segment with separate in-motion and dwell components.
+ */
+export const createBaselineRouteTravelTiming = (distanceMeters: RouteDistanceMeters): BaselineRouteTravelTiming => {
+  const inMotionTravelMinutes = calculateFallbackInMotionTravelMinutes(distanceMeters);
+  const dwellMinutes = createRouteTravelMinutes(DEFAULT_ROUTE_DWELL_MINUTES_PER_SEGMENT);
+
+  return {
+    inMotionTravelMinutes,
+    dwellMinutes,
+    totalTravelMinutes: createRouteTravelMinutes(inMotionTravelMinutes + dwellMinutes)
+  };
 };
