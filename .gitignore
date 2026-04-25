@@ -54,3 +54,4 @@ temp/
 *.mbtiles
 *.gpkg
 *.pbf
+/docs/slices/*
