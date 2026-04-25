@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-25
 
+- Slice 030a: replace the selected-line `Edit frequency` dialog with a compact `Edit service plan` editor showing canonical time-band label/window rows and player-facing `Interval`/`No service` actions only.
+- Slice 030a: keep `unset` as internal not-configured state (no direct selection control), show neutral row styling for unset bands, and display an en dash (`–`) minute placeholder for explicit no-service bands.
+- Slice 030a: move interval entry to controlled text-input validation (`1..999`, whole minutes, max three digits, no spinner semantics) and keep explicit `{ kind: "no-service" }` domain state.
+- Slice 030a: add focused tests for compact service-plan dialog rendering and frequency-editor action semantics/validation boundaries.
+- Add ADR 0098 documenting compact service-plan editor interaction and non-goals.
+
 - Slice 042: add explicit selected-line frequency editor control state (`unset` / `frequency` / `no-service`) so UI intent is not inferred from empty input text.
 - Slice 042: update selected-line frequency update actions to include explicit `set-no-service` and `set-unset` paths while preserving empty-input-to-`unset` and positive-numeric-to-`frequency` semantics.
 - Slice 042: update frequency dialog per-band controls with explicit service-mode selection and keep validation messaging aligned with the new semantics.

@@ -397,8 +397,8 @@ body {
 
 .inspector-frequency-editor {
   display: grid;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .inspector-route-baseline {
@@ -482,52 +482,84 @@ body {
 
 .inspector-frequency-editor__row {
   display: grid;
-  gap: 4px;
-  font-size: 0.85rem;
+  grid-template-columns: minmax(210px, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  font-size: 0.8rem;
   color: #c8d6ee;
   margin: 0;
-  padding: 8px;
+  padding: 7px 8px;
   border: 1px solid #2f415f;
   border-radius: 8px;
 }
 
-.inspector-frequency-editor__row legend {
-  padding: 0 4px;
-  font-size: 0.82rem;
+.inspector-frequency-editor__row--not-configured {
+  border-color: #425b83;
+  background: rgb(24 35 56 / 35%);
+}
+
+.inspector-frequency-editor__band-label {
+  margin: 0;
   color: #d9e7ff;
+  font-weight: 600;
 }
 
-.inspector-frequency-editor__mode-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
+.inspector-frequency-editor__band-window {
+  color: #adc2e2;
+  font-weight: 500;
 }
 
-.inspector-frequency-editor__mode-group label {
+.inspector-frequency-editor__controls {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  justify-self: end;
 }
 
-.inspector-frequency-editor__input-label {
-  display: grid;
-  gap: 4px;
+.inspector-frequency-editor__mode-button {
+  border: 1px solid #425b83;
+  border-radius: 6px;
+  background: #1d2a3f;
+  color: #d9e7fd;
+  padding: 4px 8px;
+  font-size: 0.73rem;
+  cursor: pointer;
 }
 
-.inspector-frequency-editor__row input {
-  width: 100%;
-  max-width: 130px;
-  padding: 6px 8px;
+.inspector-frequency-editor__mode-button[aria-pressed='true'] {
+  border-color: #f5c358;
+  background: #2f466f;
+  color: #fdf4df;
+}
+
+.inspector-frequency-editor__interval-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #c4d3ea;
+  font-size: 0.73rem;
+}
+
+.inspector-frequency-editor__interval-field input {
+  width: 58px;
+  padding: 4px 6px;
   border: 1px solid #425b83;
   border-radius: 6px;
   background: #182338;
   color: #e8eef9;
+  text-align: right;
+}
+
+.inspector-frequency-editor__interval-field input:disabled {
+  border-color: #3a4a66;
+  color: #9aaece;
+  background: #162132;
 }
 
 .inspector-frequency-editor__error {
+  grid-column: 1 / -1;
   color: #ff9f98;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .right-panel {
@@ -760,6 +792,10 @@ body {
   background: #131f31;
 }
 
+
+.inspector-dialog__surface--service-plan-editor {
+  width: min(680px, 100%);
+}
 .inspector-dialog__header {
   display: flex;
   align-items: center;

@@ -104,7 +104,7 @@ export function SelectedLineInspector({
         <h3>Actions</h3>
         <div className="selected-line-inspector__actions-grid">
           <button type="button" className="inspector-lines-tab__action" onClick={() => setActiveDialogId('frequency')}>
-            Edit frequency
+            Edit service plan
           </button>
           <button type="button" className="inspector-lines-tab__action" onClick={() => setActiveDialogId('service-plan')}>
             Service plan
