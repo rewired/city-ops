@@ -15,13 +15,14 @@ The goal is to integrate these tools into the line completion flow while ensurin
 Newly completed bus lines will now attempt to use street-routed geometry through the routing adapter boundary.
 
 1.  **Framework-Independent Integration**: A new command/helper `completeLineRouting` orchestrates the transition from ordered stops to routed segments.
-2.  **Asynchronous Completion**: Line completion in `MapWorkspaceSurface.tsx` is now asynchronous. It snapshots the draft state at the start of the request to prevent UI race conditions.
-3.  **Best-Available Routing**:
+2.  **Asynchronous Completion**: Line completion in `MapWorkspaceSurface.tsx` is asynchronous. It snapshots all relevant inputs (draft stop IDs, ordinal, and placed stops) before triggering routing to prevent UI race conditions.
+3.  **Explicit Geometry Mapping**: Route geometry from external providers is explicitly mapped into the canonical domain shape using a dedicated mapper. This removes unchecked casts and ensures `[longitude, latitude]` order and type safety.
+4.  **Best-Available Routing**:
     *   If the local OSRM service is available and returns a valid route, segments use `status: 'routed'`.
     *   If OSRM is unavailable, returns an error, or times out, the system falls back to explicit `status: 'fallback-routed'` segments (straight lines).
-4.  **Centralized Timeout**: A `ROUTING_REQUEST_TIMEOUT_MS` (2000ms) is enforced to ensure the player is never blocked by a hanging routing request.
-5.  **Duplicate Prevention**: A pending flag (`isCompletingLine`) prevents multiple concurrent completion requests for the same draft.
-6.  **Immutable Snapshots**: Draft stop IDs are cloned at the moment of submission to ensure the in-flight routing request is decoupled from any immediate UI changes.
+5.  **Centralized Timeout**: A `ROUTING_REQUEST_TIMEOUT_MS` (2000ms) is enforced to ensure the player is never blocked by a hanging routing request.
+6.  **Duplicate Prevention**: A pending flag (`isCompletingLine`) prevents multiple concurrent completion requests for the same draft.
+7.  **Immutable Snapshots**: All routing inputs are cloned at the moment of submission to ensure the in-flight routing request is decoupled from any immediate UI or session state changes.
 
 ## Consequences
 

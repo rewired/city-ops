@@ -6,6 +6,7 @@ import {
   buildRoutedLineRouteSegments, 
   mapResolvedRouteSegmentToLineRouteSegment 
 } from "./buildRoutedLineRouteSegments";
+import { toLineRouteGeometry } from "./lineRouteGeometryMapping";
 import { 
   createRouteDistanceMeters, 
   createRouteDurationSeconds, 
@@ -14,6 +15,21 @@ import {
   type RoutingAdapter, 
   type RoutingFailure 
 } from "./RoutingAdapter";
+
+describe("lineRouteGeometryMapping", () => {
+  it("explicitly rebuilds coordinate tuples for type safety", () => {
+    const rawCoordinates: [number, number][] = [[10.0, 53.0], [10.1, 53.1]];
+    const mapped = toLineRouteGeometry(rawCoordinates);
+
+    expect(mapped).toHaveLength(2);
+    expect(mapped[0]).toEqual([10.0, 53.0]);
+    expect(mapped[1]).toEqual([10.1, 53.1]);
+    
+    // Verify it's a new array and new tuples (not just the same reference)
+    expect(mapped).not.toBe(rawCoordinates);
+    expect(mapped[0]).not.toBe(rawCoordinates[0]);
+  });
+});
 
 describe("buildRoutedLineRouteSegments", () => {
   const lineId = "line-1" as LineId;

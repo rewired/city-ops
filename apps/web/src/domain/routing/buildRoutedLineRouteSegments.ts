@@ -1,3 +1,4 @@
+import { toLineRouteGeometry } from './lineRouteGeometryMapping';
 import { DEFAULT_ROUTE_DWELL_MINUTES_PER_SEGMENT } from '../constants/routing';
 import type { LineId } from '../types/line';
 import {
@@ -60,7 +61,7 @@ export const mapResolvedRouteSegmentToLineRouteSegment = (
     lineId,
     fromStopId,
     toStopId,
-    orderedGeometry: resolved.geometry.coordinates as RouteGeometryCoordinate[],
+    orderedGeometry: toLineRouteGeometry(resolved.geometry.coordinates),
     distanceMeters: createRouteDistanceMeters(resolved.distanceMeters),
     inMotionTravelMinutes,
     dwellMinutes,

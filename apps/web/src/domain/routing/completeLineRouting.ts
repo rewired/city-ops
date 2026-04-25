@@ -20,12 +20,16 @@ export interface CompleteLineRoutingInput {
 }
 
 /**
- * Orchestrates the routing of a completed line.
- * Attempts street-routed geometry using the provided adapter with a centralized timeout.
- * Falls back to deterministic straight-line segments if routing fails, times out, or throws.
+ * Orchestrates the routing of a completed line by attempting best-available street routing.
+ * 
+ * Process:
+ * 1. Prepares fallback segments (straight lines) as a reliable last resort.
+ * 2. Attempts street-routed geometry via the provided adapter.
+ * 3. Enforces a centralized timeout to prevent UI hangs.
+ * 4. Catches and gracefully handles any adapter failures or network errors.
  *
- * @param input - The line details and adapter to use.
- * @returns A promise resolving to the final array of route segments.
+ * @param input - The snapshotted line configuration and routing adapter.
+ * @returns A promise resolving to the best available route segments (routed or fallback).
  */
 export async function completeLineRouting(
   input: CompleteLineRoutingInput

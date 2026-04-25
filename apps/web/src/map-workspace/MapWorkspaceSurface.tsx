@@ -6,7 +6,6 @@ import {
 } from '../domain/constants/lineBuilding';
 import { completeLineRouting } from '../domain/routing/completeLineRouting';
 import { getDefaultRoutingAdapter } from '../domain/routing/defaultRoutingAdapter';
-import { buildFallbackLineRouteSegments } from '../domain/routing/fallbackLineRouting';
 import type { Line } from '../domain/types/line';
 import { createLineId, createNoServiceLineServiceByTimeBand } from '../domain/types/line';
 import type { LineVehicleNetworkProjection } from '../domain/types/lineVehicleProjection';
@@ -629,9 +628,10 @@ export function MapWorkspaceSurface({
       return;
     }
 
-    // 1. Snapshot draft and ordinal to ensure async safety
+    // 1. Snapshot draft, ordinal, and placed stops to ensure async safety
     const snapshottedStopIds = [...draftStopIds];
     const snapshottedOrdinal = sessionLines.length + 1;
+    const snapshottedPlacedStops = [...placedStops];
     const nextCreatedLineId = createLineId(`line-${snapshottedOrdinal}`);
 
     setIsCompletingLine(true);
@@ -641,7 +641,7 @@ export function MapWorkspaceSurface({
       const routeSegments = await completeLineRouting({
         lineId: nextCreatedLineId,
         orderedStopIds: snapshottedStopIds,
-        placedStops,
+        placedStops: snapshottedPlacedStops,
         routingAdapter: getDefaultRoutingAdapter()
       });
 
