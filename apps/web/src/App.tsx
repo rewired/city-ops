@@ -244,6 +244,7 @@ export default function App(): ReactElement {
           onLineBuildSelectionChange={sessionController.setLineBuildSelection}
           onSessionLinesChange={sessionController.setSessionLines}
           onSelectedLineIdChange={sessionController.setSelectedLineId}
+          onSelectedLineDialogOpenIntentChange={sessionController.setSelectedLineDialogOpenIntent}
           onDebugSnapshotChange={handleMapDebugSnapshotChange}
         />
       </main>
@@ -266,6 +267,8 @@ export default function App(): ReactElement {
         lineFrequencyValidationByTimeBand={sessionController.lineFrequencyValidationByTimeBand}
         onFrequencyChange={sessionController.updateSelectedCompletedLineFrequency}
         onSelectedLineIdChange={sessionController.setSelectedLineId}
+        openDialogIntent={sessionController.selectedLineDialogOpenIntent}
+        onOpenDialogIntentConsumed={sessionController.setSelectedLineDialogOpenIntent}
       />
 
       <DebugModal

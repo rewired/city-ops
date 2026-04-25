@@ -7,3 +7,13 @@ export type WorkspaceToolMode = 'inspect' | 'place-stop' | 'build-line';
 export interface LineBuildSelectionState {
   readonly selectedStopIds: readonly StopId[];
 }
+
+/**
+ * Signal to open a specific dialog for a selected line.
+ * Used for post-creation workflow automation.
+ */
+export interface SelectedLineDialogOpenIntent {
+  readonly lineId: import('../domain/types/line').LineId;
+  readonly dialogId: 'frequency';
+  readonly requestId: number;
+}

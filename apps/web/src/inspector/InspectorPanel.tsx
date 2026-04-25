@@ -35,6 +35,8 @@ interface InspectorPanelProps {
     action?: SelectedLineFrequencyUpdateAction
   ) => void;
   readonly onSelectedLineIdChange: (lineId: Line['id']) => void;
+  readonly openDialogIntent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null;
+  readonly onOpenDialogIntentConsumed: (intent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null) => void;
 }
 
 const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
@@ -67,7 +69,9 @@ export function InspectorPanel({
   lineFrequencyControlByTimeBand,
   lineFrequencyValidationByTimeBand,
   onFrequencyChange,
-  onSelectedLineIdChange
+  onSelectedLineIdChange,
+  openDialogIntent,
+  onOpenDialogIntentConsumed
 }: InspectorPanelProps): ReactElement {
   const [activeTabId, setActiveTabId] = useState<InspectorTabId>('network');
   const [linesViewMode, setLinesViewMode] = useState<'list' | 'detail'>('list');
@@ -78,6 +82,17 @@ export function InspectorPanel({
       setLinesViewMode('list');
     }
   }, [inspectorPanelState.mode, linesViewMode]);
+
+  useEffect(() => {
+    if (
+      openDialogIntent &&
+      inspectorPanelState.mode === 'line-selected' &&
+      openDialogIntent.lineId === inspectorPanelState.selectedLine.id
+    ) {
+      setActiveTabId('lines');
+      setLinesViewMode('detail');
+    }
+  }, [openDialogIntent, inspectorPanelState]);
 
   return (
     <aside className="right-panel" aria-label="Inspector panel">
@@ -190,6 +205,8 @@ export function InspectorPanel({
                   selectedLinePlanningVehicleProjection={selectedLinePlanningVehicleProjection}
                   selectedLineDemandProjection={selectedLineDemandProjection}
                   onFrequencyChange={onFrequencyChange}
+                  openDialogIntent={openDialogIntent}
+                  onOpenDialogIntentConsumed={onOpenDialogIntentConsumed}
                 />
               ) : (
                 <p>Select a completed line from the list to open detail.</p>

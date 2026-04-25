@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 
 import { DeparturesDialog } from './DeparturesDialog';
 import { FrequencyEditorDialog } from './FrequencyEditorDialog';
@@ -30,6 +30,8 @@ interface SelectedLineInspectorProps {
     rawInputValue: string,
     action?: SelectedLineFrequencyUpdateAction
   ) => void;
+  readonly openDialogIntent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null;
+  readonly onOpenDialogIntentConsumed: (intent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null) => void;
 }
 
 type SelectedLineDialogId = 'frequency' | 'service-plan' | 'departures' | 'projected-vehicles';
@@ -54,7 +56,9 @@ export function SelectedLineInspector({
   selectedLineServiceInspectorProjection,
   selectedLinePlanningVehicleProjection,
   selectedLineDemandProjection,
-  onFrequencyChange
+  onFrequencyChange,
+  openDialogIntent,
+  onOpenDialogIntentConsumed
 }: SelectedLineInspectorProps): ReactElement {
   const [activeDialogId, setActiveDialogId] = useState<SelectedLineDialogId | null>(null);
   const readinessBlockerCount = selectedLineServiceProjection?.readiness.summary.errorIssueCount ?? 0;
@@ -66,6 +70,18 @@ export function SelectedLineInspector({
   const orderedStopIds = panelState.selectedLine.stopIds;
   const visibleStopIds = orderedStopIds.slice(0, MAX_VISIBLE_STOP_CHIPS);
   const hasCollapsedStops = orderedStopIds.length > MAX_VISIBLE_STOP_CHIPS;
+  const selectedLineId = panelState.selectedLine.id;
+
+  useEffect(() => {
+    if (
+      openDialogIntent &&
+      openDialogIntent.lineId === selectedLineId &&
+      openDialogIntent.dialogId === 'frequency'
+    ) {
+      setActiveDialogId('frequency');
+      onOpenDialogIntentConsumed(null);
+    }
+  }, [openDialogIntent, selectedLineId, onOpenDialogIntentConsumed]);
 
   return (
     <div className="selected-line-inspector">

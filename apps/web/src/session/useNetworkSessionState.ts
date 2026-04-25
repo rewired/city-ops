@@ -11,7 +11,7 @@ import type { TimeBandId } from '../domain/types/timeBand';
 import type { StopSelectionState } from '../map-workspace/MapWorkspaceSurface';
 import { completeLineRouting } from '../domain/routing/completeLineRouting';
 import { getDefaultRoutingAdapter } from '../domain/routing/defaultRoutingAdapter';
-import type { LineBuildSelectionState, WorkspaceToolMode } from './sessionTypes';
+import type { LineBuildSelectionState, SelectedLineDialogOpenIntent, WorkspaceToolMode } from './sessionTypes';
 
 /** Feedback contract for selected-line JSON import actions. */
 export interface SelectedLineImportFeedback {
@@ -49,12 +49,14 @@ export interface NetworkSessionStateController {
   readonly lineFrequencyControlByTimeBand: LineFrequencyControlByTimeBand;
   readonly lineFrequencyValidationByTimeBand: LineFrequencyValidationByTimeBand;
   readonly selectedLineImportFeedback: SelectedLineImportFeedback | null;
+  readonly selectedLineDialogOpenIntent: SelectedLineDialogOpenIntent | null;
   readonly handleToolModeSelection: (nextMode: WorkspaceToolMode) => void;
   readonly setSessionStops: Dispatch<SetStateAction<readonly Stop[]>>;
   readonly setSelectedStop: Dispatch<SetStateAction<StopSelectionState | null>>;
   readonly setLineBuildSelection: Dispatch<SetStateAction<LineBuildSelectionState>>;
   readonly setSessionLines: Dispatch<SetStateAction<readonly Line[]>>;
   readonly setSelectedLineId: Dispatch<SetStateAction<Line['id'] | null>>;
+  readonly setSelectedLineDialogOpenIntent: Dispatch<SetStateAction<SelectedLineDialogOpenIntent | null>>;
   readonly updateSelectedCompletedLineFrequency: (
     timeBandId: TimeBandId,
     rawInputValue: string,
@@ -92,6 +94,8 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
   const [lineFrequencyValidationByTimeBand, setLineFrequencyValidationByTimeBand] =
     useState<LineFrequencyValidationByTimeBand>(createEmptyLineFrequencyValidationByTimeBand);
   const [selectedLineImportFeedback, setSelectedLineImportFeedback] = useState<SelectedLineImportFeedback | null>(null);
+  const [selectedLineDialogOpenIntent, setSelectedLineDialogOpenIntent] =
+    useState<SelectedLineDialogOpenIntent | null>(null);
 
   const selectedLine = useMemo(
     () => sessionLines.find((line) => line.id === selectedLineId) ?? null,
@@ -137,6 +141,7 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
     lineFrequencyControlByTimeBand,
     lineFrequencyValidationByTimeBand,
     selectedLineImportFeedback,
+    selectedLineDialogOpenIntent,
     handleToolModeSelection: (nextMode) => {
       setActiveToolMode(nextMode);
       if (nextMode !== 'build-line') {
@@ -148,6 +153,7 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
     setLineBuildSelection,
     setSessionLines,
     setSelectedLineId,
+    setSelectedLineDialogOpenIntent,
     updateSelectedCompletedLineFrequency: (timeBandId, rawInputValue, action = 'input-change') => {
       const nextEditorState = applyLineFrequencyEditorAction(rawInputValue, action);
 

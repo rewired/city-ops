@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 060**: Post-completion frequency flow automation and stop marker visual polish for improved readability and workflow.
+- Introduce a one-shot "dialog open intent" mechanism to automatically open the frequency editor after successful line creation.
+- Enhance stop marker visibility on the dark basemap: increased circle radii (8/11px) and larger sequence labels (11px).
+- Improve label contrast and readability with state-aware colors (dark text on orange, light text on dark) and a subtle contrast halo.
+- Update `InspectorPanel` and `SelectedLineInspector` to handle and consume UI interaction intents targeting specific lines.
+
 - **Slice 059**: Repair service-readiness validation after loop/bidirectional route support and selected-line import/export changes.
 - Update `evaluateLineServiceReadiness` to be topology-aware, correctly validating $N$ segments for $N$ stops in loop lines.
 - Introduce `lineTopologySegments` domain helper for centralized topology-aware segment count and stop-pair expectations.

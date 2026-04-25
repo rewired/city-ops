@@ -63,6 +63,7 @@ interface MapWorkspaceSurfaceProps {
   readonly onLineBuildSelectionChange: (nextSelection: LineBuildSelectionState) => void;
   readonly onSessionLinesChange: (updater: (currentLines: readonly Line[]) => readonly Line[]) => void;
   readonly onSelectedLineIdChange: (nextSelectedLineId: Line['id'] | null) => void;
+  readonly onSelectedLineDialogOpenIntentChange: (intent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null) => void;
   readonly onDebugSnapshotChange: (nextSnapshot: MapWorkspaceDebugSnapshot) => void;
 }
 
@@ -137,6 +138,7 @@ export function MapWorkspaceSurface({
   onLineBuildSelectionChange,
   onSessionLinesChange,
   onSelectedLineIdChange,
+  onSelectedLineDialogOpenIntentChange,
   onDebugSnapshotChange
 }: MapWorkspaceSurfaceProps): ReactElement {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -675,6 +677,11 @@ export function MapWorkspaceSurface({
 
       onSessionLinesChange((currentLines) => [...currentLines, createdLine]);
       onSelectedLineIdChange(createdLine.id);
+      onSelectedLineDialogOpenIntentChange({
+        lineId: createdLine.id,
+        dialogId: 'frequency',
+        requestId: Date.now()
+      });
 
       // 4. Clear draft and close dialog only after success
       setDraftLineState(INITIAL_DRAFT_LINE_STATE);

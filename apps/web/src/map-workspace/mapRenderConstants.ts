@@ -62,7 +62,7 @@ export const MAP_VEHICLE_LAYER_IDS = [MAP_LAYER_ID_VEHICLES] as const;
  * Canonical circle layer style for stop body rendering and state-dependent visual emphasis.
  */
 export const MAP_STOP_CIRCLE_LAYER_STYLE = {
-  'circle-radius': ['case', ['get', 'selected'], 9, 6],
+  'circle-radius': ['case', ['get', 'selected'], 11, 8],
   'circle-color': [
     'case',
     ['get', 'selected'],
@@ -80,7 +80,7 @@ export const MAP_STOP_CIRCLE_LAYER_STYLE = {
  */
 export const MAP_STOP_LABEL_LAYER_LAYOUT = {
   'text-field': ['case', ['has', 'sequenceNumber'], ['to-string', ['get', 'sequenceNumber']], ''],
-  'text-size': 10,
+  'text-size': 11,
   'text-offset': [0, 0],
   'text-allow-overlap': true,
   'text-ignore-placement': true
@@ -90,7 +90,23 @@ export const MAP_STOP_LABEL_LAYER_LAYOUT = {
  * Canonical symbol layer paint for stop label foreground and halo contrast.
  */
 export const MAP_STOP_LABEL_LAYER_PAINT = {
-  'text-color': '#ffffff'
+  'text-color': [
+    'case',
+    ['get', 'selected'],
+    '#0f172a',
+    ['get', 'selectedLineMember'],
+    '#0f172a',
+    '#ffffff'
+  ],
+  'text-halo-color': [
+    'case',
+    ['get', 'selected'],
+    'rgba(255, 255, 255, 0.75)',
+    ['get', 'selectedLineMember'],
+    'rgba(255, 255, 255, 0.75)',
+    'rgba(15, 23, 42, 0.75)'
+  ],
+  'text-halo-width': 1
 } as const;
 
 /**
