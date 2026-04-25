@@ -10,6 +10,12 @@ import { useNetworkSessionState } from './session/useNetworkSessionState';
 import { SimulationControlBar } from './simulation/SimulationControlBar';
 import { useSimulationClockController } from './simulation/useSimulationClockController';
 import { MaterialIcon } from './ui/icons/MaterialIcon';
+import {
+  DebugModal,
+  type DebugModalOverviewDiagnostics,
+  type DebugModalRoutingDiagnostics,
+  type DebugModalServiceDiagnostics
+} from './ui/DebugModal';
 import { WORKSPACE_MODE_ICONS } from './ui/icons/materialIcons';
 
 import './App.css';
@@ -103,6 +109,42 @@ export default function App(): ReactElement {
   const handleMapDebugSnapshotChange = useCallback((nextSnapshot: MapWorkspaceDebugSnapshot): void => {
     setMapWorkspaceDebugSnapshot(nextSnapshot);
   }, []);
+
+  const overviewDiagnostics: DebugModalOverviewDiagnostics = {
+    activeToolMode: sessionController.activeToolMode,
+    selectedStopId: sessionController.selectedStopId,
+    selectedLineId: sessionController.selectedLineId,
+    totalStopCount: sessionController.sessionStops.length,
+    completedLineCount: sessionController.sessionLines.length,
+    totalProjectedVehicleCount: projections.vehicleNetworkProjection.summary.totalProjectedVehicleCount,
+    draftOrderedStopIds: sessionController.lineBuildSelection.selectedStopIds,
+    completedLineIds: sessionController.sessionLines.map((line) => line.id)
+  };
+  const routingDiagnostics: DebugModalRoutingDiagnostics = {
+    selectedLineOrderedStopIds: sessionController.selectedLine?.stopIds ?? [],
+    selectedLineSegmentCount: projections.selectedLineRouteBaselineMetrics?.segmentCount ?? null,
+    selectedLineHasFallbackSegments: projections.selectedLineRouteBaselineMetrics?.hasFallbackSegments ?? false,
+    selectedLineFallbackSegmentCount:
+      sessionController.selectedLine?.routeSegments.filter((segment) => segment.status === 'fallback-routed').length ??
+      0,
+    selectedLineRouteFallbackNote: projections.selectedLineRouteBaselineMetrics?.hasFallbackSegments
+      ? 'Fallback routed segments detected. Values are baseline fallback outputs and are not accuracy claims.'
+      : 'No fallback routed segments detected.',
+    completedOverlayNote: mapWorkspaceDebugSnapshot.completedOverlayNote,
+    draftOverlayNote: mapWorkspaceDebugSnapshot.draftOverlayNote
+  };
+  const serviceDiagnostics: DebugModalServiceDiagnostics = {
+    selectedLineReadinessStatus: projections.selectedLineServiceProjection?.readiness.status ?? null,
+    selectedLineConfiguredTimeBandCount:
+      projections.selectedLineServiceProjection?.readiness.summary.configuredTimeBandCount ?? null,
+    selectedLineRouteSegmentCount: projections.selectedLineServiceProjection?.readiness.summary.routeSegmentCount ?? null,
+    selectedLineReadinessIssueCount: projections.selectedLineServiceProjection?.readiness.issues.length ?? 0,
+    selectedLineReadinessIssueSummaries:
+      projections.selectedLineServiceProjection?.readiness.issues.map((issue) => `${issue.severity}: ${issue.message}`) ??
+      [],
+    networkBlockedLineCount: projections.networkServicePlanProjection.summary.blockedLineCount,
+    networkDegradedLineCount: projections.networkServicePlanProjection.summary.degradedLineCount
+  };
 
   return (
     <div className="app-shell" data-app-surface="desktop-shell">
@@ -210,34 +252,20 @@ export default function App(): ReactElement {
         onSelectedLineIdChange={sessionController.setSelectedLineId}
       />
 
-      {isMapDebugModalOpen ? (
-        <div className="app-debug-modal" role="dialog" aria-modal="true" aria-label="Map workspace debug details">
-          <div className="app-debug-modal__backdrop" onClick={() => setMapDebugModalOpen(false)} />
-          <section className="app-debug-modal__panel">
-            <header className="app-debug-modal__header">
-              <h2>Map workspace debug details</h2>
-              <button type="button" onClick={() => setMapDebugModalOpen(false)} aria-label="Close debug modal">
-                Close
-              </button>
-            </header>
-            <ul className="app-debug-modal__list">
-              <li>{`Interaction status: ${mapWorkspaceDebugSnapshot.interactionStatus}`}</li>
-              <li>{`Pointer: ${mapWorkspaceDebugSnapshot.pointerSummary}`}</li>
-              <li>{`Geo: ${mapWorkspaceDebugSnapshot.geographicSummary}`}</li>
-              <li>{mapWorkspaceDebugSnapshot.lineDiagnosticsSummary}</li>
-              <li>{mapWorkspaceDebugSnapshot.vehicleDiagnosticsSummary}</li>
-              <li>{mapWorkspaceDebugSnapshot.stopSelectionSummary}</li>
-              <li>{`Placement instruction: ${mapWorkspaceDebugSnapshot.placementInstruction}`}</li>
-              <li>{`Placement street rule hint: ${mapWorkspaceDebugSnapshot.placementStreetRuleHint}`}</li>
-              <li>{`Build-line instruction: ${mapWorkspaceDebugSnapshot.buildLineInstruction}`}</li>
-              <li>{`Build-line minimum requirement: ${mapWorkspaceDebugSnapshot.buildLineMinimumRequirement}`}</li>
-              <li>{`Completed overlay note: ${mapWorkspaceDebugSnapshot.completedOverlayNote}`}</li>
-              <li>{`Draft overlay note: ${mapWorkspaceDebugSnapshot.draftOverlayNote}`}</li>
-              <li>{mapWorkspaceDebugSnapshot.draftMetadataSummary}</li>
-            </ul>
-          </section>
-        </div>
-      ) : null}
+      <DebugModal
+        open={isMapDebugModalOpen}
+        onClose={() => setMapDebugModalOpen(false)}
+        mapWorkspaceDebugSnapshot={mapWorkspaceDebugSnapshot}
+        overviewDiagnostics={overviewDiagnostics}
+        routingDiagnostics={routingDiagnostics}
+        serviceDiagnostics={serviceDiagnostics}
+        rawStateDiagnostics={{
+          mapWorkspaceDebugSnapshot,
+          overview: overviewDiagnostics,
+          routing: routingDiagnostics,
+          service: serviceDiagnostics
+        }}
+      />
     </div>
   );
 }

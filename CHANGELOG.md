@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-25
 
+- Slice 045: add a new UI-only `DebugModal` component with tabbed diagnostics (`Overview`, `Routing`, `Service`, `Raw state`) and preserve shell-owned modal state in `App.tsx`.
+- Slice 045: route existing map snapshot diagnostics and inspector-adjacent debug details (tool mode, selected ids, counts, route fallback notes, readiness details, ordered stop ids, and line ids) into the modal tabs using existing projection/session truth only.
+- Slice 045: keep simulation/domain/backend/persistence behavior unchanged and presentation-only by wiring modal props from existing `App.tsx` state/projection values.
+- Add ADR 0101 documenting tabbed debug modal composition and diagnostics routing boundaries.
+
 - Slice 044: move debug access to one global top-bar `Debug` button wired directly to shell-owned modal open/close state in `App.tsx`.
 - Slice 044: remove inspector `Debug` tab ids/labels and delete the inspector debug rendering section so inspector navigation now includes only `Network` and `Lines`.
 - Slice 044: remove left-rail debug affordance so the top-bar control is the only debug entry point.

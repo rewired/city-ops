@@ -957,3 +957,45 @@ body {
   display: grid;
   gap: 4px;
 }
+
+.app-debug-modal__tabs {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-debug-modal__tab {
+  border: 1px solid #425b83;
+  border-radius: 6px;
+  background: #1d2a3f;
+  color: #e8eef9;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.app-debug-modal__tab[aria-selected='true'] {
+  border-color: #f5c358;
+  background: #2f466f;
+}
+
+.app-debug-modal__section {
+  margin-top: 10px;
+}
+
+.app-debug-modal__list--compact {
+  margin-top: 8px;
+}
+
+.app-debug-modal__raw-state {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #2f415f;
+  border-radius: 8px;
+  background: #0d1624;
+  color: #cfe0fb;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  overflow: auto;
+}
