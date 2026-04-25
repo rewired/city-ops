@@ -8,7 +8,7 @@ import {
 } from '../types/lineRoute';
 import type { Stop, StopId } from '../types/stop';
 
-const EARTH_RADIUS_METERS = 6_371_000;
+import { calculateGreatCircleDistanceMeters } from '../../lib/geometry';
 
 /**
  * Explicit closure semantics for fallback segment generation.
@@ -29,28 +29,6 @@ export interface BuildFallbackLineRouteSegmentsInput {
 
 const toStopLookup = (placedStops: readonly Stop[]): ReadonlyMap<StopId, Stop> =>
   new Map(placedStops.map((stop) => [stop.id, stop]));
-
-const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
-
-const calculateGreatCircleDistanceMeters = (
-  fromCoordinate: RouteGeometryCoordinate,
-  toCoordinate: RouteGeometryCoordinate
-): number => {
-  const [fromLng, fromLat] = fromCoordinate;
-  const [toLng, toLat] = toCoordinate;
-
-  const latitudeDelta = toRadians(toLat - fromLat);
-  const longitudeDelta = toRadians(toLng - fromLng);
-  const fromLatitudeRadians = toRadians(fromLat);
-  const toLatitudeRadians = toRadians(toLat);
-
-  const haversineA =
-    Math.sin(latitudeDelta / 2) ** 2 +
-    Math.cos(fromLatitudeRadians) * Math.cos(toLatitudeRadians) * Math.sin(longitudeDelta / 2) ** 2;
-  const centralAngle = 2 * Math.atan2(Math.sqrt(haversineA), Math.sqrt(1 - haversineA));
-
-  return EARTH_RADIUS_METERS * centralAngle;
-};
 
 const toGeometryCoordinate = (stop: Stop): RouteGeometryCoordinate => [stop.position.lng, stop.position.lat];
 

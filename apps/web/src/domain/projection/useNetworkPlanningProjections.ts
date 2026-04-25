@@ -25,6 +25,7 @@ export interface StaticNetworkSummaryKpis {
 }
 
 import { resolveLineRouteBaseline } from './routeBaselineProjection';
+import type { LineBandDemandProjection } from '../demand/servedDemandProjection';
 
 /** Aggregate route-baseline metrics projected for selected-line inspector rendering. */
 export interface RouteBaselineAggregateMetrics {
@@ -56,6 +57,7 @@ export interface NetworkPlanningProjections {
   readonly selectedLinePlanningVehicleProjection: ReturnType<typeof projectLinePlanningVehicles> | null;
   readonly networkServicePlanProjection: ReturnType<typeof projectLineServicePlan>;
   readonly selectedLineServiceInspectorProjection: ReturnType<typeof projectLineSelectedServiceInspector> | null;
+  readonly selectedLineDemandProjection: LineBandDemandProjection | null;
 }
 
 const projectStaticNetworkSummaryKpis = (
@@ -87,13 +89,18 @@ const projectStaticNetworkSummaryKpis = (
   };
 };
 
+import { calculateStopCatchments } from '../demand/demandCatchment';
+import { projectLineBandDemand } from '../demand/servedDemandProjection';
+import type { DemandNode } from '../types/demandNode';
+
 /** Aggregates shell planning projections from canonical domain projection helpers without owning session state. */
 export const useNetworkPlanningProjections = (
   sessionLines: readonly Line[],
   sessionStops: readonly Stop[],
   selectedLine: Line | null,
   activeSimulationTimeBandId: TimeBandId,
-  currentSimulationMinuteOfDay: SimulationMinuteOfDay
+  currentSimulationMinuteOfDay: SimulationMinuteOfDay,
+  sessionDemandNodes: readonly DemandNode[] = []
 ): NetworkPlanningProjections => {
   const staticNetworkSummaryKpis = projectStaticNetworkSummaryKpis(sessionStops.length, sessionLines, selectedLine);
   const routeBaselinesByLineId = new Map(
@@ -137,9 +144,24 @@ export const useNetworkPlanningProjections = (
   const selectedLineServiceInspectorProjection = selectedLineServiceProjection
     ? projectLineSelectedServiceInspector(selectedLineServiceProjection, MAX_READINESS_ISSUES_VISIBLE)
     : null;
+
+  const catchments = calculateStopCatchments(sessionStops, sessionDemandNodes);
+  const catchmentLookup = new Map(catchments.map((c) => [c.stopId, c]));
+  
+  const selectedLineDemandProjection = selectedLine && selectedLineServiceProjection
+    ? projectLineBandDemand(
+        selectedLine.id,
+        selectedLine.stopIds,
+        activeSimulationTimeBandId,
+        selectedLineServiceProjection.activeBandState,
+        catchmentLookup
+      )
+    : null;
+
   const selectedLinePlanningVehicleProjection = selectedLine
     ? projectLinePlanningVehicles(selectedLine, selectedLineRouteBaseline)
     : null;
+
   return {
     staticNetworkSummaryKpis,
     selectedLineRouteBaseline,
@@ -150,6 +172,7 @@ export const useNetworkPlanningProjections = (
     selectedLineVehicleProjection,
     selectedLinePlanningVehicleProjection,
     networkServicePlanProjection,
-    selectedLineServiceInspectorProjection
+    selectedLineServiceInspectorProjection,
+    selectedLineDemandProjection
   };
 };

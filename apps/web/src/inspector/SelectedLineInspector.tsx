@@ -24,6 +24,7 @@ interface SelectedLineInspectorProps {
   readonly selectedLineServiceProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineServicePlanForLine> | null;
   readonly selectedLineServiceInspectorProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineSelectedServiceInspector> | null;
   readonly selectedLinePlanningVehicleProjection: ReturnType<typeof import('../domain/projection/linePlanningVehicleProjection').projectLinePlanningVehicles> | null;
+  readonly selectedLineDemandProjection: import('../domain/demand/servedDemandProjection').LineBandDemandProjection | null;
   readonly onFrequencyChange: (
     timeBandId: TimeBandId,
     rawInputValue: string,
@@ -52,6 +53,7 @@ export function SelectedLineInspector({
   selectedLineServiceProjection,
   selectedLineServiceInspectorProjection,
   selectedLinePlanningVehicleProjection,
+  selectedLineDemandProjection,
   onFrequencyChange
 }: SelectedLineInspectorProps): ReactElement {
   const [activeDialogId, setActiveDialogId] = useState<SelectedLineDialogId | null>(null);
@@ -136,6 +138,21 @@ export function SelectedLineInspector({
           </p>
         </div>
       </section>
+
+      {selectedLineDemandProjection ? (
+        <section className="inspector-card" aria-label="Selected line demand pills">
+          <div className="selected-line-inspector__pill-row">
+            <p className="selected-line-inspector__pill">
+              {`Demand status: ${selectedLineDemandProjection.status}`}
+            </p>
+            {selectedLineDemandProjection.status === 'served' ? (
+              <p className="selected-line-inspector__pill">
+                {`Served weight: ${selectedLineDemandProjection.servedDemandWeight}`}
+              </p>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <section className="inspector-card" aria-label="Selected line actions">
         <h3>Actions</h3>

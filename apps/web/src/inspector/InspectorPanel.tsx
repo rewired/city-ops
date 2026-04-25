@@ -25,6 +25,7 @@ interface InspectorPanelProps {
   readonly selectedLineServiceProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineServicePlanForLine> | null;
   readonly selectedLineServiceInspectorProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineSelectedServiceInspector> | null;
   readonly selectedLinePlanningVehicleProjection: ReturnType<typeof import('../domain/projection/linePlanningVehicleProjection').projectLinePlanningVehicles> | null;
+  readonly selectedLineDemandProjection: import('../domain/demand/servedDemandProjection').LineBandDemandProjection | null;
   readonly lineFrequencyInputByTimeBand: LineFrequencyInputByTimeBand;
   readonly lineFrequencyControlByTimeBand: LineFrequencyControlByTimeBand;
   readonly lineFrequencyValidationByTimeBand: LineFrequencyValidationByTimeBand;
@@ -61,6 +62,7 @@ export function InspectorPanel({
   selectedLineServiceProjection,
   selectedLineServiceInspectorProjection,
   selectedLinePlanningVehicleProjection,
+  selectedLineDemandProjection,
   lineFrequencyInputByTimeBand,
   lineFrequencyControlByTimeBand,
   lineFrequencyValidationByTimeBand,
@@ -186,6 +188,7 @@ export function InspectorPanel({
                   selectedLineServiceProjection={selectedLineServiceProjection}
                   selectedLineServiceInspectorProjection={selectedLineServiceInspectorProjection}
                   selectedLinePlanningVehicleProjection={selectedLinePlanningVehicleProjection}
+                  selectedLineDemandProjection={selectedLineDemandProjection}
                   onFrequencyChange={onFrequencyChange}
                 />
               ) : (
