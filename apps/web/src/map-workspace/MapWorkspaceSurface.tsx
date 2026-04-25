@@ -11,6 +11,7 @@ import { createLineId, createNoServiceLineServiceByTimeBand, type LineTopology, 
 import type { LineVehicleNetworkProjection } from '../domain/types/lineVehicleProjection';
 import type { Stop, StopId } from '../domain/types/stop';
 import { createStopId } from '../domain/types/stop';
+import { createUniqueStopLabel } from '../domain/stop/stopLabeling';
 import type { LineBuildSelectionState, WorkspaceToolMode } from '../session/sessionTypes';
 import {
   MAP_LAYER_ID_COMPLETED_LINES,
@@ -117,10 +118,20 @@ const INITIAL_MAP_WORKSPACE_FEATURE_DIAGNOSTICS: MapWorkspaceFeatureDiagnostics 
   vehicles: INITIAL_LAYER_FEATURE_DIAGNOSTICS
 };
 
-const buildDeterministicStop = (nextOrdinal: number, lng: number, lat: number): Stop => ({
+const buildDeterministicStop = (
+  nextOrdinal: number,
+  lng: number,
+  lat: number,
+  labelCandidate: string | null,
+  existingStops: readonly Stop[]
+): Stop => ({
   id: createStopId(`stop-${nextOrdinal}`),
   position: { lng, lat },
-  label: `${STOP_LABEL_PREFIX} ${nextOrdinal}`
+  label: createUniqueStopLabel({
+    baseLabel: labelCandidate,
+    fallbackOrdinal: nextOrdinal,
+    existingStops
+  })
 });
 
 /**
@@ -301,11 +312,11 @@ export function MapWorkspaceSurface({
           clearSelectedCompletedLine();
         }
       },
-      onValidPlacement: (lng, lat) => {
+      onValidPlacement: (lng, lat, labelCandidate) => {
         let createdStop!: Stop;
         onPlacedStopsChange((currentStops) => {
           const nextOrdinal = currentStops.length + 1;
-          const nextStop = buildDeterministicStop(nextOrdinal, lng, lat);
+          const nextStop = buildDeterministicStop(nextOrdinal, lng, lat, labelCandidate, currentStops);
           createdStop = nextStop;
           return [...currentStops, nextStop];
         });

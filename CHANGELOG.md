@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 061**: Street-derived stop labels from snapped map features with deterministic duplicate suffixing.
+- Derive newly placed stop labels from the street feature used for stop snapping instead of generic "Stop N" labels.
+- Implement deterministic suffixing (e.g., "Street A", "Street A 1") when multiple stops are placed on the same named street.
+- Add pure `extractStreetLabelCandidate` and `createUniqueStopLabel` helpers with focused unit tests.
+- [ADR 0116](docs/adr/0116-street-derived-stop-labels-as-placement-display-hints.md): Street-Derived Stop Labels as Placement Display Hints.
+
 - **Slice 060**: Post-completion frequency flow automation and stop marker visual polish for improved readability and workflow.
 - Introduce a one-shot "dialog open intent" mechanism to automatically open the frequency editor after successful line creation.
 - Enhance stop marker visibility on the dark basemap: increased circle radii (8/11px) and larger sequence labels (11px).

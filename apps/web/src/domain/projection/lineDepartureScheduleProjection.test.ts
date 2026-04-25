@@ -283,7 +283,7 @@ describe('projectLineDepartureScheduleProjection coverage', () => {
   it('12) all-null fixture-style frequencies do not produce available departures', () => {
     const fixturePath = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
-      '../../../../../data/fixtures/selected-line-exports/hamburg-line-1.v2.json'
+      '../../../../../data/fixtures/selected-line-exports/hamburg-line-1.v3.json'
     );
     const payload = JSON.parse(readFileSync(fixturePath, 'utf8')) as SelectedLineExportPayload;
 

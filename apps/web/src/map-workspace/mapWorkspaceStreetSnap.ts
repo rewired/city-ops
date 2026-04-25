@@ -10,8 +10,10 @@ import {
   getSourceRefsForLayerIds,
   type MapLibreFeatureGeometry,
   type MapLibreInteractionEvent,
-  type MapLibreMap
+  type MapLibreMap,
+  type MapLibreRenderedFeature
 } from './maplibreGlobal';
+import { extractStreetLabelCandidate } from './streetFeatureLabel';
 
 interface ScreenPoint {
   readonly x: number;
@@ -27,6 +29,7 @@ interface SnapCandidate {
   readonly snappedPosition: GeographicPoint;
   readonly pixelDistance: number;
   readonly ranking: SnapCandidateRankingMetadata;
+  readonly streetLabelCandidate: string | null;
 }
 
 type SnapCandidateProvenance = 'direct-hit' | 'fallback';
@@ -210,7 +213,8 @@ const resolveSnapCandidateForLineCoordinates = (
   map: MapLibreMap,
   clickPoint: ScreenPoint,
   coordinates: readonly (readonly [number, number])[],
-  ranking: SnapCandidateRankingMetadata
+  ranking: SnapCandidateRankingMetadata,
+  streetLabelCandidate: string | null
 ): SnapCandidate | null => {
   if (coordinates.length < 2) {
     return null;
@@ -238,7 +242,12 @@ const resolveSnapCandidateForLineCoordinates = (
       lng: segmentStartCoordinate[0] + (segmentEndCoordinate[0] - segmentStartCoordinate[0]) * nearestOnSegment.ratio,
       lat: segmentStartCoordinate[1] + (segmentEndCoordinate[1] - segmentStartCoordinate[1]) * nearestOnSegment.ratio
     };
-    const nextCandidate: SnapCandidate = { snappedPosition, pixelDistance: nearestOnSegment.distance, ranking };
+    const nextCandidate: SnapCandidate = {
+      snappedPosition,
+      pixelDistance: nearestOnSegment.distance,
+      ranking,
+      streetLabelCandidate
+    };
 
     nearestCandidate = resolvePreferredSnapCandidate(nearestCandidate, nextCandidate);
   }
@@ -249,13 +258,7 @@ const resolveSnapCandidateForLineCoordinates = (
 const resolveBestSnapCandidateFromFeatures = (
   map: MapLibreMap,
   clickPoint: ScreenPoint,
-  features: readonly {
-    readonly geometry?: MapLibreFeatureGeometry;
-    readonly layer?: { readonly id?: string };
-    readonly source?: string;
-    readonly sourceLayer?: string;
-    readonly 'source-layer'?: string;
-  }[],
+  features: readonly MapLibreRenderedFeature[],
   streetLayerIds: readonly string[],
   provenance: SnapCandidateProvenance
 ): SnapCandidate | null => {
@@ -270,10 +273,17 @@ const resolveBestSnapCandidateFromFeatures = (
       provenance,
       featureLayerMatchStrength: resolveFeatureLayerMatchStrength(feature, streetLayerIds)
     };
+    const streetLabelCandidate = extractStreetLabelCandidate(feature.properties);
     const lineCollections = toLineCoordinateCollections(feature.geometry);
 
     for (const lineCoordinates of lineCollections) {
-      const candidate = resolveSnapCandidateForLineCoordinates(map, clickPoint, lineCoordinates, ranking);
+      const candidate = resolveSnapCandidateForLineCoordinates(
+        map,
+        clickPoint,
+        lineCoordinates,
+        ranking,
+        streetLabelCandidate
+      );
 
       if (!candidate) {
         continue;
@@ -397,16 +407,28 @@ export const resolveSnappedStreetPosition = (
   map: MapLibreMap,
   event: MapLibreInteractionEvent,
   streetLayerIds: readonly string[]
-): Readonly<{ lng: number; lat: number }> | null => {
+): Readonly<{ lng: number; lat: number; streetLabelCandidate: string | null }> | null => {
   if (streetLayerIds.length === 0) {
     return null;
   }
 
   const directHitCandidate = resolveDirectHitSnapCandidate(map, event, streetLayerIds);
   if (directHitCandidate) {
-    return directHitCandidate.snappedPosition;
+    return {
+      lng: directHitCandidate.snappedPosition.lng,
+      lat: directHitCandidate.snappedPosition.lat,
+      streetLabelCandidate: directHitCandidate.streetLabelCandidate
+    };
   }
 
   const fallbackCandidate = resolveFallbackSnapCandidate(map, event, streetLayerIds);
-  return fallbackCandidate?.snappedPosition ?? null;
+  if (!fallbackCandidate) {
+    return null;
+  }
+
+  return {
+    lng: fallbackCandidate.snappedPosition.lng,
+    lat: fallbackCandidate.snappedPosition.lat,
+    streetLabelCandidate: fallbackCandidate.streetLabelCandidate
+  };
 };

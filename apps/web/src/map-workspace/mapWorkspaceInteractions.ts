@@ -57,7 +57,7 @@ interface PlacementGameplayContracts {
   readonly setInteractionState: (nextState: MapSurfaceInteractionState) => void;
   readonly setPlacementAttemptResult: (nextState: PlacementAttemptResult) => void;
   readonly onStopSelectionChange: (nextSelection: StopSelectionState | null) => void;
-  readonly onValidPlacement: (lng: number, lat: number) => Stop;
+  readonly onValidPlacement: (lng: number, lat: number, labelCandidate: string | null) => Stop;
 }
 
 interface BuildLineModeMapClickContracts {
@@ -72,7 +72,7 @@ export interface MapWorkspaceSurfaceInteractionsContracts {
   readonly setPlacementAttemptResult: (nextState: PlacementAttemptResult) => void;
   readonly onStopSelectionChange: (nextSelection: StopSelectionState | null) => void;
   readonly onStopHoverChange: (nextHover: { stopId: StopId; x: number; y: number } | null) => void;
-  readonly onValidPlacement: (lng: number, lat: number) => Stop;
+  readonly onValidPlacement: (lng: number, lat: number, labelCandidate: string | null) => Stop;
   readonly buildLineContracts: BuildLineModeMapClickContracts;
 }
 
@@ -170,7 +170,7 @@ const handleStopPlacementClick = (
     return;
   }
 
-  const placedStop = onValidPlacement(snappedPosition.lng, snappedPosition.lat);
+  const placedStop = onValidPlacement(snappedPosition.lng, snappedPosition.lat, snappedPosition.streetLabelCandidate);
   onStopSelectionChange(toStopSelectionState(placedStop));
   setPlacementAttemptResult('placed');
   setInteractionState({

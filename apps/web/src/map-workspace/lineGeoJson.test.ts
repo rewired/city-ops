@@ -183,7 +183,7 @@ describe('buildCompletedLineFeatureCollection', () => {
   it('builds one completed LineString feature from the Hamburg selected-line export fixture', () => {
     const fixturePath = path.resolve(
       currentDirPath,
-      '../../../../data/fixtures/selected-line-exports/hamburg-line-1.v2.json'
+      '../../../../data/fixtures/selected-line-exports/hamburg-line-1.v3.json'
     );
     const payload = JSON.parse(readFileSync(fixturePath, 'utf8')) as SelectedLineExportPayload;
     const loadResult = convertSelectedLineExportPayloadToSession(payload);
