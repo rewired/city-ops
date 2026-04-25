@@ -4,7 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createLineId } from '../domain/types/line';
-import { createLineVehicleProjectionId, type LineVehicleNetworkProjection } from '../domain/types/lineVehicleProjection';
+import { createDepartureMinute } from '../domain/types/lineDepartureScheduleProjection';
+import {
+  createLineVehicleProjectionId,
+  type LineVehicleNetworkProjection
+} from '../domain/types/lineVehicleProjection';
 import type { SelectedLineExportPayload } from '../domain/types/selectedLineExport';
 import { buildVehicleFeatureCollection } from './vehicleGeoJson';
 
@@ -20,14 +24,14 @@ const createVehicleNetworkProjection = (
       lineId,
       lineLabel: 'Line 1',
       activeTimeBandId: 'morning-rush',
-      departureScheduleStatus: 'configured',
+      departureScheduleStatus: 'available',
       vehicles: [
         {
           id: createLineVehicleProjectionId('line-1:420'),
           lineId,
           lineLabel: 'Line 1',
           activeTimeBandId: 'morning-rush',
-          departureMinute: 420,
+          departureMinute: createDepartureMinute(420),
           elapsedMinutes: 2,
           routeProgressRatio: 0.2,
           segmentProgressRatio: 0.5,
@@ -123,14 +127,14 @@ describe('buildVehicleFeatureCollection', () => {
             lineId,
             lineLabel: 'Line 1',
             activeTimeBandId: 'morning-rush',
-            departureScheduleStatus: 'configured',
+            departureScheduleStatus: 'available',
             vehicles: [
               {
                 id: createLineVehicleProjectionId('line-1:420'),
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',
-                departureMinute: 420,
+                departureMinute: createDepartureMinute(420),
                 elapsedMinutes: 2,
                 routeProgressRatio: 0.2,
                 segmentProgressRatio: 0.5,
@@ -143,7 +147,7 @@ describe('buildVehicleFeatureCollection', () => {
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',
-                departureMinute: 430,
+                departureMinute: createDepartureMinute(430),
                 elapsedMinutes: 1,
                 routeProgressRatio: 0.1,
                 segmentProgressRatio: 0.25,
@@ -156,7 +160,7 @@ describe('buildVehicleFeatureCollection', () => {
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',
-                departureMinute: 440,
+                departureMinute: createDepartureMinute(440),
                 elapsedMinutes: 0,
                 routeProgressRatio: 0,
                 segmentProgressRatio: 0,
@@ -169,7 +173,7 @@ describe('buildVehicleFeatureCollection', () => {
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',
-                departureMinute: 450,
+                departureMinute: createDepartureMinute(450),
                 elapsedMinutes: 0,
                 routeProgressRatio: 0,
                 segmentProgressRatio: 0,
@@ -218,7 +222,7 @@ describe('buildVehicleFeatureCollection', () => {
                 lineId: fixtureLineId,
                 lineLabel: payload.line.label,
                 activeTimeBandId: 'morning-rush',
-                departureMinute: 420,
+                departureMinute: createDepartureMinute(420),
                 elapsedMinutes: 1,
                 routeProgressRatio: 0.1,
                 segmentProgressRatio: 0.5,
@@ -231,7 +235,7 @@ describe('buildVehicleFeatureCollection', () => {
                 lineId: fixtureLineId,
                 lineLabel: payload.line.label,
                 activeTimeBandId: 'morning-rush',
-                departureMinute: 430,
+                departureMinute: createDepartureMinute(430),
                 elapsedMinutes: 2,
                 routeProgressRatio: 0.2,
                 segmentProgressRatio: 0.75,
@@ -244,7 +248,7 @@ describe('buildVehicleFeatureCollection', () => {
                 lineId: fixtureLineId,
                 lineLabel: payload.line.label,
                 activeTimeBandId: 'morning-rush',
-                departureMinute: 440,
+                departureMinute: createDepartureMinute(440),
                 elapsedMinutes: 3,
                 routeProgressRatio: 0.3,
                 segmentProgressRatio: 0,

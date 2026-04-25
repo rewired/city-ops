@@ -45,11 +45,7 @@ export interface SelectedLineExportLine {
 /**
  * Exported stop shape containing only fields needed to reconstruct selected-line references.
  */
-export interface SelectedLineExportStop {
-  readonly id: StopId;
-  readonly position: Stop['position'];
-  readonly label?: Stop['label'];
-}
+export type SelectedLineExportStop = Stop;
 
 /**
  * Summary metadata for payload cardinality and configured time-band coverage.

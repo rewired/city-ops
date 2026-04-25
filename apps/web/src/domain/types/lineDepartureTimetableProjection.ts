@@ -3,23 +3,23 @@ import type { TimeBandId } from './timeBand';
 /** Supported per-cell timetable rendering states for stop/hour departure values. */
 export type TimetableCellState = 'departures' | 'no-service' | 'unavailable' | 'unconfigured';
 
-/** One hourly timetable cell for one stop row. */
+/** One time-band cell for one stop row. */
 export interface LineDepartureTimetableCell {
-  /** Hour-of-day index (`0..23`) represented by this cell. */
-  readonly hour: number;
-  /** Ordered minute values (`0..59`) for departures in this hour. */
-  readonly departureMinutes: readonly number[];
-  /** Player-facing rendering state for this stop/hour cell. */
+  /** Canonical time band id for this cell. */
+  readonly timeBandId: TimeBandId;
+  /** Ordered formatted minute values (e.g. '05', '10') for departures in this band. */
+  readonly departureMinuteLabels: readonly string[];
+  /** Player-facing rendering state for this stop/band cell. */
   readonly state: TimetableCellState;
   /** Optional concise explanation when the cell has no departures. */
   readonly note: string | null;
 }
 
-/** One stop row in the 24-hour departure timetable matrix. */
+/** One stop row in the departures matrix. */
 export interface LineDepartureTimetableRow {
   /** Stop identifier label shown in the first timetable column. */
   readonly stopLabel: string;
-  /** Ordered 24-hour cells from `00` through `23`. */
+  /** Ordered time-band cells matching the canonical column definitions. */
   readonly cells: readonly LineDepartureTimetableCell[];
 }
 
@@ -59,6 +59,12 @@ export interface LineDepartureTimetableProjection {
   readonly lineLabel: string;
   /** Active service band summary from current simulation state. */
   readonly activeServiceSummary: ActiveServiceBandSummary;
+  /** Ordered timetable column headers derived from canonical definitions. */
+  readonly bandColumns: readonly {
+    readonly id: TimeBandId;
+    readonly label: string;
+    readonly windowLabel: string;
+  }[];
   /** Ordered timetable rows, one per selected-line stop. */
   readonly rows: readonly LineDepartureTimetableRow[];
   /** Route baseline summary shown when route data is available. */

@@ -33,29 +33,29 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
 
   it('fails on unknown schema version', () => {
     const payload = readFixturePayload();
-    payload.schemaVersion = 'cityops-selected-line-export-v999';
+    (payload as any).schemaVersion = 'cityops-selected-line-export-v999';
 
     expectIssue(payload, 'invalid-schema-version');
   });
 
   it('fails on unknown export kind', () => {
     const payload = readFixturePayload();
-    payload.exportKind = 'multi-line' as SelectedLineExportPayload['exportKind'];
+    (payload as any).exportKind = 'multi-line' as SelectedLineExportPayload['exportKind'];
 
     expectIssue(payload, 'invalid-export-kind');
   });
 
   it('fails when an ordered stop is missing from exported stops', () => {
     const payload = readFixturePayload();
-    payload.stops = payload.stops.filter((stop) => stop.id !== 'stop-7');
-    payload.metadata.stopCount = payload.stops.length;
+    (payload as any).stops = payload.stops.filter((stop) => stop.id !== 'stop-7');
+    (payload.metadata as any).stopCount = payload.stops.length;
 
     expectIssue(payload, 'stop-reference-mismatch');
   });
 
   it('fails when an exported stop is unreferenced by ordered stops', () => {
     const payload = readFixturePayload();
-    payload.stops = [
+    (payload as any).stops = [
       ...payload.stops,
       {
         id: 'stop-extra',
@@ -63,15 +63,15 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
         label: 'Extra Stop'
       }
     ];
-    payload.metadata.stopCount = payload.stops.length;
+    (payload.metadata as any).stopCount = payload.stops.length;
 
     expectIssue(payload, 'stop-reference-mismatch');
   });
 
   it('fails when route segment count is below ordered stop chain minimum', () => {
     const payload = readFixturePayload();
-    payload.line.routeSegments = payload.line.routeSegments.slice(0, -1);
-    payload.metadata.routeSegmentCount = payload.line.routeSegments.length;
+    (payload.line as any).routeSegments = payload.line.routeSegments.slice(0, -1);
+    (payload.metadata as any).routeSegmentCount = payload.line.routeSegments.length;
 
     expectIssue(payload, 'route-segment-count-mismatch');
   });
@@ -85,11 +85,11 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
       return;
     }
 
-    payload.line.routeSegments[0] = {
-      ...payload.line.routeSegments[0],
+    (payload.line.routeSegments as any)[0] = {
+      ...payload.line.routeSegments[0]!,
       toStopId: 'stop-3',
       orderedGeometry: [
-        payload.line.routeSegments[0].orderedGeometry[0],
+        payload.line.routeSegments[0]!.orderedGeometry[0]!,
         [stop3.position.lng, stop3.position.lat]
       ]
     };
@@ -99,8 +99,8 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
 
   it('fails on route segment line id mismatch', () => {
     const payload = readFixturePayload();
-    payload.line.routeSegments[0] = {
-      ...payload.line.routeSegments[0],
+    (payload.line.routeSegments as any)[0] = {
+      ...payload.line.routeSegments[0]!,
       lineId: 'line-2'
     };
 
@@ -109,8 +109,8 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
 
   it('fails on invalid coordinate range', () => {
     const payload = readFixturePayload();
-    payload.stops[0] = {
-      ...payload.stops[0],
+    (payload.stops as any)[0] = {
+      ...payload.stops[0]!,
       position: { lng: 190, lat: 53.5 }
     };
 
@@ -119,9 +119,9 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
 
   it('fails on invalid total travel time', () => {
     const payload = readFixturePayload();
-    payload.line.routeSegments[0] = {
-      ...payload.line.routeSegments[0],
-      totalTravelMinutes: payload.line.routeSegments[0].inMotionTravelMinutes
+    (payload.line.routeSegments as any)[0] = {
+      ...payload.line.routeSegments[0]!,
+      totalTravelMinutes: payload.line.routeSegments[0]!.inMotionTravelMinutes
     };
 
     expectIssue(payload, 'route-segment-total-travel-minutes-mismatch');
@@ -129,14 +129,14 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
 
   it('fails on metadata stop count mismatch', () => {
     const payload = readFixturePayload();
-    payload.metadata.stopCount = payload.metadata.stopCount + 1;
+    (payload.metadata as any).stopCount = payload.metadata.stopCount + 1;
 
     expectIssue(payload, 'invalid-metadata-counts');
   });
 
   it('fails on metadata route segment count mismatch', () => {
     const payload = readFixturePayload();
-    payload.metadata.routeSegmentCount = payload.metadata.routeSegmentCount + 1;
+    (payload.metadata as any).routeSegmentCount = payload.metadata.routeSegmentCount + 1;
 
     expectIssue(payload, 'invalid-metadata-counts');
   });
@@ -152,7 +152,7 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
   it('requires canonical includedTimeBandIds when all service plans are no-service', () => {
     const payload = readFixturePayload();
 
-    payload.line.frequencyByTimeBand = {
+    (payload.line as any).frequencyByTimeBand = {
       'morning-rush': { kind: 'no-service' },
       'late-morning': { kind: 'no-service' },
       midday: { kind: 'no-service' },
@@ -161,7 +161,7 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
       evening: { kind: 'no-service' },
       night: { kind: 'no-service' }
     };
-    payload.metadata.includedTimeBandIds = [
+    (payload.metadata as any).includedTimeBandIds = [
       'morning-rush',
       'late-morning',
       'midday',
@@ -178,12 +178,12 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
 
   it('allows no-service plans and counts them as configured in includedTimeBandIds', () => {
     const payload = readFixturePayload();
-    payload.line.frequencyByTimeBand = {
+    (payload.line as any).frequencyByTimeBand = {
       ...payload.line.frequencyByTimeBand,
       evening: { kind: 'no-service' },
       night: { kind: 'no-service' }
     };
-    payload.metadata.includedTimeBandIds = [
+    (payload.metadata as any).includedTimeBandIds = [
       'morning-rush',
       'late-morning',
       'midday',
@@ -200,7 +200,7 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
 
   it('fails when frequency plan headwayMinutes is not positive', () => {
     const payload = readFixturePayload();
-    payload.line.frequencyByTimeBand = {
+    (payload.line as any).frequencyByTimeBand = {
       ...payload.line.frequencyByTimeBand,
       midday: { kind: 'frequency', headwayMinutes: 0 }
     };

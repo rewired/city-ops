@@ -10,10 +10,12 @@ import {
   createNoServiceLineServiceByTimeBand,
   type Line
 } from '../types/line';
-import type {
-  DepartureMinute,
-  LineDepartureScheduleNetworkProjection,
-  MinutesUntilDeparture
+import {
+  type DepartureMinute,
+  createDepartureMinute,
+  type LineDepartureScheduleNetworkProjection,
+  type MinutesUntilDeparture,
+  createMinutesUntilDeparture
 } from '../types/lineDepartureScheduleProjection';
 import {
   createLineSegmentId,
@@ -72,9 +74,8 @@ const lineB: Line = {
   routeSegments: [createSegment(1, degradedLineId, stopA, stopB, 5), createSegment(2, degradedLineId, stopB, stopC, 5)]
 };
 
-const toDepartureMinute = (minute: number): DepartureMinute => minute as DepartureMinute;
-const toMinutesUntilDeparture = (minutes: number): MinutesUntilDeparture =>
-  minutes as MinutesUntilDeparture;
+const toDepartureMinute = createDepartureMinute;
+const toMinutesUntilDeparture = createMinutesUntilDeparture;
 
 const departureScheduleProjection: LineDepartureScheduleNetworkProjection = {
   lines: [
@@ -181,7 +182,7 @@ describe('projectLineVehicleNetwork', () => {
     const noServiceProjection: LineDepartureScheduleNetworkProjection = {
       lines: [
         {
-          ...createUnavailableProjection().lines[0],
+          ...createUnavailableProjection().lines[0]!,
           unavailableReason: 'active-band-no-service',
           serviceProjectionStatus: 'configured'
         }
@@ -209,7 +210,7 @@ describe('projectLineVehicleNetwork', () => {
       ...departureScheduleProjection,
       lines: [
         {
-          ...departureScheduleProjection.lines[0],
+          ...departureScheduleProjection.lines[0]!,
           departureMinutes: [toDepartureMinute(409), toDepartureMinute(410), toDepartureMinute(419), toDepartureMinute(420)]
         }
       ]

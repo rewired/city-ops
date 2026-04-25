@@ -1,7 +1,8 @@
 import {
   TIME_BAND_DEFINITIONS,
   TIME_BAND_DISPLAY_LABELS,
-  formatTimeBandWindow
+  formatTimeBandWindow,
+  resolveTimeBandIdForMinuteOfDay
 } from '../constants/timeBands';
 import type { RouteBaselineAggregateMetrics } from './useNetworkPlanningProjections';
 import type { Line, LineServiceBandPlan } from '../types/line';
@@ -16,7 +17,7 @@ import type {
   TimetableRouteBaselineSummary
 } from '../types/lineDepartureTimetableProjection';
 import type { Stop } from '../types/stop';
-import type { TimeBandId } from '../types/timeBand';
+import { createMinuteOfDay, type TimeBandId } from '../types/timeBand';
 
 const HOURS_PER_DAY = 24;
 const ROUTE_TIMING_STATUS_LABELS: Readonly<Record<RouteTimingStatus, string>> = {
@@ -29,16 +30,12 @@ const ROUTE_TIMING_STATUS_LABELS: Readonly<Record<RouteTimingStatus, string>> = 
 const MINUTES_PER_HOUR = 60;
 const MINUTES_PER_DAY = HOURS_PER_DAY * MINUTES_PER_HOUR;
 
-const createHourRange = (): readonly number[] => Array.from({ length: HOURS_PER_DAY }, (_, hour) => hour);
-
-const toHour = (minuteOfDay: number): number => Math.floor(minuteOfDay / MINUTES_PER_HOUR) % HOURS_PER_DAY;
-
 const toMinuteWithinHour = (minuteOfDay: number): number => minuteOfDay % MINUTES_PER_HOUR;
 
 const normalizeMinute = (minuteOfDay: number): number => ((minuteOfDay % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY;
 
-const createEmptyHourMap = (): Map<number, number[]> =>
-  new Map(createHourRange().map((hour) => [hour, [] as number[]]));
+const formatDepartureMinute = (minuteOfDay: number): string =>
+  String(Math.round(minuteOfDay) % MINUTES_PER_HOUR).padStart(2, '0');
 
 const resolveBandMinutes = (
   startMinuteOfDay: number,
@@ -88,10 +85,9 @@ const addFrequencyBandDepartures = (
   }
 };
 
-const projectOriginDeparturesByHour = (
+const projectOriginDepartures = (
   frequencyByTimeBand: Line['frequencyByTimeBand']
-): { readonly byHour: ReadonlyMap<number, readonly number[]>; readonly hasUnconfiguredBands: boolean } => {
-  const hourlyMinutes = createEmptyHourMap();
+): { readonly originMinutes: readonly number[]; readonly hasUnconfiguredBands: boolean } => {
   const departuresByMinute = Array.from({ length: MINUTES_PER_DAY }, () => false);
   let hasUnconfiguredBands = false;
 
@@ -114,18 +110,15 @@ const projectOriginDeparturesByHour = (
     );
   }
 
+  const originMinutes: number[] = [];
   for (let minuteOfDay = 0; minuteOfDay < MINUTES_PER_DAY; minuteOfDay += 1) {
-    if (!departuresByMinute[minuteOfDay]) {
-      continue;
+    if (departuresByMinute[minuteOfDay]) {
+      originMinutes.push(minuteOfDay);
     }
-    const hour = toHour(minuteOfDay);
-    hourlyMinutes.get(hour)?.push(toMinuteWithinHour(minuteOfDay));
   }
 
   return {
-    byHour: new Map(
-      [...hourlyMinutes.entries()].map(([hour, minutes]) => [hour, [...minutes].sort((left, right) => left - right)])
-    ),
+    originMinutes,
     hasUnconfiguredBands
   };
 };
@@ -164,39 +157,41 @@ const resolveStopOffsets = (line: Line): readonly number[] | null => {
 };
 
 const projectRowCells = (
-  hourlyOriginDepartures: ReadonlyMap<number, readonly number[]>,
+  originMinutes: readonly number[],
   offsetMinutes: number,
   options: {
     readonly hasUnavailableTiming: boolean;
     readonly hasUnconfiguredBands: boolean;
   }
 ): readonly LineDepartureTimetableCell[] =>
-  createHourRange().map((hour) => {
+  TIME_BAND_DEFINITIONS.map((definition) => {
     if (options.hasUnavailableTiming) {
       return {
-        hour,
-        departureMinutes: [],
+        timeBandId: definition.id,
+        departureMinuteLabels: [],
         state: 'unavailable',
         note: 'Stop timing unavailable'
       } satisfies LineDepartureTimetableCell;
     }
 
-    const minuteAccumulator: number[] = [];
-    for (const [originHour, originMinutes] of hourlyOriginDepartures.entries()) {
-      for (const originMinute of originMinutes) {
-        const originMinuteOfDay = originHour * MINUTES_PER_HOUR + originMinute;
-        const shiftedMinute = normalizeMinute(originMinuteOfDay + offsetMinutes);
-        if (toHour(shiftedMinute) === hour) {
-          minuteAccumulator.push(toMinuteWithinHour(shiftedMinute));
-        }
+    const bandMinuteLabels = new Set<string>();
+    
+    for (const originMinute of originMinutes) {
+      const shiftedMinute = normalizeMinute(originMinute + offsetMinutes);
+      const roundedShiftedMinute = Math.round(shiftedMinute);
+      const normalizedRounded = normalizeMinute(roundedShiftedMinute);
+      const bandId = resolveTimeBandIdForMinuteOfDay(createMinuteOfDay(normalizedRounded), TIME_BAND_DEFINITIONS);
+      if (bandId === definition.id) {
+        bandMinuteLabels.add(formatDepartureMinute(shiftedMinute));
       }
     }
 
-    const sortedMinutes = minuteAccumulator.sort((left, right) => left - right);
-    if (sortedMinutes.length > 0) {
+    const sortedLabels = [...bandMinuteLabels].sort((a, b) => Number(a) - Number(b));
+
+    if (sortedLabels.length > 0) {
       return {
-        hour,
-        departureMinutes: sortedMinutes,
+        timeBandId: definition.id,
+        departureMinuteLabels: sortedLabels,
         state: 'departures',
         note: null
       } satisfies LineDepartureTimetableCell;
@@ -204,16 +199,16 @@ const projectRowCells = (
 
     if (options.hasUnconfiguredBands) {
       return {
-        hour,
-        departureMinutes: [],
+        timeBandId: definition.id,
+        departureMinuteLabels: [],
         state: 'unconfigured',
         note: 'Service configuration needed'
       } satisfies LineDepartureTimetableCell;
     }
 
     return {
-      hour,
-      departureMinutes: [],
+      timeBandId: definition.id,
+      departureMinuteLabels: [],
       state: 'no-service',
       note: null
     } satisfies LineDepartureTimetableCell;
@@ -287,7 +282,7 @@ export const projectLineDepartureTimetable = (
 ): LineDepartureTimetableProjection => {
   const stopLabels = resolveStopLabels(line, placedStops);
   const stopOffsets = resolveStopOffsets(line);
-  const originDepartureProjection = projectOriginDeparturesByHour(line.frequencyByTimeBand);
+  const originDepartureProjection = projectOriginDepartures(line.frequencyByTimeBand);
   const hasUnavailableDownstreamStopTiming = stopOffsets === null && line.stopIds.length > 1;
 
   const rows: LineDepartureTimetableRow[] = stopLabels.map((stopLabel, index) => {
@@ -296,12 +291,18 @@ export const projectLineDepartureTimetable = (
 
     return {
       stopLabel,
-      cells: projectRowCells(originDepartureProjection.byHour, offsetMinutes, {
+      cells: projectRowCells(originDepartureProjection.originMinutes, offsetMinutes, {
         hasUnavailableTiming: hasUnavailableDownstreamStopTiming && !isOrigin,
         hasUnconfiguredBands: originDepartureProjection.hasUnconfiguredBands
       })
     };
   });
+
+  const bandColumns = TIME_BAND_DEFINITIONS.map((definition) => ({
+    id: definition.id,
+    label: definition.label,
+    windowLabel: formatTimeBandWindow(definition)
+  }));
 
   const notices: LineDepartureTimetableNotice[] = [];
   if (originDepartureProjection.hasUnconfiguredBands) {
@@ -317,6 +318,7 @@ export const projectLineDepartureTimetable = (
   return {
     lineLabel: line.label,
     activeServiceSummary: resolveActiveBandSummary(line, activeTimeBandId),
+    bandColumns,
     rows,
     routeBaselineSummary: projectRouteBaselineSummary(selectedLineRouteBaselineMetrics, line.routeSegments),
     notices,

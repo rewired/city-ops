@@ -14,9 +14,19 @@ interface DeparturesDialogProps {
   readonly selectedLineRouteBaselineMetrics: import('../domain/projection/useNetworkPlanningProjections').RouteBaselineAggregateMetrics | null;
 }
 
-const formatHourLabel = (hour: number): string => String(hour).padStart(2, '0');
-
-const formatMinutesLabel = (minutes: readonly number[]): string => minutes.map((minute) => String(minute).padStart(2, '0')).join(' ');
+const renderDepartureMinutes = (labels: readonly string[]): ReactElement => {
+  const chunks: string[][] = [];
+  for (let i = 0; i < labels.length; i += 4) {
+    chunks.push(labels.slice(i, i + 4));
+  }
+  return (
+    <div className="departures-dialog__cell-minutes">
+      {chunks.map((chunk, index) => (
+        <div key={index}>{chunk.join(' ')}</div>
+      ))}
+    </div>
+  );
+};
 
 /** Renders a selected-line departures timetable matrix with compact service and route baseline context. */
 export function DeparturesDialog({
@@ -40,7 +50,7 @@ export function DeparturesDialog({
 
   return (
     <div className="inspector-dialog" role="dialog" aria-modal="true" aria-label="Departures dialog">
-      <div className="inspector-dialog__surface inspector-dialog__surface--large">
+      <div className="inspector-dialog__surface inspector-dialog__surface--large" style={{ maxWidth: 'min(96vw, 1440px)' }}>
         <header className="inspector-dialog__header">
           <h3>Departures</h3>
           <button type="button" className="inspector-dialog__close" onClick={onClose}>
@@ -58,7 +68,7 @@ export function DeparturesDialog({
               <span className="departures-dialog__route-baseline-pill">
                 {timetableProjection.routeBaselineSummary.routingStatusLabel}
               </span>
-              <span>Runtime {timetableProjection.routeBaselineSummary.totalLineMinutes.toFixed(2)} min</span>
+              <span>Runtime {timetableProjection.routeBaselineSummary.totalLineMinutes.toFixed(1)} min</span>
               <span>{timetableProjection.routeBaselineSummary.segmentCount} segments</span>
             </div>
           ) : null}
@@ -73,9 +83,10 @@ export function DeparturesDialog({
               <thead>
                 <tr>
                   <th scope="col">Stop</th>
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <th key={hour} scope="col">
-                      {formatHourLabel(hour)}
+                  {timetableProjection.bandColumns.map((column) => (
+                    <th key={column.id} scope="col">
+                      <div className="departures-dialog__band-label">{column.label}</div>
+                      <div className="departures-dialog__band-window" style={{ fontSize: '0.85em', opacity: 0.8 }}>{column.windowLabel}</div>
                     </th>
                   ))}
                 </tr>
@@ -85,9 +96,9 @@ export function DeparturesDialog({
                   <tr key={row.stopLabel}>
                     <th scope="row">{row.stopLabel}</th>
                     {row.cells.map((cell) => (
-                      <td key={`${row.stopLabel}-${cell.hour}`} data-state={cell.state}>
+                      <td key={`${row.stopLabel}-${cell.timeBandId}`} data-state={cell.state}>
                         {cell.state === 'departures'
-                          ? formatMinutesLabel(cell.departureMinutes)
+                          ? renderDepartureMinutes(cell.departureMinuteLabels)
                           : cell.state === 'unavailable'
                             ? 'Unavailable'
                             : '—'}

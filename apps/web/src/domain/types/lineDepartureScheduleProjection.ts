@@ -21,9 +21,20 @@ export type LineDepartureScheduleUnavailableReason =
 export type DepartureMinute = number & { readonly __brand: 'DepartureMinute' };
 
 /**
+ * Creates a branded DepartureMinute from a raw number.
+ */
+export const createDepartureMinute = (rawMinute: number): DepartureMinute => rawMinute as DepartureMinute;
+
+/**
  * Branded minute delta value used for "minutes until next departure" projections.
  */
 export type MinutesUntilDeparture = number & { readonly __brand: 'MinutesUntilDeparture' };
+
+/**
+ * Creates a branded MinutesUntilDeparture from a raw number.
+ */
+export const createMinutesUntilDeparture = (rawMinutes: number): MinutesUntilDeparture =>
+  rawMinutes as MinutesUntilDeparture;
 
 /**
  * Deterministic departure schedule projection for one completed line in one active time band.

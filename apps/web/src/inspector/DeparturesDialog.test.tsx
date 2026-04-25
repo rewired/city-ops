@@ -77,11 +77,11 @@ describe('DeparturesDialog', () => {
       />
     );
 
-    expect(markup).toContain('<th scope="col">00</th>');
-    expect(markup).toContain('<th scope="col">23</th>');
+    expect(markup).toContain('<div class="departures-dialog__band-label">Morning rush</div>');
+    expect(markup).toContain('<div class="departures-dialog__band-label">Night</div>');
     expect(markup).toContain('00 05 10 15');
     expect(markup).toContain('04 09 14 19');
     expect(markup).toContain('Morning rush · 06:00–09:00 · every 5 min');
-    expect(markup).not.toContain('Route baseline</button>');
+    expect(markup).toContain('Runtime 4.0 min');
   });
 });

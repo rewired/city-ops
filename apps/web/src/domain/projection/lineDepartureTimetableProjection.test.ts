@@ -70,18 +70,18 @@ const routeBaselineMetrics: RouteBaselineAggregateMetrics = {
 };
 
 describe('projectLineDepartureTimetable', () => {
-  it('projects frequency-band departures by hour and stop offset', () => {
+  it('projects frequency-band departures by time band and stop offset', () => {
     const line = createLine([
       createSegment('segment-1', stopA, stopB, 3),
       createSegment('segment-2', stopB, stopC, 5)
     ]);
 
     const result = projectLineDepartureTimetable(line, placedStops, 'morning-rush', routeBaselineMetrics);
-    const originMorningHour = result.rows[0]?.cells[6];
-    const secondStopMorningHour = result.rows[1]?.cells[6];
+    const originMorningBand = result.rows[0]?.cells[0];
+    const secondStopMorningBand = result.rows[1]?.cells[0];
 
-    expect(originMorningHour?.departureMinutes.slice(0, 4)).toEqual([0, 5, 10, 15]);
-    expect(secondStopMorningHour?.departureMinutes.slice(0, 4)).toEqual([3, 8, 13, 18]);
+    expect(originMorningBand?.departureMinuteLabels.slice(0, 4)).toEqual(['00', '05', '10', '15']);
+    expect(secondStopMorningBand?.departureMinuteLabels.slice(0, 4)).toEqual(['03', '08', '13', '18']);
   });
 
   it('marks no-service bands with quiet empty cells and no departures', () => {
@@ -91,24 +91,22 @@ describe('projectLineDepartureTimetable', () => {
     ]);
 
     const result = projectLineDepartureTimetable(line, placedStops, 'midday', routeBaselineMetrics);
-    const middayCell = result.rows[0]?.cells[12];
+    const middayCell = result.rows[0]?.cells[2];
 
     expect(middayCell?.state).toBe('no-service');
-    expect(middayCell?.departureMinutes).toEqual([]);
+    expect(middayCell?.departureMinuteLabels).toEqual([]);
   });
 
-  it('handles night service across midnight within 23:00 and 00:00 hours', () => {
+  it('handles night service departures within the night time band', () => {
     const line = createLine([
       createSegment('segment-1', stopA, stopB, 3),
       createSegment('segment-2', stopB, stopC, 5)
     ]);
 
     const result = projectLineDepartureTimetable(line, placedStops, 'night', routeBaselineMetrics);
-    const hour23 = result.rows[0]?.cells[23];
-    const hour00 = result.rows[0]?.cells[0];
+    const nightCell = result.rows[0]?.cells[6];
 
-    expect(hour23?.departureMinutes.slice(0, 3)).toEqual([0, 20, 40]);
-    expect(hour00?.departureMinutes.slice(0, 3)).toEqual([0, 20, 40]);
+    expect(nightCell?.departureMinuteLabels.slice(0, 3)).toEqual(['00', '20', '40']);
   });
 
   it('does not fabricate downstream stop times when segment-level timing is incomplete', () => {
@@ -116,9 +114,9 @@ describe('projectLineDepartureTimetable', () => {
 
     const result = projectLineDepartureTimetable(line, placedStops, 'morning-rush', routeBaselineMetrics);
 
-    expect(result.rows[0]?.cells[6]?.state).toBe('departures');
-    expect(result.rows[1]?.cells[6]?.state).toBe('unavailable');
-    expect(result.rows[2]?.cells[6]?.state).toBe('unavailable');
+    expect(result.rows[0]?.cells[0]?.state).toBe('departures');
+    expect(result.rows[1]?.cells[0]?.state).toBe('unavailable');
+    expect(result.rows[2]?.cells[0]?.state).toBe('unavailable');
     expect(result.hasUnavailableDownstreamStopTiming).toBe(true);
   });
 
