@@ -141,7 +141,7 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
     expectIssue(payload, 'invalid-metadata-counts');
   });
 
-  it('accepts includedTimeBandIds that match non-null frequencies in canonical order', () => {
+  it('accepts includedTimeBandIds that match configured service plans in canonical order', () => {
     const payload = readFixturePayload();
 
     const result = validateSelectedLineExportPayload(payload);
@@ -149,22 +149,53 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
     expect(result.ok).toBe(true);
   });
 
-  it('allows empty includedTimeBandIds when all frequencies are null', () => {
+  it('allows empty includedTimeBandIds when all service plans are unset', () => {
     const payload = readFixturePayload();
 
     payload.line.frequencyByTimeBand = {
-      'morning-rush': null,
-      'late-morning': null,
-      midday: null,
-      afternoon: null,
-      'evening-rush': null,
-      evening: null,
-      night: null
+      'morning-rush': { kind: 'unset' },
+      'late-morning': { kind: 'unset' },
+      midday: { kind: 'unset' },
+      afternoon: { kind: 'unset' },
+      'evening-rush': { kind: 'unset' },
+      evening: { kind: 'unset' },
+      night: { kind: 'unset' }
     };
     payload.metadata.includedTimeBandIds = [];
 
     const result = validateSelectedLineExportPayload(payload);
 
     expect(result.ok).toBe(true);
+  });
+
+  it('allows no-service plans and counts them as configured in includedTimeBandIds', () => {
+    const payload = readFixturePayload();
+    payload.line.frequencyByTimeBand = {
+      ...payload.line.frequencyByTimeBand,
+      evening: { kind: 'no-service' },
+      night: { kind: 'unset' }
+    };
+    payload.metadata.includedTimeBandIds = [
+      'morning-rush',
+      'late-morning',
+      'midday',
+      'afternoon',
+      'evening-rush',
+      'evening'
+    ];
+
+    const result = validateSelectedLineExportPayload(payload);
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('fails when frequency plan headwayMinutes is not positive', () => {
+    const payload = readFixturePayload();
+    payload.line.frequencyByTimeBand = {
+      ...payload.line.frequencyByTimeBand,
+      midday: { kind: 'frequency', headwayMinutes: 0 }
+    };
+
+    expectIssue(payload, 'invalid-frequency-value');
   });
 });

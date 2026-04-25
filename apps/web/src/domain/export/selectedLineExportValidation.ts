@@ -212,7 +212,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
 
   const line = payload.line;
   let orderedStopIds: readonly string[] = [];
-  let nonNullTimeBandIds: readonly TimeBandId[] = [];
+  let configuredTimeBandIds: readonly TimeBandId[] = [];
 
   if (!isRecord(line)) {
     addIssue('invalid-line', '$.line', 'line must be an object.');
@@ -250,7 +250,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
       addIssue('invalid-line-frequency-map', '$.line.frequencyByTimeBand', 'line.frequencyByTimeBand must be an object.');
     } else {
       const included: TimeBandId[] = [];
-      for (const [timeBandId, frequency] of Object.entries(line.frequencyByTimeBand)) {
+      for (const [timeBandId, servicePlan] of Object.entries(line.frequencyByTimeBand)) {
         if (!CANONICAL_TIME_BAND_IDS_SET.has(timeBandId)) {
           addIssue(
             'invalid-frequency-time-band-id',
@@ -260,20 +260,45 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
           continue;
         }
 
-        if (frequency !== null && (!isFiniteNumber(frequency) || frequency <= 0)) {
+        if (!isRecord(servicePlan)) {
           addIssue(
             'invalid-frequency-value',
             `$.line.frequencyByTimeBand.${timeBandId}`,
-            'Frequency values must be null or positive finite numbers.'
+            'Each frequencyByTimeBand entry must be an object service plan.'
           );
+          continue;
         }
 
-        if (isFiniteNumber(frequency) && frequency > 0) {
-          included.push(timeBandId as TimeBandId);
+        if (servicePlan.kind === 'unset') {
+          continue;
         }
+
+        if (servicePlan.kind === 'no-service') {
+          included.push(timeBandId as TimeBandId);
+          continue;
+        }
+
+        if (servicePlan.kind === 'frequency') {
+          if (!isFiniteNumber(servicePlan.headwayMinutes) || servicePlan.headwayMinutes <= 0) {
+            addIssue(
+              'invalid-frequency-value',
+              `$.line.frequencyByTimeBand.${timeBandId}.headwayMinutes`,
+              'frequency.headwayMinutes must be a positive finite number.'
+            );
+          } else {
+            included.push(timeBandId as TimeBandId);
+          }
+          continue;
+        }
+
+        addIssue(
+          'invalid-frequency-value',
+          `$.line.frequencyByTimeBand.${timeBandId}.kind`,
+          'Service plan kind must be "unset", "frequency", or "no-service".'
+        );
       }
 
-      nonNullTimeBandIds = MVP_TIME_BAND_IDS.filter((timeBandId) => included.includes(timeBandId));
+      configuredTimeBandIds = MVP_TIME_BAND_IDS.filter((timeBandId) => included.includes(timeBandId));
     }
 
     if (!Array.isArray(line.routeSegments)) {
@@ -515,20 +540,20 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
 
       if (
         invalidTimeBandId === undefined &&
-        includedTimeBandIds.length !== nonNullTimeBandIds.length
+        includedTimeBandIds.length !== configuredTimeBandIds.length
       ) {
         addIssue(
           'metadata-included-time-band-order-mismatch',
           '$.metadata.includedTimeBandIds',
-          'includedTimeBandIds must list exactly the non-null frequency bands in canonical order.'
+          'includedTimeBandIds must list exactly the configured service-plan bands in canonical order.'
         );
       } else if (invalidTimeBandId === undefined) {
         for (let index = 0; index < includedTimeBandIds.length; index += 1) {
-          if (includedTimeBandIds[index] !== nonNullTimeBandIds[index]) {
+          if (includedTimeBandIds[index] !== configuredTimeBandIds[index]) {
             addIssue(
               'metadata-included-time-band-order-mismatch',
               '$.metadata.includedTimeBandIds',
-              'includedTimeBandIds must list exactly the non-null frequency bands in canonical order.'
+              'includedTimeBandIds must list exactly the configured service-plan bands in canonical order.'
             );
             break;
           }

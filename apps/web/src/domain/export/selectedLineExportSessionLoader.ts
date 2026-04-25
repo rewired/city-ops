@@ -59,15 +59,23 @@ const convertLineRouteSegments = (payload: SelectedLineExportPayload): readonly 
 
 const convertLineServiceByTimeBand = (payload: SelectedLineExportPayload): Line['frequencyByTimeBand'] =>
   Object.fromEntries(
-    Object.entries(payload.line.frequencyByTimeBand).map(([timeBandId, frequencyMinutes]) => [
-      timeBandId,
-      frequencyMinutes === null || frequencyMinutes === undefined
-        ? { kind: 'unset' }
-        : {
-            kind: 'frequency',
-            headwayMinutes: createLineFrequencyMinutes(frequencyMinutes)
-          }
-    ])
+    Object.entries(payload.line.frequencyByTimeBand).map(([timeBandId, servicePlan]) => {
+      if (servicePlan.kind === 'unset') {
+        return [timeBandId, { kind: 'unset' }] as const;
+      }
+
+      if (servicePlan.kind === 'no-service') {
+        return [timeBandId, { kind: 'no-service' }] as const;
+      }
+
+      return [
+        timeBandId,
+        {
+          kind: 'frequency',
+          headwayMinutes: createLineFrequencyMinutes(servicePlan.headwayMinutes)
+        }
+      ] as const;
+    })
   ) as Line['frequencyByTimeBand'];
 
 /**
