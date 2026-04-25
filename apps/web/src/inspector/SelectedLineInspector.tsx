@@ -23,7 +23,7 @@ interface SelectedLineInspectorProps {
   readonly lineFrequencyValidationByTimeBand: LineFrequencyValidationByTimeBand;
   readonly selectedLineServiceProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineServicePlanForLine> | null;
   readonly selectedLineServiceInspectorProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineSelectedServiceInspector> | null;
-  readonly selectedLineVehicleProjection: ReturnType<typeof import('../domain/projection/lineVehicleProjection').projectLineVehicleNetwork>['lines'][number] | null;
+  readonly selectedLinePlanningVehicleProjection: ReturnType<typeof import('../domain/projection/linePlanningVehicleProjection').projectLinePlanningVehicles> | null;
   readonly onFrequencyChange: (
     timeBandId: TimeBandId,
     rawInputValue: string,
@@ -51,7 +51,7 @@ export function SelectedLineInspector({
   lineFrequencyValidationByTimeBand,
   selectedLineServiceProjection,
   selectedLineServiceInspectorProjection,
-  selectedLineVehicleProjection,
+  selectedLinePlanningVehicleProjection,
   onFrequencyChange
 }: SelectedLineInspectorProps): ReactElement {
   const [activeDialogId, setActiveDialogId] = useState<SelectedLineDialogId | null>(null);
@@ -184,7 +184,7 @@ export function SelectedLineInspector({
       <ProjectedVehiclesDialog
         open={activeDialogId === 'projected-vehicles'}
         onClose={() => setActiveDialogId(null)}
-        selectedLineVehicleProjection={selectedLineVehicleProjection}
+        selectedLinePlanningVehicleProjection={selectedLinePlanningVehicleProjection}
       />
     </div>
   );

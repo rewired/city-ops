@@ -2,6 +2,7 @@ import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 import { projectLineDepartureScheduleForLine, projectLineDepartureScheduleNetwork } from './lineDepartureScheduleProjection';
 import { projectLineServicePlan, projectLineServicePlanForLine, projectLineSelectedServiceInspector } from './lineServicePlanProjection';
 import { projectLineVehicleNetwork } from './lineVehicleProjection';
+import { projectLinePlanningVehicles } from './linePlanningVehicleProjection';
 import { resolveLineServiceBandHeadwayMinutes, type Line } from '../types/line';
 import type { Stop } from '../types/stop';
 import type { TimeBandId } from '../types/timeBand';
@@ -52,6 +53,7 @@ export interface NetworkPlanningProjections {
   readonly networkDepartureScheduleProjection: ReturnType<typeof projectLineDepartureScheduleNetwork>;
   readonly vehicleNetworkProjection: ReturnType<typeof projectLineVehicleNetwork>;
   readonly selectedLineVehicleProjection: ReturnType<typeof projectLineVehicleNetwork>['lines'][number] | null;
+  readonly selectedLinePlanningVehicleProjection: ReturnType<typeof projectLinePlanningVehicles> | null;
   readonly networkServicePlanProjection: ReturnType<typeof projectLineServicePlan>;
   readonly selectedLineServiceInspectorProjection: ReturnType<typeof projectLineSelectedServiceInspector> | null;
 }
@@ -131,6 +133,9 @@ export const useNetworkPlanningProjections = (
   const selectedLineServiceInspectorProjection = selectedLineServiceProjection
     ? projectLineSelectedServiceInspector(selectedLineServiceProjection, MAX_READINESS_ISSUES_VISIBLE)
     : null;
+  const selectedLinePlanningVehicleProjection = selectedLine
+    ? projectLinePlanningVehicles(selectedLine, selectedLineRouteBaseline)
+    : null;
   return {
     staticNetworkSummaryKpis,
     selectedLineRouteBaseline,
@@ -139,6 +144,7 @@ export const useNetworkPlanningProjections = (
     networkDepartureScheduleProjection,
     vehicleNetworkProjection,
     selectedLineVehicleProjection,
+    selectedLinePlanningVehicleProjection,
     networkServicePlanProjection,
     selectedLineServiceInspectorProjection
   };

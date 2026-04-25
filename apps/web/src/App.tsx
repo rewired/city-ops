@@ -255,7 +255,7 @@ export default function App(): ReactElement {
         activeTimeBandId={clockController.activeSimulationTimeBandId}
         selectedLineServiceProjection={projections.selectedLineServiceProjection}
         selectedLineServiceInspectorProjection={projections.selectedLineServiceInspectorProjection}
-        selectedLineVehicleProjection={projections.selectedLineVehicleProjection}
+        selectedLinePlanningVehicleProjection={projections.selectedLinePlanningVehicleProjection}
         lineFrequencyInputByTimeBand={sessionController.lineFrequencyInputByTimeBand}
         lineFrequencyControlByTimeBand={sessionController.lineFrequencyControlByTimeBand}
         lineFrequencyValidationByTimeBand={sessionController.lineFrequencyValidationByTimeBand}
