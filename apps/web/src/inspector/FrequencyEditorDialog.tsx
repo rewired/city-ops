@@ -1,7 +1,16 @@
 import type { ReactElement } from 'react';
 
-import { MVP_TIME_BAND_IDS, TIME_BAND_DISPLAY_LABELS } from '../domain/constants/timeBands';
+import {
+  MVP_TIME_BAND_IDS,
+  TIME_BAND_DEFINITIONS,
+  TIME_BAND_DISPLAY_LABELS,
+  formatTimeBandWindow
+} from '../domain/constants/timeBands';
 import type { TimeBandId } from '../domain/types/timeBand';
+import {
+  LINE_FREQUENCY_EDITOR_MAX_LENGTH,
+  normalizeLineFrequencyEditorInput
+} from '../session/lineFrequencyEditorState';
 import type {
   LineFrequencyControlByTimeBand,
   LineFrequencyInputByTimeBand,
@@ -22,8 +31,12 @@ interface FrequencyEditorDialogProps {
   ) => void;
 }
 
+const TIME_BAND_WINDOW_BY_ID: Readonly<Record<TimeBandId, string>> = Object.fromEntries(
+  TIME_BAND_DEFINITIONS.map((definition) => [definition.id, formatTimeBandWindow(definition)])
+) as Readonly<Record<TimeBandId, string>>;
+
 /**
- * Renders frequency editing fields in a dialog while preserving session callback validation semantics.
+ * Renders a compact selected-line service-plan editor with explicit Interval vs No service controls per canonical time band.
  */
 export function FrequencyEditorDialog({
   open,
@@ -38,73 +51,77 @@ export function FrequencyEditorDialog({
   }
 
   return (
-    <div className="inspector-dialog" role="dialog" aria-modal="true" aria-label="Edit frequency dialog">
-      <div className="inspector-dialog__surface">
+    <div className="inspector-dialog" role="dialog" aria-modal="true" aria-label="Edit service plan dialog">
+      <div className="inspector-dialog__surface inspector-dialog__surface--service-plan-editor">
         <header className="inspector-dialog__header">
-          <h3>Edit frequency</h3>
+          <h3>Edit service plan</h3>
           <button type="button" className="inspector-dialog__close" onClick={onClose}>
             Close
           </button>
         </header>
-        <p className="inspector-dialog__note">
-          Select per-band service mode. Unset leaves the band unconfigured, no-service is explicit, and frequency requires positive minutes.
-        </p>
-        <div className="inspector-frequency-editor">
+        <div className="inspector-frequency-editor" role="table" aria-label="Service plan by time band">
           {MVP_TIME_BAND_IDS.map((timeBandId) => {
             const controlState = lineFrequencyControlByTimeBand[timeBandId];
+            const isNoService = controlState === 'no-service';
+            const isUnset = controlState === 'unset';
+            const intervalValue = isNoService ? '–' : lineFrequencyInputByTimeBand[timeBandId] ?? '';
+            const rowClassName = [
+              'inspector-frequency-editor__row',
+              isUnset ? 'inspector-frequency-editor__row--not-configured' : null
+            ]
+              .filter(Boolean)
+              .join(' ');
             return (
-              <fieldset key={timeBandId} className="inspector-frequency-editor__row">
-                <legend>{TIME_BAND_DISPLAY_LABELS[timeBandId]}</legend>
-                <div className="inspector-frequency-editor__mode-group">
-                  <label>
+              <section key={timeBandId} className={rowClassName} role="row">
+                <p className="inspector-frequency-editor__band-label" role="rowheader">
+                  <span>{TIME_BAND_DISPLAY_LABELS[timeBandId]}</span>{' '}
+                  <span className="inspector-frequency-editor__band-window">({TIME_BAND_WINDOW_BY_ID[timeBandId]})</span>
+                </p>
+                <div className="inspector-frequency-editor__controls">
+                  <button
+                    type="button"
+                    className="inspector-frequency-editor__mode-button"
+                    aria-pressed={controlState === 'frequency'}
+                    onClick={() => {
+                      onFrequencyChange(timeBandId, lineFrequencyInputByTimeBand[timeBandId] ?? '', 'set-frequency');
+                    }}
+                  >
+                    Interval
+                  </button>
+                  <label className="inspector-frequency-editor__interval-field">
                     <input
-                      type="radio"
-                      name={`${timeBandId}-mode`}
-                      checked={controlState === 'unset'}
-                      onChange={() => {
-                        onFrequencyChange(timeBandId, '', 'set-unset');
-                      }}
-                    />
-                    Unset
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name={`${timeBandId}-mode`}
-                      checked={controlState === 'no-service'}
-                      onChange={() => {
-                        onFrequencyChange(timeBandId, lineFrequencyInputByTimeBand[timeBandId] ?? '', 'set-no-service');
-                      }}
-                    />
-                    No service
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name={`${timeBandId}-mode`}
-                      checked={controlState === 'frequency'}
-                      onChange={() => {
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={LINE_FREQUENCY_EDITOR_MAX_LENGTH}
+                      aria-label={`Interval minutes for ${TIME_BAND_WINDOW_BY_ID[timeBandId]}`}
+                      disabled={isNoService}
+                      value={intervalValue}
+                      onFocus={() => {
                         onFrequencyChange(timeBandId, lineFrequencyInputByTimeBand[timeBandId] ?? '', 'set-frequency');
                       }}
+                      onChange={(event) => {
+                        const normalizedValue = normalizeLineFrequencyEditorInput(event.currentTarget.value);
+                        onFrequencyChange(timeBandId, normalizedValue, 'input-change');
+                      }}
                     />
-                    Frequency
+                    <span>min</span>
                   </label>
-                </div>
-                <label className="inspector-frequency-editor__input-label">
-                  <span>Interval (minutes)</span>
-                  <input
-                    type="number"
-                    disabled={controlState !== 'frequency'}
-                    value={lineFrequencyInputByTimeBand[timeBandId] ?? ''}
-                    onChange={(event) => {
-                      onFrequencyChange(timeBandId, event.currentTarget.value, 'input-change');
+                  <button
+                    type="button"
+                    className="inspector-frequency-editor__mode-button"
+                    aria-pressed={isNoService}
+                    onClick={() => {
+                      onFrequencyChange(timeBandId, lineFrequencyInputByTimeBand[timeBandId] ?? '', 'set-no-service');
                     }}
-                  />
-                </label>
+                  >
+                    No service
+                  </button>
+                </div>
                 {lineFrequencyValidationByTimeBand[timeBandId] ? (
                   <span className="inspector-frequency-editor__error">{lineFrequencyValidationByTimeBand[timeBandId]}</span>
                 ) : null}
-              </fieldset>
+              </section>
             );
           })}
         </div>

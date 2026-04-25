@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
 
 import { MVP_TIME_BAND_IDS } from '../domain/constants/timeBands';
-import {
-  createLineFrequencyMinutes,
-  resolveLineServiceBandHeadwayMinutes,
-  type Line,
-  type LineServiceBandPlan
-} from '../domain/types/line';
+import { applyLineFrequencyEditorAction } from './lineFrequencyEditorState';
+import { resolveLineServiceBandHeadwayMinutes, type Line, type LineServiceBandPlan } from '../domain/types/line';
 import { parseSelectedLineExportFile } from '../domain/export/selectedLineExportFileLoader';
 import { validateSelectedLineExportPayload } from '../domain/export/selectedLineExportValidation';
 import { convertSelectedLineExportPayloadToSession } from '../domain/export/selectedLineExportSessionLoader';
@@ -151,109 +147,28 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
     setSessionLines,
     setSelectedLineId,
     updateSelectedCompletedLineFrequency: (timeBandId, rawInputValue, action = 'input-change') => {
+      const nextEditorState = applyLineFrequencyEditorAction(rawInputValue, action);
+
       setLineFrequencyInputByTimeBand((currentInputs) => ({
         ...currentInputs,
-        [timeBandId]: rawInputValue
+        [timeBandId]: nextEditorState.normalizedInputValue
       }));
-
-      if (!selectedLine) {
-        return;
-      }
-
-      if (action === 'set-no-service') {
-        setLineFrequencyControlByTimeBand((currentControls) => ({
-          ...currentControls,
-          [timeBandId]: 'no-service'
-        }));
-        setLineFrequencyValidationByTimeBand((currentValidation) => ({
-          ...currentValidation,
-          [timeBandId]: null
-        }));
-        setSessionLines((currentLines) =>
-          currentLines.map((line) =>
-            line.id === selectedLine.id
-              ? {
-                  ...line,
-                  frequencyByTimeBand: {
-                    ...line.frequencyByTimeBand,
-                    [timeBandId]: { kind: 'no-service' } satisfies LineServiceBandPlan
-                  }
-                }
-              : line
-          )
-        );
-        return;
-      }
-
-      if (action === 'set-unset') {
-        setLineFrequencyInputByTimeBand((currentInputs) => ({
-          ...currentInputs,
-          [timeBandId]: ''
-        }));
-        setLineFrequencyControlByTimeBand((currentControls) => ({
-          ...currentControls,
-          [timeBandId]: 'unset'
-        }));
-        setLineFrequencyValidationByTimeBand((currentValidation) => ({
-          ...currentValidation,
-          [timeBandId]: null
-        }));
-        setSessionLines((currentLines) =>
-          currentLines.map((line) =>
-            line.id === selectedLine.id
-              ? {
-                  ...line,
-                  frequencyByTimeBand: {
-                    ...line.frequencyByTimeBand,
-                    [timeBandId]: { kind: 'unset' } satisfies LineServiceBandPlan
-                  }
-                }
-              : line
-          )
-        );
-        return;
-      }
 
       setLineFrequencyControlByTimeBand((currentControls) => ({
         ...currentControls,
-        [timeBandId]: 'frequency'
+        [timeBandId]: nextEditorState.controlState
       }));
-
-      const trimmedValue = rawInputValue.trim();
-      if (trimmedValue.length === 0) {
-        setLineFrequencyValidationByTimeBand((currentValidation) => ({
-          ...currentValidation,
-          [timeBandId]: null
-        }));
-        setSessionLines((currentLines) =>
-          currentLines.map((line) =>
-            line.id === selectedLine.id
-              ? {
-                  ...line,
-                  frequencyByTimeBand: {
-                    ...line.frequencyByTimeBand,
-                    [timeBandId]: { kind: 'unset' } satisfies LineServiceBandPlan
-                  }
-                }
-              : line
-          )
-        );
-        return;
-      }
-
-      const parsedFrequencyMinutes = Number(trimmedValue);
-      if (!Number.isFinite(parsedFrequencyMinutes) || parsedFrequencyMinutes <= 0) {
-        setLineFrequencyValidationByTimeBand((currentValidation) => ({
-          ...currentValidation,
-          [timeBandId]: 'Enter a positive minute interval.'
-        }));
-        return;
-      }
 
       setLineFrequencyValidationByTimeBand((currentValidation) => ({
         ...currentValidation,
-        [timeBandId]: null
+        [timeBandId]: nextEditorState.validationMessage
       }));
+
+      const nextBandPlan = nextEditorState.nextBandPlan;
+      if (!selectedLine || !nextBandPlan) {
+        return;
+      }
+
       setSessionLines((currentLines) =>
         currentLines.map((line) =>
           line.id === selectedLine.id
@@ -261,10 +176,7 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
                 ...line,
                 frequencyByTimeBand: {
                   ...line.frequencyByTimeBand,
-                  [timeBandId]: {
-                    kind: 'frequency',
-                    headwayMinutes: createLineFrequencyMinutes(parsedFrequencyMinutes)
-                  } satisfies LineServiceBandPlan
+                  [timeBandId]: nextBandPlan satisfies LineServiceBandPlan
                 }
               }
             : line
