@@ -25,7 +25,7 @@ if (-not (Test-Path $OsrmDir)) {
 # The Docker container will mount:
 # - data/routing/osrm as /data (where the generated files go)
 # - data/osm/hamburg-latest.osm.pbf as /data/hamburg-latest.osm.pbf (read-only input)
-$DockerRunBase = "docker run -t --rm -v ""$OsrmDir:/data"" -v ""$PbfFile:/data/hamburg-latest.osm.pbf:ro"" osrm/osrm-backend"
+$DockerRunBase = "docker run -t --rm -v ""${OsrmDir}:/data"" -v ""${PbfFile}:/data/hamburg-latest.osm.pbf:ro"" osrm/osrm-backend"
 
 Write-Host "Running osrm-extract..."
 Invoke-Expression "$DockerRunBase osrm-extract -p /opt/car.lua /data/hamburg-latest.osm.pbf"
