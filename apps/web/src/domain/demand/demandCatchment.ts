@@ -1,7 +1,7 @@
 import { calculateGreatCircleDistanceMeters, type GeometryCoordinate } from '../../lib/geometry';
 import { STOP_ACCESS_RADIUS_METERS } from '../constants/demand';
 import type { DemandNode, DemandNodeId, DemandWeight } from '../types/demandNode';
-import { createDemandWeight } from '../types/demandNode';
+import { createDemandWeight, createZeroDemandWeightByTimeBand } from '../types/demandNode';
 import type { Stop, StopId } from '../types/stop';
 import type { TimeBandId } from '../types/timeBand';
 
@@ -35,8 +35,8 @@ export const calculateStopCatchments = (
 
     const capturedDemandNodeIds = capturedNodes.map((node) => node.id);
 
-    const residentialOriginWeightByTimeBand: Record<TimeBandId, DemandWeight> = {};
-    const workplaceDestinationWeightByTimeBand: Record<TimeBandId, DemandWeight> = {};
+    const residentialOriginWeightByTimeBand = createZeroDemandWeightByTimeBand();
+    const workplaceDestinationWeightByTimeBand = createZeroDemandWeightByTimeBand();
 
     for (const node of capturedNodes) {
       if (node.demandClass === 'residential' && node.role === 'origin') {

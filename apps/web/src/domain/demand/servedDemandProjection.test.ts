@@ -8,7 +8,7 @@ import { createDemandWeight } from '../types/demandNode';
 
 describe('servedDemandProjection', () => {
   const lineId = 'line-1' as LineId;
-  const band = 'band-1' as TimeBandId;
+  const band: TimeBandId = 'morning-rush';
   
   const createCatchment = (stopId: string, originW: number, destW: number): StopDemandCatchment => ({
     stopId: stopId as StopId,
@@ -21,7 +21,7 @@ describe('servedDemandProjection', () => {
     const result = projectLineBandDemand(lineId, [], band, 'unset', new Map());
     expect(result.status).toBe('unconfigured');
     expect(result.servedDemandWeight).toBe(0);
-    expect(result.warnings[0].type).toBe('no-service-configured');
+    expect(result.warnings[0]!.type).toBe('no-service-configured');
   });
 
   it('returns zero and no-service status for no-service', () => {
@@ -57,7 +57,7 @@ describe('servedDemandProjection', () => {
     expect(result.capturedOriginWeight).toBe(0);
     expect(result.capturedDestinationWeight).toBe(0);
     expect(result.servedDemandWeight).toBe(0);
-    expect(result.warnings[0].type).toBe('wrong-direction');
+    expect(result.warnings[0]!.type).toBe('wrong-direction');
   });
 
   it('sums valid stops only', () => {

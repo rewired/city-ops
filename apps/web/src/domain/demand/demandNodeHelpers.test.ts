@@ -67,17 +67,17 @@ describe('demandNodeHelpers', () => {
 
       const middayNodes = getActiveDemandNodes(mockNodes, 'midday');
       expect(middayNodes).toHaveLength(1);
-      expect(middayNodes[0].id).toBe('res-1');
+      expect(middayNodes[0]!.id).toBe('res-1');
 
       const nightNodes = getActiveDemandNodes(mockNodes, 'night');
       expect(nightNodes).toHaveLength(1);
-      expect(nightNodes[0].id).toBe('res-2');
+      expect(nightNodes[0]!.id).toBe('res-2');
     });
 
     test('filters out nodes with zero weight in the specified time band', () => {
       const afternoonNodes = getActiveDemandNodes(mockNodes, 'afternoon');
       expect(afternoonNodes).toHaveLength(1); // Only work-1 has positive weight, res-1 is 0
-      expect(afternoonNodes[0].id).toBe('work-1');
+      expect(afternoonNodes[0]!.id).toBe('work-1');
     });
 
     test('filters out nodes missing the time band configuration completely', () => {

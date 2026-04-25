@@ -136,14 +136,23 @@ const resolveStopOffsets = (line: Line): readonly number[] | null => {
     return [];
   }
 
-  if (line.routeSegments.length !== Math.max(0, line.stopIds.length - 1)) {
+  const isLoop = line.topology === 'loop';
+  const expectedSegmentCount = isLoop ? line.stopIds.length : Math.max(0, line.stopIds.length - 1);
+
+  if (line.routeSegments.length !== expectedSegmentCount) {
     return null;
   }
 
   const offsets: number[] = [0];
   let cumulativeMinutes = 0;
 
-  for (let index = 0; index < line.routeSegments.length; index += 1) {
+  // For both linear and loop, we only need offsets for the N listed stops.
+  // stop[0] is at 0.
+  // stop[1] is after segment 0.
+  // ...
+  // stop[N-1] is after segment N-2.
+  // In a loop, segment N-1 closes the loop back to stop[0] and is not used for stop row offsets.
+  for (let index = 0; index < line.stopIds.length - 1; index += 1) {
     const segment = line.routeSegments[index];
     const expectedFrom = line.stopIds[index];
     const expectedTo = line.stopIds[index + 1];

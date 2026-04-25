@@ -1,3 +1,4 @@
+import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 import type { StopPosition } from './stop';
 import type { TimeBandId } from './timeBand';
 
@@ -47,3 +48,10 @@ export interface DemandNode {
   readonly demandClass: DemandClass;
   readonly weightByTimeBand: Readonly<Record<TimeBandId, DemandWeight>>;
 }
+
+/**
+ * Creates an initialized per-time-band demand weight map with every canonical band set to 0.
+ */
+export const createZeroDemandWeightByTimeBand = (): Record<TimeBandId, DemandWeight> =>
+  Object.fromEntries(MVP_TIME_BAND_IDS.map((timeBandId) => [timeBandId, createDemandWeight(0)])) as Record<TimeBandId, DemandWeight>;
+

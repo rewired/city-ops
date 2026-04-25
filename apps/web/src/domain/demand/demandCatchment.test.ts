@@ -4,6 +4,7 @@ import type { DemandNode } from '../types/demandNode';
 import { createDemandNodeId, createDemandWeight } from '../types/demandNode';
 import type { Stop } from '../types/stop';
 import { createStopId } from '../types/stop';
+import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 
 describe('demandCatchment', () => {
   describe('calculateStopCatchments', () => {
@@ -20,8 +21,8 @@ describe('demandCatchment', () => {
         role: 'origin',
         demandClass: 'residential',
         weightByTimeBand: {
-          'band-1': createDemandWeight(10)
-        }
+          'morning-rush': createDemandWeight(10)
+        } as any
       };
 
       const farNode: DemandNode = {
@@ -31,18 +32,18 @@ describe('demandCatchment', () => {
         role: 'origin',
         demandClass: 'residential',
         weightByTimeBand: {
-          'band-1': createDemandWeight(5)
-        }
+          'morning-rush': createDemandWeight(5)
+        } as any
       };
 
       const catchments = calculateStopCatchments([stop], [closeNode, farNode]);
       expect(catchments).toHaveLength(1);
       
-      const catchment = catchments[0];
+      const catchment = catchments[0]!;
       expect(catchment.stopId).toBe('stop-1');
       expect(catchment.capturedDemandNodeIds).toEqual(['node-close']);
-      expect(catchment.residentialOriginWeightByTimeBand['band-1']).toBe(10);
-      expect(catchment.workplaceDestinationWeightByTimeBand['band-1']).toBeUndefined();
+      expect(catchment.residentialOriginWeightByTimeBand['morning-rush']).toBe(10);
+      expect(catchment.workplaceDestinationWeightByTimeBand['morning-rush']).toBe(0);
     });
 
     it('aggregates weights properly and separates residential origins from workplace destinations', () => {
@@ -58,9 +59,9 @@ describe('demandCatchment', () => {
         role: 'origin',
         demandClass: 'residential',
         weightByTimeBand: {
-          'band-morning': createDemandWeight(10),
-          'band-evening': createDemandWeight(2)
-        }
+          'morning-rush': createDemandWeight(10),
+          'evening-rush': createDemandWeight(2)
+        } as any
       };
 
       const res2: DemandNode = {
@@ -70,8 +71,8 @@ describe('demandCatchment', () => {
         role: 'origin',
         demandClass: 'residential',
         weightByTimeBand: {
-          'band-morning': createDemandWeight(5)
-        }
+          'morning-rush': createDemandWeight(5)
+        } as any
       };
 
       const work1: DemandNode = {
@@ -81,20 +82,20 @@ describe('demandCatchment', () => {
         role: 'destination',
         demandClass: 'workplace',
         weightByTimeBand: {
-          'band-morning': createDemandWeight(20)
-        }
+          'morning-rush': createDemandWeight(20)
+        } as any
       };
 
       const catchments = calculateStopCatchments([stop], [res1, res2, work1]);
       
-      const catchment = catchments[0];
+      const catchment = catchments[0]!;
       expect(catchment.capturedDemandNodeIds).toEqual(['res-1', 'res-2', 'work-1']);
       
-      expect(catchment.residentialOriginWeightByTimeBand['band-morning']).toBe(15);
-      expect(catchment.residentialOriginWeightByTimeBand['band-evening']).toBe(2);
+      expect(catchment.residentialOriginWeightByTimeBand['morning-rush']).toBe(15);
+      expect(catchment.residentialOriginWeightByTimeBand['evening-rush']).toBe(2);
       
-      expect(catchment.workplaceDestinationWeightByTimeBand['band-morning']).toBe(20);
-      expect(catchment.workplaceDestinationWeightByTimeBand['band-evening']).toBeUndefined();
+      expect(catchment.workplaceDestinationWeightByTimeBand['morning-rush']).toBe(20);
+      expect(catchment.workplaceDestinationWeightByTimeBand['evening-rush']).toBe(0);
     });
 
     it('returns empty catchments if no nodes match', () => {
@@ -105,9 +106,9 @@ describe('demandCatchment', () => {
 
       const catchments = calculateStopCatchments([stop], []);
       
-      expect(catchments[0].capturedDemandNodeIds).toHaveLength(0);
-      expect(Object.keys(catchments[0].residentialOriginWeightByTimeBand)).toHaveLength(0);
-      expect(Object.keys(catchments[0].workplaceDestinationWeightByTimeBand)).toHaveLength(0);
+      expect(catchments[0]!.capturedDemandNodeIds).toHaveLength(0);
+      expect(Object.keys(catchments[0]!.residentialOriginWeightByTimeBand)).toHaveLength(MVP_TIME_BAND_IDS.length);
+      expect(Object.keys(catchments[0]!.workplaceDestinationWeightByTimeBand)).toHaveLength(MVP_TIME_BAND_IDS.length);
     });
   });
 });

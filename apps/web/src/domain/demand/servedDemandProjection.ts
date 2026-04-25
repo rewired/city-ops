@@ -89,31 +89,34 @@ export const projectLineBandDemand = (
   let capturedDestinationRaw = 0;
 
   for (let i = 0; i < orderedStopIds.length; i++) {
+    const originWeight = stopOriginWeights[i]!;
+    const destWeight = stopDestinationWeights[i]!;
+
     // For origin: is there a destination after it?
-    if (stopOriginWeights[i] > 0) {
+    if (originWeight > 0) {
       let hasSubsequentDestination = false;
       for (let j = i + 1; j < orderedStopIds.length; j++) {
-        if (stopDestinationWeights[j] > 0) {
+        if (stopDestinationWeights[j]! > 0) {
           hasSubsequentDestination = true;
           break;
         }
       }
       if (hasSubsequentDestination) {
-        capturedOriginRaw += stopOriginWeights[i];
+        capturedOriginRaw += originWeight;
       }
     }
 
     // For destination: is there an origin before it?
-    if (stopDestinationWeights[i] > 0) {
+    if (destWeight > 0) {
       let hasPrecedingOrigin = false;
       for (let j = 0; j < i; j++) {
-        if (stopOriginWeights[j] > 0) {
+        if (stopOriginWeights[j]! > 0) {
           hasPrecedingOrigin = true;
           break;
         }
       }
       if (hasPrecedingOrigin) {
-        capturedDestinationRaw += stopDestinationWeights[i];
+        capturedDestinationRaw += destWeight;
       }
     }
   }

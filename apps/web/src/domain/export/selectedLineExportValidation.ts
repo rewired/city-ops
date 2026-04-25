@@ -307,17 +307,25 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
       configuredTimeBandIds = MVP_TIME_BAND_IDS.filter((timeBandId) => included.includes(timeBandId));
     }
 
-    if (!Array.isArray(line.routeSegments)) {
-      addIssue('invalid-route-segments', '$.line.routeSegments', 'line.routeSegments must be an array.');
-    } else {
+    const validateSegments = (
+      segments: unknown,
+      segmentsKey: string,
+      expectedOrderedStopIds: readonly string[]
+    ): void => {
+      const segmentsPath = `$.line.${segmentsKey}`;
+      if (!Array.isArray(segments)) {
+        addIssue('invalid-route-segments', segmentsPath, `line.${segmentsKey} must be an array.`);
+        return;
+      }
+
       const isLoop = line.topology === 'loop';
       const segmentIds = new Set<string>();
       const stopOrderIndex = new Map<string, number>();
-      orderedStopIds.forEach((stopId, index) => stopOrderIndex.set(stopId, index));
+      expectedOrderedStopIds.forEach((stopId, index) => stopOrderIndex.set(stopId, index));
 
-      for (let segmentIndex = 0; segmentIndex < line.routeSegments.length; segmentIndex += 1) {
-        const segment = line.routeSegments[segmentIndex];
-        const segmentPath = `$.line.routeSegments[${segmentIndex}]`;
+      for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex += 1) {
+        const segment = segments[segmentIndex];
+        const segmentPath = `${segmentsPath}[${segmentIndex}]`;
 
         if (!isRecord(segment)) {
           addIssue('invalid-route-segment-shape', segmentPath, 'Each route segment must be an object.');
@@ -361,18 +369,18 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
               'Route segment endpoints must reference stops from line.orderedStopIds.'
             );
           } else {
-            const isLastSegment = segmentIndex === line.routeSegments.length - 1;
+            const isLastSegment = segmentIndex === segments.length - 1;
             const isLoopClosure = isLoop && isLastSegment;
             
             const isValidAdjacency = isLoopClosure 
-              ? (fromIndex === orderedStopIds.length - 1 && toIndex === 0)
+              ? (fromIndex === expectedOrderedStopIds.length - 1 && toIndex === 0)
               : (toIndex - fromIndex === 1);
 
             if (!isValidAdjacency) {
               addIssue(
                 'route-segment-adjacency-mismatch',
                 segmentPath,
-                'Route segments must connect adjacent stops in orderedStopIds order (or close the loop).'
+                'Route segments must connect adjacent stops in expected order (or close the loop).'
               );
             }
           }
@@ -472,19 +480,26 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
           addIssue('invalid-route-status', `${segmentPath}.status`, 'status must be a canonical RouteStatus value.');
         }
       }
-      const expectedRouteSegmentCount = isLoop 
-        ? Math.max(orderedStopIds.length, 0)
-        : Math.max(orderedStopIds.length - 1, 0);
 
-      if (line.routeSegments.length !== expectedRouteSegmentCount) {
+      const expectedRouteSegmentCount = isLoop 
+        ? Math.max(expectedOrderedStopIds.length, 0)
+        : Math.max(expectedOrderedStopIds.length - 1, 0);
+
+      if (Array.isArray(segments) && segments.length !== expectedRouteSegmentCount) {
         addIssue(
           'route-segment-count-mismatch',
-          '$.line.routeSegments',
-          `line.routeSegments length must equal ${expectedRouteSegmentCount} for ${line.topology} topology.`
+          segmentsPath,
+          `${segmentsKey} length must equal ${expectedRouteSegmentCount} for ${line.topology} topology.`
         );
       }
+    };
 
+    validateSegments(line.routeSegments, 'routeSegments', orderedStopIds);
+
+    if ('reverseRouteSegments' in line && line.reverseRouteSegments !== undefined) {
+      validateSegments(line.reverseRouteSegments, 'reverseRouteSegments', [...orderedStopIds].reverse());
     }
+
   }
 
   if (Array.isArray(orderedStopIds) && orderedStopIds.length > 0) {

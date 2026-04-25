@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 - Independent reverse routing for bidirectional lines to respect one-way street constraints.
 - [ADR 0114](docs/adr/0114-explicit-line-topology-and-service-pattern-semantics.md): Explicit Line Topology and Service Pattern Semantics.
 
+- **Slice 057**: Repair topology-aware projections and strict TypeScript verification issues.
+- Update `lineDepartureTimetableProjection` to be topology-aware, correctly handling $N$ segments for $N$ stops in loop lines while displaying $N-1$ downstream offsets.
+- Harden `selectedLineExportValidation` to support and validate `reverseRouteSegments` using directional adjacency rules.
+- Resolve strict TypeScript issues in demand domain by introducing `createZeroDemandWeightByTimeBand` factory and enforcing complete `Record<TimeBandId, T>` map initialization.
+- Align test suites with canonical MVP time bands and hardened type safety requirements.
+
 ## 2026-04-25
 
 - Slice 055: implement a deterministic, in-memory MVP demand scenario for the Hamburg area with residential origin and workplace destination nodes.
