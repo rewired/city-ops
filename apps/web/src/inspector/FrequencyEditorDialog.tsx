@@ -52,7 +52,7 @@ export function FrequencyEditorDialog({
 
   return (
     <div className="inspector-dialog" role="dialog" aria-modal="true" aria-label="Edit service plan dialog">
-      <div className="inspector-dialog__surface inspector-dialog__surface--service-plan-editor">
+      <div className="inspector-dialog__surface inspector-dialog__surface--small">
         <header className="inspector-dialog__header">
           <h3>Edit service plan</h3>
           <button type="button" className="inspector-dialog__close" onClick={onClose}>

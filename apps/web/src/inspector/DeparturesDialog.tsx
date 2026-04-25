@@ -18,7 +18,7 @@ export function DeparturesDialog({
 
   return (
     <div className="inspector-dialog" role="dialog" aria-modal="true" aria-label="Departures dialog">
-      <div className="inspector-dialog__surface">
+      <div className="inspector-dialog__surface inspector-dialog__surface--large">
         <header className="inspector-dialog__header">
           <h3>Departures</h3>
           <button type="button" className="inspector-dialog__close" onClick={onClose}>

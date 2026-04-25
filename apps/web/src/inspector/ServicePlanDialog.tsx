@@ -20,7 +20,7 @@ export function ServicePlanDialog({
 
   return (
     <div className="inspector-dialog" role="dialog" aria-modal="true" aria-label="Service plan dialog">
-      <div className="inspector-dialog__surface">
+      <div className="inspector-dialog__surface inspector-dialog__surface--medium">
         <header className="inspector-dialog__header">
           <h3>Service plan</h3>
           <button type="button" className="inspector-dialog__close" onClick={onClose}>

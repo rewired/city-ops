@@ -772,7 +772,8 @@ body {
 }
 
 .inspector-dialog__surface {
-  width: min(760px, 100%);
+  --inspector-dialog-surface-width: 760px;
+  width: min(var(--inspector-dialog-surface-width), 100%);
   max-height: min(80vh, 760px);
   overflow: auto;
   display: grid;
@@ -783,9 +784,18 @@ body {
   background: #131f31;
 }
 
+.inspector-dialog__surface--small {
+  --inspector-dialog-surface-width: 560px;
+}
 
-.inspector-dialog__surface--service-plan-editor {
-  width: min(680px, 100%);
+.inspector-dialog__surface--medium {
+  --inspector-dialog-surface-width: 760px;
+}
+
+.inspector-dialog__surface--large {
+  --inspector-dialog-surface-width: 980px;
+  max-height: min(86vh, 860px);
+  overflow: auto;
 }
 .inspector-dialog__header {
   display: flex;
