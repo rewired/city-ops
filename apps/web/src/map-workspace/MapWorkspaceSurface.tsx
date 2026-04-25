@@ -83,6 +83,7 @@ export interface MapWorkspaceDebugSnapshot {
   readonly completedOverlayNote: string;
   readonly draftOverlayNote: string;
   readonly draftMetadataSummary: string;
+  readonly lastPlacedStopLabel: string | null;
 }
 
 interface DraftLineMetadata {
@@ -164,6 +165,7 @@ export function MapWorkspaceSurface({
   const [featureDiagnostics, setFeatureDiagnostics] = useState<MapWorkspaceFeatureDiagnostics>(
     INITIAL_MAP_WORKSPACE_FEATURE_DIAGNOSTICS
   );
+  const [lastPlacedStopLabel, setLastPlacedStopLabel] = useState<string | null>(null);
   const [isCompletingLine, setIsCompletingLine] = useState(false);
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
   const activeToolModeRef = useRef<WorkspaceToolMode>(activeToolMode);
@@ -318,6 +320,7 @@ export function MapWorkspaceSurface({
           const nextOrdinal = currentStops.length + 1;
           const nextStop = buildDeterministicStop(nextOrdinal, lng, lat, labelCandidate, currentStops);
           createdStop = nextStop;
+          setLastPlacedStopLabel(nextStop.label);
           return [...currentStops, nextStop];
         });
 
@@ -615,7 +618,8 @@ export function MapWorkspaceSurface({
       buildLineMinimumRequirement: buildLineUiFeedback.minimumStopRequirement ?? 'n/a',
       completedOverlayNote: LINE_OVERLAY_COPY.completed,
       draftOverlayNote: LINE_OVERLAY_COPY.draft,
-      draftMetadataSummary
+      draftMetadataSummary,
+      lastPlacedStopLabel
     });
   }, [
     buildLineUiFeedback.minimumStopRequirement,
@@ -623,6 +627,7 @@ export function MapWorkspaceSurface({
     draftMetadataSummary,
     geographicSummary,
     interactionState.status,
+    lastPlacedStopLabel,
     lineDiagnosticsSummary,
     onDebugSnapshotChange,
     placementUiFeedback.modeInstruction,

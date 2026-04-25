@@ -38,7 +38,8 @@ const downloadJsonFile = (filename: string, payload: unknown): void => {
 
 const resolveInspectorPanelState = (
   selectedLine: ReturnType<typeof useNetworkSessionState>['selectedLine'],
-  selectedStop: ReturnType<typeof useNetworkSessionState>['selectedStop']
+  selectedStop: ReturnType<typeof useNetworkSessionState>['selectedStop'],
+  sessionStops: readonly import('./domain/types/stop').Stop[]
 ): InspectorPanelState => {
   if (selectedLine) {
     return {
@@ -48,10 +49,15 @@ const resolveInspectorPanelState = (
   }
 
   if (selectedStop) {
-    return {
-      mode: 'stop-selected',
-      selectedStop
-    };
+    const stop = sessionStops.find((s) => s.id === selectedStop.selectedStopId);
+
+    if (stop) {
+      return {
+        mode: 'stop-selected',
+        selection: selectedStop,
+        stop
+      };
+    }
   }
 
   return {
@@ -72,7 +78,8 @@ const INITIAL_MAP_WORKSPACE_DEBUG_SNAPSHOT: MapWorkspaceDebugSnapshot = {
   buildLineMinimumRequirement: 'n/a',
   completedOverlayNote: 'n/a',
   draftOverlayNote: 'n/a',
-  draftMetadataSummary: 'Draft inactive'
+  draftMetadataSummary: 'Draft inactive',
+  lastPlacedStopLabel: null
 };
 
 /** Renders the desktop-only CityOps application shell layout and composes extracted session/projection/inspector boundaries. */
@@ -94,7 +101,8 @@ export default function App(): ReactElement {
   );
   const inspectorPanelState = resolveInspectorPanelState(
     sessionController.selectedLine,
-    sessionController.selectedStop
+    sessionController.selectedStop,
+    sessionController.sessionStops
   );
   const selectedCompletedLineForExport =
     inspectorPanelState.mode === 'line-selected'

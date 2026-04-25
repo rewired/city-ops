@@ -4,7 +4,8 @@ import {
   STREET_SNAP_FALLBACK_MAX_PIXEL_TOLERANCE,
   STREET_SNAP_FALLBACK_MIN_DISTANCE_ADVANTAGE_PIXELS,
   STREET_SNAP_FALLBACK_QUERY_OFFSETS,
-  STREET_SNAP_MAX_PIXEL_TOLERANCE
+  STREET_SNAP_MAX_PIXEL_TOLERANCE,
+  STREET_LABEL_NEARBY_QUERY_RADIUS_PIXELS
 } from './mapWorkspacePlacementConstants';
 import {
   getSourceRefsForLayerIds,
@@ -363,6 +364,34 @@ const resolveFallbackSnapCandidate = (
   return bestCandidate;
 };
 
+/**
+ * Searches for a usable street name from any currently rendered features in a small radius around a point.
+ * This is used as a fallback when the snapped street line feature has no descriptive name.
+ */
+export const resolveNearbyStreetLabelCandidate = (
+  map: MapLibreMap,
+  snappedPoint: GeographicPoint
+): string | null => {
+  const queryPoint = map.project([snappedPoint.lng, snappedPoint.lat]);
+  const radius = STREET_LABEL_NEARBY_QUERY_RADIUS_PIXELS;
+
+  const queryBox = [
+    { x: queryPoint.x - radius, y: queryPoint.y - radius },
+    { x: queryPoint.x + radius, y: queryPoint.y + radius }
+  ] as const;
+
+  const features = map.queryRenderedFeatures(queryBox);
+
+  for (const feature of features) {
+    const label = extractStreetLabelCandidate(feature.properties);
+    if (label) {
+      return label;
+    }
+  }
+
+  return null;
+};
+
 /** Resolves style layer ids that likely represent street LineString sources in the active map style. */
 export const resolveStreetLayerIdsFromStyle = (map: MapLibreMap): readonly string[] => {
   const styleDefinition = map.getStyle();
@@ -414,10 +443,15 @@ export const resolveSnappedStreetPosition = (
 
   const directHitCandidate = resolveDirectHitSnapCandidate(map, event, streetLayerIds);
   if (directHitCandidate) {
+    const lng = directHitCandidate.snappedPosition.lng;
+    const lat = directHitCandidate.snappedPosition.lat;
+    const streetLabelCandidate =
+      directHitCandidate.streetLabelCandidate ?? resolveNearbyStreetLabelCandidate(map, { lng, lat });
+
     return {
-      lng: directHitCandidate.snappedPosition.lng,
-      lat: directHitCandidate.snappedPosition.lat,
-      streetLabelCandidate: directHitCandidate.streetLabelCandidate
+      lng,
+      lat,
+      streetLabelCandidate
     };
   }
 
@@ -426,9 +460,14 @@ export const resolveSnappedStreetPosition = (
     return null;
   }
 
+  const fallbackLng = fallbackCandidate.snappedPosition.lng;
+  const fallbackLat = fallbackCandidate.snappedPosition.lat;
+  const fallbackStreetLabelCandidate =
+    fallbackCandidate.streetLabelCandidate ?? resolveNearbyStreetLabelCandidate(map, { lng: fallbackLng, lat: fallbackLat });
+
   return {
-    lng: fallbackCandidate.snappedPosition.lng,
-    lat: fallbackCandidate.snappedPosition.lat,
-    streetLabelCandidate: fallbackCandidate.streetLabelCandidate
+    lng: fallbackLng,
+    lat: fallbackLat,
+    streetLabelCandidate: fallbackStreetLabelCandidate
   };
 };

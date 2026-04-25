@@ -1,4 +1,5 @@
 import type { Line } from '../domain/types/line';
+import type { Stop } from '../domain/types/stop';
 import type { StopSelectionState } from '../map-workspace/MapWorkspaceSurface';
 
 /** Carries inspector data when a completed line is the active selection context. */
@@ -10,7 +11,8 @@ export interface LineSelectedInspectorPanelState {
 /** Carries inspector data when a stop is the active selection context. */
 export interface StopSelectedInspectorPanelState {
   readonly mode: 'stop-selected';
-  readonly selectedStop: StopSelectionState;
+  readonly selection: StopSelectionState;
+  readonly stop: Stop;
 }
 
 /** Carries inspector data when neither a line nor stop is selected. */

@@ -45,7 +45,7 @@ const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
   }
 
   if (panelState.mode === 'stop-selected') {
-    return `Stop selected (${panelState.selectedStop.selectedStopId})`;
+    return `Stop selected (${panelState.selection.selectedStopId})`;
   }
 
   return 'No active line or stop selection';

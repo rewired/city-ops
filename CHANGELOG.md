@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 - Add pure `extractStreetLabelCandidate` and `createUniqueStopLabel` helpers with focused unit tests.
 - [ADR 0116](docs/adr/0116-street-derived-stop-labels-as-placement-display-hints.md): Street-Derived Stop Labels as Placement Display Hints.
 
+- **Slice 062**: Repair and make visible street-derived stop labels with nearby rendered-label fallback.
+- Expand street label extraction to support additional common property keys (`name_de`, `name_en`, `ref` fallback, etc.).
+- Add a secondary nearby-label lookup that queries rendered symbol/text layers if the snapped street line lacks a name.
+- Update the selected-stop inspector to show actual stop label, ID, and position by resolving canonical `Stop` data from session state.
+- Add last-placed label feedback to the map debug snapshot for easier verification during placement.
+
 - **Slice 060**: Post-completion frequency flow automation and stop marker visual polish for improved readability and workflow.
 - Introduce a one-shot "dialog open intent" mechanism to automatically open the frequency editor after successful line creation.
 - Enhance stop marker visibility on the dark basemap: increased circle radii (8/11px) and larger sequence labels (11px).

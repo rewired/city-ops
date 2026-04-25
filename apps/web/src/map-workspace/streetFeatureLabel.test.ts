@@ -17,9 +17,29 @@ describe('extractStreetLabelCandidate', () => {
     expect(extractStreetLabelCandidate(properties)).toBe('Jungfernstieg');
   });
 
-  it('falls back to "name:en" if "name" and "name:de" are missing', () => {
+  it('falls back to "name_de" if "name" and "name:de" are missing', () => {
+    const properties = { name_de: 'Jungfernstieg' };
+    expect(extractStreetLabelCandidate(properties)).toBe('Jungfernstieg');
+  });
+
+  it('falls back to "name:en" if prior names are missing', () => {
     const properties = { 'name:en': 'Central Station' };
     expect(extractStreetLabelCandidate(properties)).toBe('Central Station');
+  });
+
+  it('falls back to "name_en" if prior names are missing', () => {
+    const properties = { name_en: 'Central Station' };
+    expect(extractStreetLabelCandidate(properties)).toBe('Central Station');
+  });
+
+  it('falls back to "name:latin" if prior names are missing', () => {
+    const properties = { 'name:latin': 'Main St' };
+    expect(extractStreetLabelCandidate(properties)).toBe('Main St');
+  });
+
+  it('falls back to "name_latin" if prior names are missing', () => {
+    const properties = { name_latin: 'Main St' };
+    expect(extractStreetLabelCandidate(properties)).toBe('Main St');
   });
 
   it('prefers "name" over "name:de"', () => {
@@ -27,8 +47,13 @@ describe('extractStreetLabelCandidate', () => {
     expect(extractStreetLabelCandidate(properties)).toBe('Main Road');
   });
 
-  it('rejects generic road class values', () => {
-    const properties = { name: 'residential' };
+  it('falls back to "ref" as final candidate', () => {
+    const properties = { ref: 'A7', highway: 'motorway' };
+    expect(extractStreetLabelCandidate(properties)).toBe('A7');
+  });
+
+  it('rejects "ref" if it is a generic road class', () => {
+    const properties = { ref: 'residential' };
     expect(extractStreetLabelCandidate(properties)).toBeNull();
   });
 
@@ -38,7 +63,7 @@ describe('extractStreetLabelCandidate', () => {
   });
 
   it('returns null if no usable property exists', () => {
-    const properties = { ref: 'A7', highway: 'motorway' };
+    const properties = { highway: 'motorway', other: 'stuff' };
     expect(extractStreetLabelCandidate(properties)).toBeNull();
   });
 

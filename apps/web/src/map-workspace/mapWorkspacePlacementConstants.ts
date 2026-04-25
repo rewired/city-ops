@@ -49,3 +49,8 @@ export const STREET_SNAP_FALLBACK_QUERY_OFFSETS: readonly StreetSnapFallbackQuer
   { deltaX: 0, deltaY: -STREET_SNAP_FALLBACK_QUERY_RADIUS_PIXELS },
   { deltaX: STREET_SNAP_FALLBACK_QUERY_RADIUS_PIXELS, deltaY: -STREET_SNAP_FALLBACK_QUERY_RADIUS_PIXELS }
 ] as const;
+
+/**
+ * Pixel radius for the nearby rendered-label fallback query.
+ */
+export const STREET_LABEL_NEARBY_QUERY_RADIUS_PIXELS = 16;

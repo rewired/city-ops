@@ -28,6 +28,13 @@ Newly placed stops on named streets will use the street name as their initial la
 - Stop labeling remains deterministic and predictable.
 - No network or external data dependencies are added.
 - The distinction between display labels and geographic coordinates/IDs is preserved.
+- The selected-stop inspector provides clear verification of derived labels.
+
+## Update (Slice 062)
+
+- **Nearby Label Lookup**: Added a fallback lookup that queries rendered features (e.g., symbol/text layers) in a 16px radius around the snap point if the snapped line feature lacks a name.
+- **Inspector Visibility**: The selected-stop inspector now resolves the full `Stop` data from the session state to display the actual label, ID, and geographic position.
+- **Placement Feedback**: The derived label is surfaced in the map debug snapshot immediately upon placement for diagnostic purposes.
 
 ## Non-Goals
 
