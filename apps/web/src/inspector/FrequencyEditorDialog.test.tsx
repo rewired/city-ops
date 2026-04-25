@@ -2,7 +2,11 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import { MVP_TIME_BAND_IDS } from '../domain/constants/timeBands';
-import type { LineFrequencyControlByTimeBand, LineFrequencyInputByTimeBand, LineFrequencyValidationByTimeBand } from '../session/useNetworkSessionState';
+import type {
+  LineFrequencyControlByTimeBand,
+  LineFrequencyInputByTimeBand,
+  LineFrequencyValidationByTimeBand
+} from '../session/useNetworkSessionState';
 import { FrequencyEditorDialog } from './FrequencyEditorDialog';
 
 const createInputState = (value: string): LineFrequencyInputByTimeBand =>
@@ -15,7 +19,7 @@ const createControlState = (value: 'unset' | 'frequency' | 'no-service'): LineFr
   Object.fromEntries(MVP_TIME_BAND_IDS.map((timeBandId) => [timeBandId, value])) as LineFrequencyControlByTimeBand;
 
 describe('FrequencyEditorDialog', () => {
-  it('renders service-plan title and no selectable Unset option', () => {
+  it('renders service-plan title, explanatory guidance, and explicit control modes', () => {
     const markup = renderToStaticMarkup(
       <FrequencyEditorDialog
         open
@@ -28,11 +32,15 @@ describe('FrequencyEditorDialog', () => {
     );
 
     expect(markup).toContain('Edit service plan');
-    expect(markup).not.toContain('>Unset<');
-    expect(markup).toContain('Interval');
-    expect(markup).toContain('No service');
+    expect(markup).toContain('All values are in minutes. Empty values are treated as unset. Only positive values are valid. Zero or negative values are invalid.');
+    expect(markup).toContain('Time band');
+    expect(markup).toContain('Window');
+    expect(markup).toContain('Service');
     expect(markup).toContain('Late morning');
-    expect(markup).toContain('(09:00–11:00)');
+    expect(markup).toContain('09:00–11:00');
+    expect(markup).toContain('Frequency');
+    expect(markup).toContain('No service');
+    expect(markup).toContain('Unset');
     expect(markup).toContain('inspector-frequency-editor__row--not-configured');
   });
 
@@ -52,7 +60,7 @@ describe('FrequencyEditorDialog', () => {
     expect(markup).not.toContain('disabled=""');
   });
 
-  it('renders no-service rows with en dash interval placeholder', () => {
+  it('renders no-service rows with disabled and cleared minute input', () => {
     const markup = renderToStaticMarkup(
       <FrequencyEditorDialog
         open
@@ -64,7 +72,7 @@ describe('FrequencyEditorDialog', () => {
       />
     );
 
-    expect(markup).toContain('value="–"');
+    expect(markup).toContain('value=""');
     expect(markup).toContain('disabled=""');
   });
 });

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-25
 
+- Slice 048: refactor `Edit service plan` into a three-column table-like editor (`Time band`, `Window`, `Service`) with one top-level minutes/unset/positive-only guidance sentence.
+- Slice 048: show canonical time-band labels/windows from shared domain constants and expose explicit per-row `Frequency`/`No service`/`Unset` state controls.
+- Slice 048: clear minute input whenever `No service` or `Unset` is selected, while preserving positive-only input validation via existing `lineFrequencyEditorState` action logic.
+- Add ADR 0104 documenting three-column service-plan editor structure and explicit state-control behavior boundaries.
+
 - Slice 047: update shared inspector compact-table alignment so row headers stay left-aligned and value cells default to right alignment.
 - Slice 047: add explicit `inspector-compact-table__value--left` opt-out usage for textual/status cells in Network, Selected line, Service plan, Departures, and Projected vehicles summaries.
 - Slice 047: preserve numeric/value-first right alignment across compact inspector/dialog tables while keeping only readability exceptions left-aligned.

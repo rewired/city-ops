@@ -359,93 +359,32 @@ body {
 .inspector-frequency-editor {
   display: grid;
   gap: 8px;
-  margin-top: 4px;
-}
-
-.inspector-route-baseline {
-  margin-top: 12px;
-  padding: 8px;
-  border: 1px solid #2f415f;
-  border-radius: 8px;
-  background: #131f31;
-}
-
-.inspector-route-baseline h3 {
-  margin: 0;
-  font-size: 0.85rem;
-}
-
-.inspector-route-baseline__totals {
-  margin-top: 4px;
-}
-
-.inspector-route-baseline__totals p {
-  margin-top: 4px;
-  font-size: 0.8rem;
-}
-
-.inspector-route-baseline__fallback-note {
-  color: #f7d9a0;
-  font-size: 0.75rem;
-}
-
-.inspector-line-readiness {
-  margin-top: 12px;
-  padding: 8px;
-  border: 1px solid #2f415f;
-  border-radius: 8px;
-  background: #131f31;
-}
-
-.inspector-line-readiness h3 {
-  margin: 0;
-  font-size: 0.85rem;
-}
-
-.inspector-line-readiness p {
-  margin-top: 4px;
-  font-size: 0.8rem;
-}
-
-.inspector-line-readiness__issues {
-  margin: 8px 0 0;
-  padding-left: 18px;
-  font-size: 0.75rem;
-}
-
-.inspector-line-readiness__issues li {
-  margin-top: 4px;
-}
-
-.inspector-line-readiness__code {
-  color: #cfe0fb;
-}
-
-.inspector-route-baseline__segment-table {
-  width: 100%;
   margin-top: 8px;
-  border-collapse: collapse;
+}
+
+.inspector-frequency-editor__note {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  color: #bfd0ec;
+}
+
+.inspector-frequency-editor__header {
+  display: grid;
+  grid-template-columns: minmax(124px, 0.7fr) minmax(112px, 0.65fr) minmax(0, 1.65fr);
+  align-items: center;
+  gap: 8px;
   font-size: 0.72rem;
-}
-
-.inspector-route-baseline__segment-table th,
-.inspector-route-baseline__segment-table td {
-  padding: 4px 5px;
-  text-align: left;
-  vertical-align: top;
-  border-top: 1px solid #2f415f;
-}
-
-.inspector-route-baseline__segment-table th {
-  color: #cfe0fb;
-  font-weight: 600;
+  color: #9eb4d7;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 8px;
 }
 
 .inspector-frequency-editor__row {
   display: grid;
-  grid-template-columns: minmax(210px, 1fr) auto;
+  grid-template-columns: minmax(124px, 0.7fr) minmax(112px, 0.65fr) minmax(0, 1.65fr);
   align-items: center;
-  gap: 8px 10px;
+  gap: 8px;
   font-size: 0.8rem;
   color: #c8d6ee;
   margin: 0;
@@ -459,8 +398,12 @@ body {
   background: rgb(24 35 56 / 35%);
 }
 
-.inspector-frequency-editor__band-label {
+.inspector-frequency-editor__band-label,
+.inspector-frequency-editor__band-window {
   margin: 0;
+}
+
+.inspector-frequency-editor__band-label {
   color: #d9e7ff;
   font-weight: 600;
 }
@@ -471,26 +414,22 @@ body {
 }
 
 .inspector-frequency-editor__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inspector-frequency-editor__choice {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  justify-self: end;
-}
-
-.inspector-frequency-editor__mode-button {
-  border: 1px solid #425b83;
-  border-radius: 6px;
-  background: #1d2a3f;
-  color: #d9e7fd;
-  padding: 4px 8px;
+  gap: 4px;
   font-size: 0.73rem;
-  cursor: pointer;
+  color: #d2def3;
 }
 
-.inspector-frequency-editor__mode-button[aria-pressed='true'] {
-  border-color: #f5c358;
-  background: #2f466f;
-  color: #fdf4df;
+.inspector-frequency-editor__choice input {
+  margin: 0;
 }
 
 .inspector-frequency-editor__interval-field {
@@ -499,6 +438,10 @@ body {
   gap: 5px;
   color: #c4d3ea;
   font-size: 0.73rem;
+}
+
+.inspector-frequency-editor__interval-label {
+  color: #aabdda;
 }
 
 .inspector-frequency-editor__interval-field input {
