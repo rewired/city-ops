@@ -71,6 +71,7 @@ export interface MapWorkspaceSurfaceInteractionsContracts {
   readonly setInteractionState: (nextState: MapSurfaceInteractionState) => void;
   readonly setPlacementAttemptResult: (nextState: PlacementAttemptResult) => void;
   readonly onStopSelectionChange: (nextSelection: StopSelectionState | null) => void;
+  readonly onStopHoverChange: (nextHover: { stopId: StopId; x: number; y: number } | null) => void;
   readonly onValidPlacement: (lng: number, lat: number) => Stop;
   readonly buildLineContracts: BuildLineModeMapClickContracts;
 }
@@ -185,6 +186,7 @@ export const setupMapWorkspaceInteractions = ({
   setInteractionState,
   setPlacementAttemptResult,
   onStopSelectionChange,
+  onStopHoverChange,
   onValidPlacement,
   buildLineContracts
 }: MapWorkspaceSurfaceInteractionsContracts): MapWorkspaceInteractionBinding => {
@@ -205,13 +207,29 @@ export const setupMapWorkspaceInteractions = ({
     }
   };
 
+  const onStopMouseEnter = (event: MapLibreInteractionEvent): void => {
+    const feature = event.features?.[0];
+    const stopId = decodeStopIdFromFeatureProperties(feature?.properties);
+    if (stopId) {
+      onStopHoverChange({ stopId, x: event.point.x, y: event.point.y });
+    }
+  };
+
+  const onStopMouseLeave = (): void => {
+    onStopHoverChange(null);
+  };
+
   map.on('mousemove', neutralTelemetryHandlers.onPointerMove);
   map.on('click', onMapClick);
+  map.on('mouseenter', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseEnter);
+  map.on('mouseleave', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseLeave);
 
   return {
     dispose: () => {
       map.off('mousemove', neutralTelemetryHandlers.onPointerMove);
       map.off('click', onMapClick);
+      map.off('mouseenter', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseEnter);
+      map.off('mouseleave', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseLeave);
     }
   };
 };

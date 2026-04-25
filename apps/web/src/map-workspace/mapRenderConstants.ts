@@ -63,7 +63,14 @@ export const MAP_VEHICLE_LAYER_IDS = [MAP_LAYER_ID_VEHICLES] as const;
  */
 export const MAP_STOP_CIRCLE_LAYER_STYLE = {
   'circle-radius': ['case', ['get', 'selected'], 9, 6],
-  'circle-color': ['case', ['get', 'selected'], '#f59e0b', '#0f172a'],
+  'circle-color': [
+    'case',
+    ['get', 'selected'],
+    '#f59e0b',
+    ['get', 'selectedLineMember'],
+    '#f59e0b',
+    '#0f172a'
+  ],
   'circle-stroke-width': ['case', ['get', 'draftMember'], 3, 1.5],
   'circle-stroke-color': ['case', ['get', 'buildLineInteractive'], '#38bdf8', '#ffffff']
 } as const;
@@ -72,18 +79,18 @@ export const MAP_STOP_CIRCLE_LAYER_STYLE = {
  * Canonical symbol layer layout for stop label placement and readability.
  */
 export const MAP_STOP_LABEL_LAYER_LAYOUT = {
-  'text-field': ['get', 'label'],
-  'text-size': 11,
-  'text-offset': [0, 1.3]
+  'text-field': ['case', ['has', 'sequenceNumber'], ['to-string', ['get', 'sequenceNumber']], ''],
+  'text-size': 10,
+  'text-offset': [0, 0],
+  'text-allow-overlap': true,
+  'text-ignore-placement': true
 } as const;
 
 /**
  * Canonical symbol layer paint for stop label foreground and halo contrast.
  */
 export const MAP_STOP_LABEL_LAYER_PAINT = {
-  'text-color': '#111827',
-  'text-halo-color': '#ffffff',
-  'text-halo-width': 1
+  'text-color': '#ffffff'
 } as const;
 
 /**

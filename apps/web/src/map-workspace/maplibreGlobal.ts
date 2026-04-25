@@ -46,6 +46,8 @@ export interface MapLibreInteractionEvent {
  */
 type MapLibreInteractionEventType =
   | 'mousemove'
+  | 'mouseenter'
+  | 'mouseleave'
   | 'click'
   | 'movestart'
   | 'move'
@@ -267,9 +269,9 @@ export interface MapLibreMap {
   /** Returns whether the current style is fully loaded and ready for source/layer mutations. */
   isStyleLoaded(): boolean;
   /** Registers a listener for feature interactions constrained to one style layer id. */
-  on(type: 'click', layerId: string, listener: (event: MapLibreInteractionEvent) => void): void;
+  on(type: 'click' | 'mouseenter' | 'mouseleave', layerId: string, listener: (event: MapLibreInteractionEvent) => void): void;
   /** Removes a feature interaction listener constrained to one style layer id. */
-  off(type: 'click', layerId: string, listener: (event: MapLibreInteractionEvent) => void): void;
+  off(type: 'click' | 'mouseenter' | 'mouseleave', layerId: string, listener: (event: MapLibreInteractionEvent) => void): void;
 }
 
 /**

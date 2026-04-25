@@ -28,6 +28,7 @@ import {
   type PlacementAttemptResult,
   type StopSelectionState
 } from './mapWorkspaceInteractions';
+import { StopHoverTooltip } from './StopHoverTooltip';
 import {
   buildLineModeUiFeedback,
   buildPlacementUiFeedback,
@@ -143,6 +144,7 @@ export function MapWorkspaceSurface({
     pointer: null
   });
   const [placementAttemptResult, setPlacementAttemptResult] = useState<PlacementAttemptResult>('none');
+  const [hoveredStop, setHoveredStop] = useState<{ stopId: StopId; x: number; y: number } | null>(null);
   const [draftLineState, setDraftLineState] = useState<DraftLineState>(INITIAL_DRAFT_LINE_STATE);
   const [featureDiagnostics, setFeatureDiagnostics] = useState<MapWorkspaceFeatureDiagnostics>(
     INITIAL_MAP_WORKSPACE_FEATURE_DIAGNOSTICS
@@ -221,7 +223,8 @@ export function MapWorkspaceSurface({
           stops: placedStopsRef.current,
           selectedStopId: selectedStopIdRef.current,
           draftStopIds: draftStopIdSetRef.current,
-          isBuildLineModeActive: activeToolModeRef.current === 'build-line'
+          isBuildLineModeActive: activeToolModeRef.current === 'build-line',
+          selectedLine: sessionLinesRef.current.find(l => l.id === selectedLineIdRef.current) ?? null
         },
         lineSync: {
           sessionLines: sessionLinesRef.current,
@@ -285,6 +288,7 @@ export function MapWorkspaceSurface({
       setInteractionState,
       setPlacementAttemptResult,
       onStopSelectionChange,
+      onStopHoverChange: setHoveredStop,
       buildLineContracts: {
         onInspectModeNonFeatureMapClick: () => {
           onStopSelectionChange(resolveInspectModeMapClickSelection());
@@ -322,7 +326,8 @@ export function MapWorkspaceSurface({
         stops: placedStops,
         selectedStopId,
         draftStopIds: draftStopIdSet,
-        isBuildLineModeActive: activeToolMode === 'build-line'
+        isBuildLineModeActive: activeToolMode === 'build-line',
+        selectedLine: sessionLines.find(l => l.id === selectedLineId) ?? null
       }
     });
 
@@ -337,7 +342,8 @@ export function MapWorkspaceSurface({
           stops: placedStops,
           selectedStopId,
           draftStopIds: draftStopIdSet,
-          isBuildLineModeActive: activeToolMode === 'build-line'
+          isBuildLineModeActive: activeToolMode === 'build-line',
+          selectedLine: sessionLines.find(l => l.id === selectedLineId) ?? null
         }
       });
     });
@@ -683,6 +689,16 @@ export function MapWorkspaceSurface({
           </div>
         </div>
       ) : null}
+
+      {hoveredStop && stopsByIdRef.current.get(hoveredStop.stopId) && (
+        <StopHoverTooltip
+          stop={stopsByIdRef.current.get(hoveredStop.stopId)!}
+          x={hoveredStop.x}
+          y={hoveredStop.y}
+          sessionLines={sessionLines}
+          selectedLineId={selectedLineId}
+        />
+      )}
 
     </section>
   );

@@ -33,6 +33,7 @@ interface MapWorkspaceStopSyncInput {
   readonly selectedStopId: StopId | null;
   readonly draftStopIds: ReadonlySet<StopId>;
   readonly isBuildLineModeActive: boolean;
+  readonly selectedLine: Line | null;
 }
 
 /**
@@ -167,7 +168,8 @@ const ensureAllMapWorkspaceRenderSourcesAndLayers = (map: MapLibreMap): void => 
         stops: [],
         selectedStopId: null,
         draftStopIds: new Set(),
-        buildLineInteractive: false
+        buildLineInteractive: false,
+        selectedLine: null
       })
     });
   }
@@ -254,7 +256,8 @@ const syncMapWorkspaceSourceData = ({
       stops: stopSync.stops,
       selectedStopId: stopSync.selectedStopId,
       draftStopIds: stopSync.draftStopIds,
-      buildLineInteractive: stopSync.isBuildLineModeActive
+      buildLineInteractive: stopSync.isBuildLineModeActive,
+      selectedLine: stopSync.selectedLine
     });
     stopBuilderFeatureCount = stopFeatureCollection.features.length;
 
