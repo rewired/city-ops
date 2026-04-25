@@ -62,7 +62,7 @@ export const MAP_VEHICLE_LAYER_IDS = [MAP_LAYER_ID_VEHICLES] as const;
  * Canonical circle layer style for stop body rendering and state-dependent visual emphasis.
  */
 export const MAP_STOP_CIRCLE_LAYER_STYLE = {
-  'circle-radius': ['case', ['get', 'selected'], 11, 8],
+  'circle-radius': ['case', ['get', 'selected'], 15, 12],
   'circle-color': [
     'case',
     ['get', 'selected'],
@@ -80,7 +80,7 @@ export const MAP_STOP_CIRCLE_LAYER_STYLE = {
  */
 export const MAP_STOP_LABEL_LAYER_LAYOUT = {
   'text-field': ['case', ['has', 'sequenceNumber'], ['to-string', ['get', 'sequenceNumber']], ''],
-  'text-size': 11,
+  'text-size': 15,
   'text-offset': [0, 0],
   'text-allow-overlap': true,
   'text-ignore-placement': true
