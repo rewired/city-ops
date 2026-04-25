@@ -18,13 +18,34 @@
       "stop-7"
     ],
     "frequencyByTimeBand": {
-      "morning-rush": 5,
-      "late-morning": 10,
-      "midday": 10,
-      "afternoon": 15,
-      "evening-rush": 5,
-      "evening": 15,
-      "night": 30
+      "morning-rush": {
+        "kind": "frequency",
+        "headwayMinutes": 5
+      },
+      "late-morning": {
+        "kind": "frequency",
+        "headwayMinutes": 10
+      },
+      "midday": {
+        "kind": "frequency",
+        "headwayMinutes": 10
+      },
+      "afternoon": {
+        "kind": "frequency",
+        "headwayMinutes": 15
+      },
+      "evening-rush": {
+        "kind": "frequency",
+        "headwayMinutes": 5
+      },
+      "evening": {
+        "kind": "frequency",
+        "headwayMinutes": 15
+      },
+      "night": {
+        "kind": "frequency",
+        "headwayMinutes": 30
+      }
     },
     "routeSegments": [
       {

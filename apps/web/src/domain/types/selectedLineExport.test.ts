@@ -75,6 +75,15 @@ describe('buildSelectedLineExportPayload', () => {
       routeSegmentCount: 1,
       includedTimeBandIds: ['morning-rush']
     });
+    expect(payload.line.frequencyByTimeBand).toEqual({
+      'morning-rush': { kind: 'frequency', headwayMinutes: 8 },
+      'late-morning': { kind: 'unset' },
+      midday: { kind: 'unset' },
+      afternoon: { kind: 'unset' },
+      'evening-rush': { kind: 'unset' },
+      evening: { kind: 'unset' },
+      night: { kind: 'unset' }
+    });
     expect(payload.sourceMetadata).toEqual({
       source: 'cityops-web',
       sourceVersion: 'test'

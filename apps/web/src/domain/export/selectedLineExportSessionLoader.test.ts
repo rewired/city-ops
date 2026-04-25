@@ -71,10 +71,17 @@ describe('convertSelectedLineExportPayloadToSession', () => {
     expect(convertedLine.stopIds).toEqual(validatedPayload.line.orderedStopIds);
     expect(convertedLine.frequencyByTimeBand).toEqual(
       Object.fromEntries(
-        Object.entries(validatedPayload.line.frequencyByTimeBand).map(([timeBandId, frequency]) => [
-          timeBandId,
-          frequency === null ? { kind: 'unset' } : { kind: 'frequency', headwayMinutes: frequency }
-        ])
+        Object.entries(validatedPayload.line.frequencyByTimeBand).map(([timeBandId, servicePlan]) => {
+          if (servicePlan.kind === 'unset') {
+            return [timeBandId, { kind: 'unset' }] as const;
+          }
+
+          if (servicePlan.kind === 'no-service') {
+            return [timeBandId, { kind: 'no-service' }] as const;
+          }
+
+          return [timeBandId, { kind: 'frequency', headwayMinutes: servicePlan.headwayMinutes }] as const;
+        })
       )
     );
     expect(convertedLine.routeSegments).toEqual(validatedPayload.line.routeSegments);
@@ -89,20 +96,20 @@ describe('convertSelectedLineExportPayloadToSession', () => {
     expect(firstConversionResult).toEqual(secondConversionResult);
   });
 
-  it('preserves all-null frequency values when the validated payload provides null frequencies', () => {
+  it('preserves all-unset values when the validated payload provides unset plans', () => {
     const validatedPayload = getValidatedFixturePayload();
-    const allNullFrequencyPayload: SelectedLineExportPayload = {
+    const allUnsetFrequencyPayload: SelectedLineExportPayload = {
       ...validatedPayload,
       line: {
         ...validatedPayload.line,
         frequencyByTimeBand: {
-          'morning-rush': null,
-          'late-morning': null,
-          midday: null,
-          afternoon: null,
-          'evening-rush': null,
-          evening: null,
-          night: null
+          'morning-rush': { kind: 'unset' },
+          'late-morning': { kind: 'unset' },
+          midday: { kind: 'unset' },
+          afternoon: { kind: 'unset' },
+          'evening-rush': { kind: 'unset' },
+          evening: { kind: 'unset' },
+          night: { kind: 'unset' }
         }
       },
       metadata: {
@@ -110,13 +117,13 @@ describe('convertSelectedLineExportPayloadToSession', () => {
         includedTimeBandIds: []
       }
     };
-    const allNullValidationResult = validateSelectedLineExportPayload(allNullFrequencyPayload);
-    expect(allNullValidationResult.ok).toBe(true);
-    if (!allNullValidationResult.ok) {
+    const allUnsetValidationResult = validateSelectedLineExportPayload(allUnsetFrequencyPayload);
+    expect(allUnsetValidationResult.ok).toBe(true);
+    if (!allUnsetValidationResult.ok) {
       return;
     }
 
-    const conversionResult = convertSelectedLineExportPayloadToSession(allNullValidationResult.payload);
+    const conversionResult = convertSelectedLineExportPayloadToSession(allUnsetValidationResult.payload);
 
     expect(conversionResult.ok).toBe(true);
     if (!conversionResult.ok) {
@@ -125,6 +132,46 @@ describe('convertSelectedLineExportPayloadToSession', () => {
 
     const convertedLine = conversionResult.session.sessionLines[0];
     expect(Object.values(convertedLine.frequencyByTimeBand).every((bandPlan) => bandPlan.kind === 'unset')).toBe(true);
+  });
+
+  it('preserves explicit no-service plans during conversion', () => {
+    const validatedPayload = getValidatedFixturePayload();
+    const noServicePayload: SelectedLineExportPayload = {
+      ...validatedPayload,
+      line: {
+        ...validatedPayload.line,
+        frequencyByTimeBand: {
+          ...validatedPayload.line.frequencyByTimeBand,
+          evening: { kind: 'no-service' }
+        }
+      },
+      metadata: {
+        ...validatedPayload.metadata,
+        includedTimeBandIds: [
+          'morning-rush',
+          'late-morning',
+          'midday',
+          'afternoon',
+          'evening-rush',
+          'evening',
+          'night'
+        ]
+      }
+    };
+    const validationResult = validateSelectedLineExportPayload(noServicePayload);
+    expect(validationResult.ok).toBe(true);
+    if (!validationResult.ok) {
+      return;
+    }
+
+    const conversionResult = convertSelectedLineExportPayloadToSession(validationResult.payload);
+
+    expect(conversionResult.ok).toBe(true);
+    if (!conversionResult.ok) {
+      return;
+    }
+
+    expect(conversionResult.session.sessionLines[0].frequencyByTimeBand.evening).toEqual({ kind: 'no-service' });
   });
 
   it('does not convert invalid validation results into session state', () => {
