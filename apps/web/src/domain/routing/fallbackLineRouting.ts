@@ -41,6 +41,41 @@ const shouldAppendClosureSegment = (orderedStopIds: readonly StopId[], closureMo
 };
 
 /**
+ * Builds a single deterministic fallback route segment between two stops.
+ *
+ * @param lineId - The ID of the line the segment belongs to.
+ * @param segmentIndex - The 0-based index of the segment in the line sequence.
+ * @param fromStop - The origin stop.
+ * @param toStop - The destination stop.
+ * @returns A canonical line route segment with `fallback-routed` status.
+ */
+export const buildFallbackSingleRouteSegment = (
+  lineId: LineId,
+  segmentIndex: number,
+  fromStop: Stop,
+  toStop: Stop
+): LineRouteSegment => {
+  const fromCoordinate = toGeometryCoordinate(fromStop);
+  const toCoordinate = toGeometryCoordinate(toStop);
+  const orderedGeometry: readonly RouteGeometryCoordinate[] = [fromCoordinate, toCoordinate];
+  const distanceMeters = createRouteDistanceMeters(calculateGreatCircleDistanceMeters(fromCoordinate, toCoordinate));
+  const travelTiming = createBaselineRouteTravelTiming(distanceMeters);
+
+  return {
+    id: createLineSegmentId(`${lineId}-segment-${segmentIndex + 1}`),
+    lineId,
+    fromStopId: fromStop.id,
+    toStopId: toStop.id,
+    orderedGeometry,
+    distanceMeters,
+    inMotionTravelMinutes: travelTiming.inMotionTravelMinutes,
+    dwellMinutes: travelTiming.dwellMinutes,
+    totalTravelMinutes: travelTiming.totalTravelMinutes,
+    status: 'fallback-routed'
+  };
+};
+
+/**
  * Builds deterministic fallback route segments from ordered stops.
  *
  * Validation invariants:
@@ -87,24 +122,7 @@ export const buildFallbackLineRouteSegments = ({
       throw new Error('Fallback routing could not resolve all ordered stop ids to placed stops.');
     }
 
-    const fromCoordinate = toGeometryCoordinate(fromStop);
-    const toCoordinate = toGeometryCoordinate(toStop);
-    const orderedGeometry: readonly RouteGeometryCoordinate[] = [fromCoordinate, toCoordinate];
-    const distanceMeters = createRouteDistanceMeters(calculateGreatCircleDistanceMeters(fromCoordinate, toCoordinate));
-    const travelTiming = createBaselineRouteTravelTiming(distanceMeters);
-
-    segments.push({
-      id: createLineSegmentId(`${lineId}-segment-${segmentIndex + 1}`),
-      lineId,
-      fromStopId,
-      toStopId,
-      orderedGeometry,
-      distanceMeters,
-      inMotionTravelMinutes: travelTiming.inMotionTravelMinutes,
-      dwellMinutes: travelTiming.dwellMinutes,
-      totalTravelMinutes: travelTiming.totalTravelMinutes,
-      status: 'fallback-routed'
-    });
+    segments.push(buildFallbackSingleRouteSegment(lineId, segmentIndex, fromStop, toStop));
   }
 
   return segments;
