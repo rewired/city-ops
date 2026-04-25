@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-04-25
 
+- Slice 046: add reusable selected-line inspector dialog size modifiers (`small`, `medium`, `large`) on `inspector-dialog__surface` in shared app styles.
+- Slice 046: apply dialog size variants by intent (`Edit service plan` small, `Service plan` medium, `Departures` large) and remove legacy ad-hoc service-plan width class usage.
+- Slice 046: keep large departures dialog constrained and scrollable with a dedicated large-surface modifier instead of per-component width handling.
+- Add ADR 0102 documenting reusable dialog size modifier ownership and selected-line dialog mapping.
+
 - Slice 045: add a new UI-only `DebugModal` component with tabbed diagnostics (`Overview`, `Routing`, `Service`, `Raw state`) and preserve shell-owned modal state in `App.tsx`.
 - Slice 045: route existing map snapshot diagnostics and inspector-adjacent debug details (tool mode, selected ids, counts, route fallback notes, readiness details, ordered stop ids, and line ids) into the modal tabs using existing projection/session truth only.
 - Slice 045: keep simulation/domain/backend/persistence behavior unchanged and presentation-only by wiring modal props from existing `App.tsx` state/projection values.
