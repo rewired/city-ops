@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 059**: Repair service-readiness validation after loop/bidirectional route support and selected-line import/export changes.
+- Update `evaluateLineServiceReadiness` to be topology-aware, correctly validating $N$ segments for $N$ stops in loop lines.
+- Introduce `lineTopologySegments` domain helper for centralized topology-aware segment count and stop-pair expectations.
+- Update readiness issue messages to avoid hardcoding linear-only logic for loop lines.
+- Align readiness tests with `hamburg-line-1.v3.json` fixture and add dedicated loop-readiness coverage.
+
 - **Slice 056**: Explicit line topology (linear/loop) and service pattern (one-way/bidirectional) semantics.
 - Line completion decision flow with settings for topology and direction.
 - Loop closure routing for circular lines.

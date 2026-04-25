@@ -287,10 +287,60 @@ describe('evaluateLineServiceReadiness', () => {
     );
   });
 
-  it('evaluates Hamburg fixture-derived line as partially-ready when frequencies are no-service', () => {
+  it('returns ready for a valid loop line with N segments for N stops', () => {
+    const line: Line = {
+      ...createFullyConfiguredLine(),
+      topology: 'loop',
+      routeSegments: [
+        createSegment(1, stopA, stopB),
+        createSegment(2, stopB, stopC),
+        createSegment(3, stopC, stopA)
+      ]
+    };
+
+    const result = evaluateLineServiceReadiness(line, placedStops);
+
+    expect(result.status).toBe('ready');
+    expect(result.issues).toEqual([]);
+  });
+
+  it('returns blocked for a loop line missing the closing segment', () => {
+    const line: Line = {
+      ...createFullyConfiguredLine(),
+      topology: 'loop',
+      routeSegments: [
+        createSegment(1, stopA, stopB),
+        createSegment(2, stopB, stopC)
+      ]
+    };
+
+    const result = evaluateLineServiceReadiness(line, placedStops);
+
+    expect(result.status).toBe('blocked');
+    expect(issueCodes(result.issues)).toContain(LINE_SERVICE_READINESS_ISSUE_CODES.ROUTE_SEGMENT_COUNT_MISMATCH);
+  });
+
+  it('returns blocked for a loop line with incorrect closing segment adjacency', () => {
+    const line: Line = {
+      ...createFullyConfiguredLine(),
+      topology: 'loop',
+      routeSegments: [
+        createSegment(1, stopA, stopB),
+        createSegment(2, stopB, stopC),
+        createSegment(3, stopC, stopB) // Should be stopC -> stopA
+      ]
+    };
+
+    const result = evaluateLineServiceReadiness(line, placedStops);
+
+    expect(result.status).toBe('blocked');
+    expect(issueCodes(result.issues)).toContain(LINE_SERVICE_READINESS_ISSUE_CODES.ROUTE_SEGMENT_ADJACENCY_MISMATCH);
+  });
+
+  it('evaluates Hamburg fixture-derived line as ready when frequencies are no-service', () => {
     const fixturePath = path.resolve(
       path.dirname(fileURLToPath(import.meta.url)),
-      '../../../../../data/fixtures/selected-line-exports/hamburg-line-1.v2.json'
+      '../../../../../data/fixtures/selected-line-exports/hamburg-line-1.v3.json'
     );
     const payload = JSON.parse(readFileSync(fixturePath, 'utf8')) as SelectedLineExportPayload;
 
@@ -298,16 +348,16 @@ describe('evaluateLineServiceReadiness', () => {
       id: payload.line.id,
       label: payload.line.label,
       stopIds: payload.line.orderedStopIds,
-      topology: (payload.line as any).topology ?? 'linear',
-      servicePattern: (payload.line as any).servicePattern ?? 'one-way',
+      topology: payload.line.topology,
+      servicePattern: payload.line.servicePattern,
       routeSegments: payload.line.routeSegments,
       frequencyByTimeBand: createNoServiceLineServiceByTimeBand()
     };
 
     const result = evaluateLineServiceReadiness(line, payload.stops);
 
-    expect(result.status).toBe('partially-ready');
+    expect(result.status).toBe('ready');
     expect(result.summary.hasAtLeastOneConfiguredFrequency).toBe(true);
-    expect(issueCodes(result.issues)).toContain(LINE_SERVICE_READINESS_ISSUE_CODES.FALLBACK_ONLY_ROUTING);
+    expect(issueCodes(result.issues)).not.toContain(LINE_SERVICE_READINESS_ISSUE_CODES.FALLBACK_ONLY_ROUTING);
   });
 });

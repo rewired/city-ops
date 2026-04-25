@@ -14,6 +14,10 @@ import type {
 } from '../types/lineServiceReadiness';
 import type { Stop, StopId } from '../types/stop';
 import type { TimeBandId } from '../types/timeBand';
+import {
+  getExpectedForwardRouteSegmentCount,
+  getExpectedForwardRouteSegmentStopPair
+} from '../line/lineTopologySegments';
 
 const KNOWN_ROUTE_STATUSES = new Set<string>(ROUTE_STATUSES);
 
@@ -118,7 +122,7 @@ export const evaluateLineServiceReadiness = (
     }
   }
 
-  const expectedRouteSegmentCount = Math.max(orderedStopCount - 1, 0);
+  const expectedRouteSegmentCount = getExpectedForwardRouteSegmentCount(line);
   if (line.routeSegments.length === 0) {
     addIssue({
       code: LINE_SERVICE_READINESS_ISSUE_CODES.MISSING_ROUTE_SEGMENTS,
@@ -129,17 +133,21 @@ export const evaluateLineServiceReadiness = (
   }
 
   if (line.routeSegments.length !== expectedRouteSegmentCount) {
+    const message =
+      line.topology === 'loop'
+        ? `line.routeSegments length must equal line.stopIds.length (${line.stopIds.length}) for loop lines.`
+        : `line.routeSegments length must equal line.stopIds.length - 1 (${Math.max(0, line.stopIds.length - 1)}) for linear lines.`;
+
     addIssue({
       code: LINE_SERVICE_READINESS_ISSUE_CODES.ROUTE_SEGMENT_COUNT_MISMATCH,
       severity: LINE_SERVICE_READINESS_ISSUE_SEVERITIES.ERROR,
-      message: 'line.routeSegments length must equal line.stopIds.length - 1.',
+      message,
       lineId: line.id
     });
   }
 
   for (const [segmentIndex, segment] of line.routeSegments.entries()) {
-    const expectedFromStopId = line.stopIds[segmentIndex];
-    const expectedToStopId = line.stopIds[segmentIndex + 1];
+    const expectedPair = getExpectedForwardRouteSegmentStopPair(line, segmentIndex);
 
     if (segment.lineId !== line.id) {
       addIssue({
@@ -151,7 +159,8 @@ export const evaluateLineServiceReadiness = (
       });
     }
 
-    if (expectedFromStopId !== undefined && expectedToStopId !== undefined) {
+    if (expectedPair) {
+      const { fromStopId: expectedFromStopId, toStopId: expectedToStopId } = expectedPair;
       if (segment.fromStopId !== expectedFromStopId || segment.toStopId !== expectedToStopId) {
         addIssue({
           code: LINE_SERVICE_READINESS_ISSUE_CODES.ROUTE_SEGMENT_ADJACENCY_MISMATCH,
