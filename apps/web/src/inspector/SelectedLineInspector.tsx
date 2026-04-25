@@ -15,7 +15,7 @@ import type { TimeBandId } from '../domain/types/timeBand';
 
 interface SelectedLineInspectorProps {
   readonly panelState: LineSelectedInspectorPanelState;
-  readonly selectedLineRouteBaselineMetrics: import('../domain/projection/useNetworkPlanningProjections').RouteBaselineAggregateMetrics | null;
+  readonly selectedLineRouteBaseline: import('../domain/types/routeBaseline').LineRouteBaseline | null;
   readonly placedStops: readonly import('../domain/types/stop').Stop[];
   readonly activeTimeBandId: TimeBandId;
   readonly lineFrequencyInputByTimeBand: LineFrequencyInputByTimeBand;
@@ -43,7 +43,7 @@ const MAX_VISIBLE_STOP_CHIPS = 4;
  */
 export function SelectedLineInspector({
   panelState,
-  selectedLineRouteBaselineMetrics,
+  selectedLineRouteBaseline,
   placedStops,
   activeTimeBandId,
   lineFrequencyInputByTimeBand,
@@ -114,13 +114,13 @@ export function SelectedLineInspector({
           <div className="selected-line-inspector__summary-stat-card">
             <span className="selected-line-inspector__summary-stat-label">Segments</span>
             <strong className="selected-line-inspector__summary-stat-value">
-              {selectedLineRouteBaselineMetrics ? selectedLineRouteBaselineMetrics.segmentCount : 'Unavailable'}
+              {selectedLineRouteBaseline ? selectedLineRouteBaseline.segments.length : 'Unavailable'}
             </strong>
           </div>
           <div className="selected-line-inspector__summary-stat-card">
             <span className="selected-line-inspector__summary-stat-label">Runtime</span>
             <strong className="selected-line-inspector__summary-stat-value">
-              {selectedLineRouteBaselineMetrics ? `${selectedLineRouteBaselineMetrics.totalLineMinutes.toFixed(2)} min` : 'Unavailable'}
+              {selectedLineRouteBaseline ? `${(selectedLineRouteBaseline.totalTravelTimeSeconds / 60).toFixed(2)} min` : 'Unavailable'}
             </strong>
           </div>
         </div>
@@ -179,7 +179,7 @@ export function SelectedLineInspector({
         selectedLine={panelState.selectedLine}
         placedStops={placedStops}
         activeTimeBandId={activeTimeBandId}
-        selectedLineRouteBaselineMetrics={selectedLineRouteBaselineMetrics}
+        selectedLineRouteBaseline={selectedLineRouteBaseline}
       />
       <ProjectedVehiclesDialog
         open={activeDialogId === 'projected-vehicles'}

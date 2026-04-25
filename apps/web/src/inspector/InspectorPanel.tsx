@@ -19,7 +19,7 @@ interface InspectorPanelProps {
   readonly staticNetworkSummaryKpis: import('../domain/projection/useNetworkPlanningProjections').StaticNetworkSummaryKpis;
   readonly networkServicePlanProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineServicePlan>;
   readonly vehicleNetworkProjection: ReturnType<typeof import('../domain/projection/lineVehicleProjection').projectLineVehicleNetwork>;
-  readonly selectedLineRouteBaselineMetrics: import('../domain/projection/useNetworkPlanningProjections').RouteBaselineAggregateMetrics | null;
+  readonly selectedLineRouteBaseline: import('../domain/types/routeBaseline').LineRouteBaseline | null;
   readonly placedStops: readonly import('../domain/types/stop').Stop[];
   readonly activeTimeBandId: TimeBandId;
   readonly selectedLineServiceProjection: ReturnType<typeof import('../domain/projection/lineServicePlanProjection').projectLineServicePlanForLine> | null;
@@ -55,7 +55,7 @@ export function InspectorPanel({
   staticNetworkSummaryKpis,
   networkServicePlanProjection,
   vehicleNetworkProjection,
-  selectedLineRouteBaselineMetrics,
+  selectedLineRouteBaseline,
   placedStops,
   activeTimeBandId,
   selectedLineServiceProjection,
@@ -177,7 +177,7 @@ export function InspectorPanel({
               {inspectorPanelState.mode === 'line-selected' ? (
                 <SelectedLineInspector
                   panelState={inspectorPanelState}
-                  selectedLineRouteBaselineMetrics={selectedLineRouteBaselineMetrics}
+                  selectedLineRouteBaseline={selectedLineRouteBaseline}
                   placedStops={placedStops}
                   activeTimeBandId={activeTimeBandId}
                   lineFrequencyInputByTimeBand={lineFrequencyInputByTimeBand}

@@ -122,12 +122,12 @@ export default function App(): ReactElement {
   };
   const routingDiagnostics: DebugModalRoutingDiagnostics = {
     selectedLineOrderedStopIds: sessionController.selectedLine?.stopIds ?? [],
-    selectedLineSegmentCount: projections.selectedLineRouteBaselineMetrics?.segmentCount ?? null,
-    selectedLineHasFallbackSegments: projections.selectedLineRouteBaselineMetrics?.hasFallbackSegments ?? false,
+    selectedLineSegmentCount: projections.selectedLineRouteBaseline?.segments.length ?? null,
+    selectedLineHasFallbackSegments: projections.selectedLineRouteBaseline?.status === 'fallback-routed' || projections.selectedLineRouteBaseline?.status === 'partial',
     selectedLineFallbackSegmentCount:
-      sessionController.selectedLine?.routeSegments.filter((segment) => segment.status === 'fallback-routed').length ??
+      projections.selectedLineRouteBaseline?.segments.filter((segment) => segment.status === 'fallback-routed').length ??
       0,
-    selectedLineRouteFallbackNote: projections.selectedLineRouteBaselineMetrics?.hasFallbackSegments
+    selectedLineRouteFallbackNote: (projections.selectedLineRouteBaseline?.status === 'fallback-routed' || projections.selectedLineRouteBaseline?.status === 'partial')
       ? 'Fallback routed segments detected. Values are baseline fallback outputs and are not accuracy claims.'
       : 'No fallback routed segments detected.',
     completedOverlayNote: mapWorkspaceDebugSnapshot.completedOverlayNote,
@@ -240,7 +240,7 @@ export default function App(): ReactElement {
         staticNetworkSummaryKpis={projections.staticNetworkSummaryKpis}
         networkServicePlanProjection={projections.networkServicePlanProjection}
         vehicleNetworkProjection={projections.vehicleNetworkProjection}
-        selectedLineRouteBaselineMetrics={projections.selectedLineRouteBaselineMetrics}
+        selectedLineRouteBaseline={projections.selectedLineRouteBaseline}
         placedStops={sessionController.sessionStops}
         activeTimeBandId={clockController.activeSimulationTimeBandId}
         selectedLineServiceProjection={projections.selectedLineServiceProjection}

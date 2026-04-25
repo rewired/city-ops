@@ -11,7 +11,7 @@ interface DeparturesDialogProps {
   readonly selectedLine: Line;
   readonly placedStops: readonly Stop[];
   readonly activeTimeBandId: TimeBandId;
-  readonly selectedLineRouteBaselineMetrics: import('../domain/projection/useNetworkPlanningProjections').RouteBaselineAggregateMetrics | null;
+  readonly selectedLineRouteBaseline: import('../domain/types/routeBaseline').LineRouteBaseline | null;
 }
 
 const renderDepartureMinutes = (labels: readonly string[]): ReactElement => {
@@ -35,7 +35,7 @@ export function DeparturesDialog({
   selectedLine,
   placedStops,
   activeTimeBandId,
-  selectedLineRouteBaselineMetrics
+  selectedLineRouteBaseline
 }: DeparturesDialogProps): ReactElement | null {
   if (!open) {
     return null;
@@ -45,7 +45,7 @@ export function DeparturesDialog({
     selectedLine,
     placedStops,
     activeTimeBandId,
-    selectedLineRouteBaselineMetrics
+    selectedLineRouteBaseline
   );
 
   return (

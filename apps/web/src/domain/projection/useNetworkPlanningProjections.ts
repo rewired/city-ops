@@ -23,6 +23,8 @@ export interface StaticNetworkSummaryKpis {
   readonly selectedCompletedLine: SelectedLineStructureSummary | null;
 }
 
+import { resolveLineRouteBaseline } from './routeBaselineProjection';
+
 /** Aggregate route-baseline metrics projected for selected-line inspector rendering. */
 export interface RouteBaselineAggregateMetrics {
   readonly segmentCount: number;
@@ -44,7 +46,7 @@ export const ROUTE_STATUS_LABELS: Readonly<Record<RouteStatus, string>> = {
 /** Shared projection bundle consumed by shell inspector and workspace map boundaries. */
 export interface NetworkPlanningProjections {
   readonly staticNetworkSummaryKpis: StaticNetworkSummaryKpis;
-  readonly selectedLineRouteBaselineMetrics: RouteBaselineAggregateMetrics | null;
+  readonly selectedLineRouteBaseline: import('../types/routeBaseline').LineRouteBaseline | null;
   readonly selectedLineServiceProjection: ReturnType<typeof projectLineServicePlanForLine> | null;
   readonly selectedLineDepartureProjection: ReturnType<typeof projectLineDepartureScheduleForLine> | null;
   readonly networkDepartureScheduleProjection: ReturnType<typeof projectLineDepartureScheduleNetwork>;
@@ -53,17 +55,6 @@ export interface NetworkPlanningProjections {
   readonly networkServicePlanProjection: ReturnType<typeof projectLineServicePlan>;
   readonly selectedLineServiceInspectorProjection: ReturnType<typeof projectLineSelectedServiceInspector> | null;
 }
-
-const projectRouteBaselineAggregateMetrics = (
-  routeSegments: readonly LineRouteSegment[]
-): RouteBaselineAggregateMetrics => ({
-  segmentCount: routeSegments.length,
-  totalDistanceMeters: routeSegments.reduce((sum, segment) => sum + segment.distanceMeters, 0),
-  totalInMotionMinutes: routeSegments.reduce((sum, segment) => sum + segment.inMotionTravelMinutes, 0),
-  totalDwellMinutes: routeSegments.reduce((sum, segment) => sum + segment.dwellMinutes, 0),
-  totalLineMinutes: routeSegments.reduce((sum, segment) => sum + segment.totalTravelMinutes, 0),
-  hasFallbackSegments: routeSegments.some((segment) => segment.status === 'fallback-routed')
-});
 
 const projectStaticNetworkSummaryKpis = (
   totalStopCount: number,
@@ -103,8 +94,8 @@ export const useNetworkPlanningProjections = (
   currentSimulationMinuteOfDay: SimulationMinuteOfDay
 ): NetworkPlanningProjections => {
   const staticNetworkSummaryKpis = projectStaticNetworkSummaryKpis(sessionStops.length, sessionLines, selectedLine);
-  const selectedLineRouteBaselineMetrics = selectedLine
-    ? projectRouteBaselineAggregateMetrics(selectedLine.routeSegments)
+  const selectedLineRouteBaseline = selectedLine
+    ? resolveLineRouteBaseline(selectedLine, sessionStops)
     : null;
   const selectedLineServiceProjection = selectedLine
     ? projectLineServicePlanForLine(selectedLine, sessionStops, activeSimulationTimeBandId)
@@ -142,7 +133,7 @@ export const useNetworkPlanningProjections = (
     : null;
   return {
     staticNetworkSummaryKpis,
-    selectedLineRouteBaselineMetrics,
+    selectedLineRouteBaseline,
     selectedLineServiceProjection,
     selectedLineDepartureProjection,
     networkDepartureScheduleProjection,

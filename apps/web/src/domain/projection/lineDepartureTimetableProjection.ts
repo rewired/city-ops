@@ -18,13 +18,16 @@ import type {
 } from '../types/lineDepartureTimetableProjection';
 import type { Stop } from '../types/stop';
 import { createMinuteOfDay, type TimeBandId } from '../types/timeBand';
+import type { LineRouteBaseline } from '../types/routeBaseline';
 
 const HOURS_PER_DAY = 24;
-const ROUTE_TIMING_STATUS_LABELS: Readonly<Record<RouteTimingStatus, string>> = {
+const ROUTE_TIMING_STATUS_LABELS: Readonly<Record<string, string>> = {
   'not-routed': 'Not routed',
   routed: 'Routed',
   'fallback-routed': 'Fallback routed',
-  'routing-failed': 'Routing failed'
+  'routing-failed': 'Routing failed',
+  partial: 'Partial routing',
+  unresolved: 'Unresolved'
 };
 
 const MINUTES_PER_HOUR = 60;
@@ -238,34 +241,18 @@ const resolveActiveBandSummary = (
   };
 };
 
-const resolveRouteTimingStatus = (segments: readonly LineRouteSegment[]): RouteTimingStatus => {
-  if (segments.some((segment) => segment.status === 'routing-failed')) {
-    return 'routing-failed';
-  }
-  if (segments.some((segment) => segment.status === 'not-routed')) {
-    return 'not-routed';
-  }
-  if (segments.some((segment) => segment.status === 'fallback-routed')) {
-    return 'fallback-routed';
-  }
-  return 'routed';
-};
-
 const projectRouteBaselineSummary = (
-  metrics: RouteBaselineAggregateMetrics | null,
-  routeSegments: readonly LineRouteSegment[]
+  baseline: LineRouteBaseline | null
 ): TimetableRouteBaselineSummary | null => {
-  if (!metrics) {
+  if (!baseline) {
     return null;
   }
 
-  const timingStatus = resolveRouteTimingStatus(routeSegments);
-
   return {
-    segmentCount: metrics.segmentCount,
-    totalLineMinutes: metrics.totalLineMinutes,
-    routingStatusLabel: ROUTE_TIMING_STATUS_LABELS[timingStatus],
-    fallbackWarning: metrics.hasFallbackSegments
+    segmentCount: baseline.segments.length,
+    totalLineMinutes: baseline.totalTravelTimeSeconds / 60,
+    routingStatusLabel: ROUTE_TIMING_STATUS_LABELS[baseline.status] ?? 'Unknown',
+    fallbackWarning: baseline.warnings.some((w) => w.type === 'fallback-routing' || w.type === 'partial-unresolved')
       ? 'Fallback routing is active for at least one segment. Downstream times are baseline estimates.'
       : null
   };
@@ -278,7 +265,7 @@ export const projectLineDepartureTimetable = (
   line: Line,
   placedStops: readonly Stop[],
   activeTimeBandId: TimeBandId,
-  selectedLineRouteBaselineMetrics: RouteBaselineAggregateMetrics | null
+  selectedLineRouteBaseline: LineRouteBaseline | null
 ): LineDepartureTimetableProjection => {
   const stopLabels = resolveStopLabels(line, placedStops);
   const stopOffsets = resolveStopOffsets(line);
@@ -320,7 +307,7 @@ export const projectLineDepartureTimetable = (
     activeServiceSummary: resolveActiveBandSummary(line, activeTimeBandId),
     bandColumns,
     rows,
-    routeBaselineSummary: projectRouteBaselineSummary(selectedLineRouteBaselineMetrics, line.routeSegments),
+    routeBaselineSummary: projectRouteBaselineSummary(selectedLineRouteBaseline),
     notices,
     hasUnavailableDownstreamStopTiming
   };

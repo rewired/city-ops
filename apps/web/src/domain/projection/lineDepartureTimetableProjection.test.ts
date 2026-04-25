@@ -9,7 +9,7 @@ import {
 } from '../types/lineRoute';
 import { createStopId, type Stop } from '../types/stop';
 import { projectLineDepartureTimetable } from './lineDepartureTimetableProjection';
-import type { RouteBaselineAggregateMetrics } from './useNetworkPlanningProjections';
+import { createRouteTravelTimeSeconds, type LineRouteBaseline } from '../types/routeBaseline';
 
 const lineId = createLineId('line-1');
 const stopA = createStopId('stop-a');
@@ -60,13 +60,36 @@ const createLine = (segments: readonly LineRouteSegment[]): Line => ({
   }
 });
 
-const routeBaselineMetrics: RouteBaselineAggregateMetrics = {
-  segmentCount: 2,
-  totalDistanceMeters: 2_400,
-  totalInMotionMinutes: 7,
-  totalDwellMinutes: 1,
-  totalLineMinutes: 8,
-  hasFallbackSegments: false
+const routeBaseline: LineRouteBaseline = {
+  lineId,
+  segments: [
+    {
+      lineId,
+      segmentIndex: 0,
+      fromStopId: stopA,
+      toStopId: stopB,
+      geometry: [],
+      distanceMeters: createRouteDistanceMeters(1_200),
+      travelTimeSeconds: createRouteTravelTimeSeconds(180),
+      status: 'routed',
+      warnings: []
+    },
+    {
+      lineId,
+      segmentIndex: 1,
+      fromStopId: stopB,
+      toStopId: stopC,
+      geometry: [],
+      distanceMeters: createRouteDistanceMeters(1_200),
+      travelTimeSeconds: createRouteTravelTimeSeconds(300),
+      status: 'routed',
+      warnings: []
+    }
+  ],
+  totalDistanceMeters: createRouteDistanceMeters(2_400),
+  totalTravelTimeSeconds: createRouteTravelTimeSeconds(480),
+  status: 'routed',
+  warnings: []
 };
 
 describe('projectLineDepartureTimetable', () => {
@@ -76,7 +99,7 @@ describe('projectLineDepartureTimetable', () => {
       createSegment('segment-2', stopB, stopC, 5)
     ]);
 
-    const result = projectLineDepartureTimetable(line, placedStops, 'morning-rush', routeBaselineMetrics);
+    const result = projectLineDepartureTimetable(line, placedStops, 'morning-rush', routeBaseline);
     const originMorningBand = result.rows[0]?.cells[0];
     const secondStopMorningBand = result.rows[1]?.cells[0];
 
@@ -90,7 +113,7 @@ describe('projectLineDepartureTimetable', () => {
       createSegment('segment-2', stopB, stopC, 5)
     ]);
 
-    const result = projectLineDepartureTimetable(line, placedStops, 'midday', routeBaselineMetrics);
+    const result = projectLineDepartureTimetable(line, placedStops, 'midday', routeBaseline);
     const middayCell = result.rows[0]?.cells[2];
 
     expect(middayCell?.state).toBe('no-service');
@@ -103,7 +126,7 @@ describe('projectLineDepartureTimetable', () => {
       createSegment('segment-2', stopB, stopC, 5)
     ]);
 
-    const result = projectLineDepartureTimetable(line, placedStops, 'night', routeBaselineMetrics);
+    const result = projectLineDepartureTimetable(line, placedStops, 'night', routeBaseline);
     const nightCell = result.rows[0]?.cells[6];
 
     expect(nightCell?.departureMinuteLabels.slice(0, 3)).toEqual(['00', '20', '40']);
@@ -112,7 +135,7 @@ describe('projectLineDepartureTimetable', () => {
   it('does not fabricate downstream stop times when segment-level timing is incomplete', () => {
     const line = createLine([createSegment('segment-1', stopA, stopB, 3)]);
 
-    const result = projectLineDepartureTimetable(line, placedStops, 'morning-rush', routeBaselineMetrics);
+    const result = projectLineDepartureTimetable(line, placedStops, 'morning-rush', routeBaseline);
 
     expect(result.rows[0]?.cells[0]?.state).toBe('departures');
     expect(result.rows[1]?.cells[0]?.state).toBe('unavailable');
@@ -126,7 +149,7 @@ describe('projectLineDepartureTimetable', () => {
       createSegment('segment-2', stopB, stopC, 5)
     ]);
 
-    const result = projectLineDepartureTimetable(line, placedStops, 'night', routeBaselineMetrics);
+    const result = projectLineDepartureTimetable(line, placedStops, 'night', routeBaseline);
 
     expect(result.activeServiceSummary.activeWindowLabel).toBe('23:00–06:00');
     expect(result.activeServiceSummary.activeServiceLabel).toBe('every 20 min');

@@ -9,7 +9,7 @@ import {
   type LineRouteSegment
 } from '../domain/types/lineRoute';
 import { createStopId, type Stop } from '../domain/types/stop';
-import type { RouteBaselineAggregateMetrics } from '../domain/projection/useNetworkPlanningProjections';
+import { createRouteTravelTimeSeconds, type LineRouteBaseline } from '../domain/types/routeBaseline';
 import { DeparturesDialog } from './DeparturesDialog';
 
 const lineId = createLineId('line-1');
@@ -55,13 +55,26 @@ const line: Line = {
   }
 };
 
-const routeBaselineMetrics: RouteBaselineAggregateMetrics = {
-  segmentCount: 1,
-  totalDistanceMeters: 1_000,
-  totalInMotionMinutes: 3.5,
-  totalDwellMinutes: 0.5,
-  totalLineMinutes: 4,
-  hasFallbackSegments: false
+const routeBaseline: LineRouteBaseline = {
+  lineId,
+  segments: [{
+    lineId,
+    segmentIndex: 0,
+    fromStopId: stopA,
+    toStopId: stopB,
+    geometry: [
+      [10, 53],
+      [10.01, 53.01]
+    ],
+    distanceMeters: createRouteDistanceMeters(1_000),
+    travelTimeSeconds: createRouteTravelTimeSeconds(240),
+    status: 'routed',
+    warnings: []
+  }],
+  totalDistanceMeters: createRouteDistanceMeters(1_000),
+  totalTravelTimeSeconds: createRouteTravelTimeSeconds(240),
+  status: 'routed',
+  warnings: []
 };
 
 describe('DeparturesDialog', () => {
@@ -73,7 +86,7 @@ describe('DeparturesDialog', () => {
         selectedLine={line}
         placedStops={placedStops}
         activeTimeBandId="morning-rush"
-        selectedLineRouteBaselineMetrics={routeBaselineMetrics}
+        selectedLineRouteBaseline={routeBaseline}
       />
     );
 
