@@ -31,7 +31,7 @@ export type SimulationRunningState = 'paused' | 'running';
 /**
  * Stable identifier for one selectable simulation speed option.
  */
-export type SimulationSpeedId = 'realtime' | '0.5x' | '1x' | '5x' | '10x' | '20x';
+export type SimulationSpeedId = 'realtime' | '0.1x' | '0.5x' | '1x' | '5x' | '10x' | '20x';
 
 /**
  * Canonical simulation speed definition shown in controls and used by progression helpers.

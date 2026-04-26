@@ -528,11 +528,12 @@ body {
   grid-area: top-bar;
   display: grid;
   grid-template-columns: auto auto 1fr auto;
-  gap: 16px;
+  gap: 20px;
   align-items: center;
-  padding: 8px 20px;
+  padding: 0 20px;
   border-bottom: 1px solid #263142;
   background: #141c29;
+  overflow: hidden;
 }
 
 .simulation-control-bar__brand {
@@ -554,7 +555,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .simulation-control-bar__icon-button,
@@ -579,25 +581,30 @@ body {
 .simulation-control-bar__speed-control {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px;
+  gap: 2px;
+  padding: 2px;
   border: 1px solid #314665;
   border-radius: 10px;
   background: #18253a;
+  flex-shrink: 0;
 }
 
 .simulation-control-bar__speed-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: #d9e7fd;
-  min-width: 40px;
+  min-width: 36px;
   height: 28px;
   padding: 0 6px;
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
 .simulation-control-bar__speed-button[aria-pressed='true'] {

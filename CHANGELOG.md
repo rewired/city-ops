@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 064c**: Realtime Speed, 0.1×, Pace Icon, and Header Layout Repair.
+- Add distinct `realtime` speed option (1:1 simulated-to-real second) using the Material Symbols `pace` icon.
+- Add `0.1×` simulation speed option.
+- Ensure all simulation speed labels use the multiplication sign `×` (e.g., `1×`, `0.5×`, `0.1×`).
+- Harden top header layout in `App.css` to remain stable with the expanded speed controls, using `min-width: 0` and reduced gaps for desktop density.
+- Update simulation clock tests to cover `0.1x` and `realtime` distinctness and accuracy.
 - **Slice 063c**: Final hygiene repair before vehicle projection work.
 - Fix `generateLineLabel` to return `null` when required endpoint stop labels are missing, empty, or whitespace-only, preventing user-facing labels such as `undefined → Some Stop`. New line completion continues to fall back to the deterministic `Line <ordinal>` placeholder when `generateLineLabel` returns `null`.
 - Remove `as any` from all export/import validation tests directly touched by Slice 063/063b: `selectedLineExportValidation.test.ts` and `selectedLineExportSessionLoader.test.ts` now use a typed `MutableJsonObject` helper, `structuredClone`-based fixture clones, and `unknown`-parsed candidates guarded by explicit `isRecord`-equivalent checks.

@@ -55,6 +55,7 @@ export const DEFAULT_SIMULATION_SPEED_ID: SimulationSpeedId = '1x';
  */
 export const SIMULATION_SPEED_DEFINITIONS: readonly SimulationSpeedDefinition[] = [
   { id: 'realtime', label: 'Realtime', multiplier: 1 / 60 },
+  { id: '0.1x', label: '0.1×', multiplier: 0.1 },
   { id: '0.5x', label: '0.5×', multiplier: 0.5 },
   { id: '1x', label: '1×', multiplier: 1 },
   { id: '5x', label: '5×', multiplier: 5 },

@@ -101,6 +101,18 @@ describe('simulationClock', () => {
     expect(oneXUpdate.advancedMinutes).toBe(1);
   });
 
+  it('handles 0.1x speed accurately', () => {
+    const resumedState = applySimulationClockCommand(createInitialSimulationClockState(), {
+      type: 'resume'
+    }).nextState;
+    const slowState = setSimulationSpeed(resumedState, '0.1x');
+
+    // 10,000 ms at 0.1x should advance exactly 1 simulation minute (1000ms * 10 * 0.1 = 1000ms)
+    const updateResult = advanceSimulationClock(slowState, 10_000);
+
+    expect(updateResult.advancedMinutes).toBe(1);
+  });
+
   it('resets clock state back to deterministic baseline defaults', () => {
     const runningState = applySimulationClockCommand(createInitialSimulationClockState(), {
       type: 'resume'
