@@ -77,6 +77,30 @@ describe('simulationClock', () => {
     expect(secondUpdate.advancedMinutes).toBe(10);
   });
 
+  it('handles realtime speed accurately and distinctly from 1x', () => {
+    const runningState = applySimulationClockCommand(createInitialSimulationClockState(), {
+      type: 'resume'
+    }).nextState;
+
+    const realtimeState = setSimulationSpeed(runningState, 'realtime');
+    const oneXState = setSimulationSpeed(runningState, '1x');
+
+    // 1,000 ms at realtime should advance 0 whole minutes but produce +1 projected simulation second
+    const realtimeSmallUpdate = advanceSimulationClock(realtimeState, 1000);
+    expect(realtimeSmallUpdate.advancedMinutes).toBe(0);
+    expect(deriveSimulationSecondOfDay(realtimeSmallUpdate.nextState)).toBe(
+      deriveSimulationSecondOfDay(realtimeState) + 1
+    );
+
+    // 60,000 ms at realtime should advance exactly 1 simulation minute
+    const realtimeFullUpdate = advanceSimulationClock(realtimeState, 60_000);
+    expect(realtimeFullUpdate.advancedMinutes).toBe(1);
+
+    // 1,000 ms at 1x should advance 1 simulation minute
+    const oneXUpdate = advanceSimulationClock(oneXState, 1000);
+    expect(oneXUpdate.advancedMinutes).toBe(1);
+  });
+
   it('resets clock state back to deterministic baseline defaults', () => {
     const runningState = applySimulationClockCommand(createInitialSimulationClockState(), {
       type: 'resume'
