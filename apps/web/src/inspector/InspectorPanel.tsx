@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactElement } from 'react';
 
 import { TIME_BAND_DISPLAY_LABELS } from '../domain/constants/timeBands';
 import type { Line } from '../domain/types/line';
+import { InlineRenameField } from './InlineRenameField';
 import { SelectedLineInspector } from './SelectedLineInspector';
 import { NetworkInventory } from './NetworkInventory';
 import { INSPECTOR_TAB_IDS, INSPECTOR_TAB_LABELS, type InspectorTabId } from './inspectorTabs';
@@ -201,17 +202,27 @@ export function InspectorPanel({
               <ul className="inspector-simple-list inspector-lines-tab__list" aria-label="Completed line list">
                 {completedLines.map((line) => (
                   <li key={line.id} className="inspector-lines-tab__list-item">
-                    <span>{`${line.id} · ${line.label}`}</span>
                     <button
                       type="button"
-                      className="inspector-lines-tab__action"
+                      className="inspector-lines-tab__line-badge-button"
                       onClick={() => {
                         onSelectedLineIdChange(line.id);
                         setLinesViewMode('detail');
                       }}
+                      title={`Select and focus ${line.label}`}
+                      aria-label={`Select line ${line.id}: ${line.label}`}
                     >
-                      View
+                      {line.id}
                     </button>
+                    <span className="inspector-lines-tab__line-label" title={line.label}>
+                      {line.label}
+                    </span>
+                    <InlineRenameField
+                      value={line.label}
+                      entityLabel="line"
+                      idleDisplayMode="edit-only"
+                      onAccept={(nextValue) => onLineRename(line.id, nextValue)}
+                    />
                   </li>
                 ))}
               </ul>

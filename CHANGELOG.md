@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 073: Lines-Tab List Row Selection and Inline Rename Refactor
+- Refactored completed-line rows in the Lines tab list mode to use a compact line-id badge button as the primary select/focus affordance.
+- Moved line label text to a non-primary, readability-focused span so label copy is no longer the primary click target.
+- Added per-row inline line rename controls in list mode via `InlineRenameField`, wired to existing `onLineRename` callback flow.
+- Added an `InlineRenameField` idle display mode variant (`edit-only`) to support compact row layouts without duplicating visible label text.
+- Preserved rename acceptance behavior and existing line-label normalization path in session commands (`normalizeAcceptedLineLabel`) by reusing existing callbacks and not introducing new rename command routes.
+
 ### Slice 072: Selected-Line Route Sequence Stop Lookup and Inline Rename Flow
 - Added a selected-line route-sequence list that renders every stop in canonical route order from `selectedLine.stopIds`.
 - Built a stop lookup map keyed by stop id from `placedStops` to resolve labels safely per sequence row.
