@@ -13,6 +13,12 @@ coverage/
 # TypeScript
 *.tsbuildinfo
 
+# Compiler output and test output artifacts.
+# These are generated locally during diagnosis and must not be committed.
+apps/*/tsc_output*.txt
+**/tsc_output*.txt
+**/test_output*.txt
+
 # Environment
 .env
 .env.*

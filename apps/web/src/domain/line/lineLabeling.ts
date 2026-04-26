@@ -2,7 +2,24 @@ import type { Line, LineServicePattern, LineTopology } from '../types/line';
 import type { Stop } from '../types/stop';
 
 /**
- * Generates a player-facing label for a line based on its stop sequence, topology, and service pattern.
+ * Normalises a raw stop label string by trimming and collapsing inner whitespace.
+ * Returns `null` when the result would be empty or whitespace-only.
+ */
+const normaliseLabel = (raw: string | undefined): string | null => {
+  if (raw === undefined) {
+    return null;
+  }
+  const trimmed = raw.trim().replace(/\s+/g, ' ');
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+/**
+ * Generates a player-facing label for a line based on its stop sequence, topology,
+ * and service pattern.
+ *
+ * Returns `null` when the required endpoint stop labels are missing, empty, or
+ * whitespace-only — the caller should then fall back to a deterministic placeholder
+ * (e.g., `Line <ordinal>`).
  */
 export const generateLineLabel = (
   stops: readonly Stop[],
@@ -20,15 +37,27 @@ export const generateLineLabel = (
     return null;
   }
 
+  const firstLabel = normaliseLabel(firstStop.label);
+
+  if (!firstLabel) {
+    return null;
+  }
+
   if (topology === 'loop') {
-    return `${firstStop.label} Loop`;
+    return `${firstLabel} Loop`;
+  }
+
+  const lastLabel = normaliseLabel(lastStop.label);
+
+  if (!lastLabel) {
+    return null;
   }
 
   if (servicePattern === 'bidirectional') {
-    return `${firstStop.label} ↔ ${lastStop.label}`;
+    return `${firstLabel} ↔ ${lastLabel}`;
   }
 
-  return `${firstStop.label} → ${lastStop.label}`;
+  return `${firstLabel} → ${lastLabel}`;
 };
 
 /**

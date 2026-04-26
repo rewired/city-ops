@@ -27,6 +27,54 @@ describe('lineLabeling', () => {
       const label = generateLineLabel([mockStopA], 'linear', 'one-way');
       expect(label).toBeNull();
     });
+
+    it('returns null when first stop label is undefined', () => {
+      const stopNoLabel: Stop = { id: createStopId('stop-nolabel'), position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([stopNoLabel, mockStopB], 'linear', 'one-way');
+      expect(label).toBeNull();
+    });
+
+    it('returns null when last stop label is undefined', () => {
+      const stopNoLabel: Stop = { id: createStopId('stop-nolabel'), position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([mockStopA, stopNoLabel], 'linear', 'one-way');
+      expect(label).toBeNull();
+    });
+
+    it('returns null when last stop label is undefined for bidirectional', () => {
+      const stopNoLabel: Stop = { id: createStopId('stop-nolabel'), position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([mockStopA, stopNoLabel], 'linear', 'bidirectional');
+      expect(label).toBeNull();
+    });
+
+    it('returns null when first stop label is whitespace-only', () => {
+      const stopBlankLabel: Stop = { id: createStopId('stop-blank'), label: '   ', position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([stopBlankLabel, mockStopB], 'linear', 'one-way');
+      expect(label).toBeNull();
+    });
+
+    it('returns null when last stop label is whitespace-only for linear one-way', () => {
+      const stopBlankLabel: Stop = { id: createStopId('stop-blank'), label: '   ', position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([mockStopA, stopBlankLabel], 'linear', 'one-way');
+      expect(label).toBeNull();
+    });
+
+    it('returns null when first stop label is undefined for loop', () => {
+      const stopNoLabel: Stop = { id: createStopId('stop-nolabel'), position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([stopNoLabel, mockStopB], 'loop', 'one-way');
+      expect(label).toBeNull();
+    });
+
+    it('trims and collapses whitespace in generated labels', () => {
+      const stopWithPad: Stop = { id: createStopId('stop-pad'), label: '  Millerntorplatz  ', position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([stopWithPad, mockStopB], 'linear', 'one-way');
+      expect(label).toBe('Millerntorplatz → Reeperbahn');
+    });
+
+    it('trims and collapses inner whitespace in generated labels', () => {
+      const stopWithInnerSpace: Stop = { id: createStopId('stop-inner'), label: 'Millerntor  platz', position: { lng: 0, lat: 0 } };
+      const label = generateLineLabel([stopWithInnerSpace, mockStopB], 'linear', 'one-way');
+      expect(label).toBe('Millerntor platz → Reeperbahn');
+    });
   });
 
   describe('generateUniqueLineLabel', () => {

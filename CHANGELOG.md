@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Slice 063b**: Green-state repair for post-Slice-063 failures.
+- **Slice 063c**: Final hygiene repair before vehicle projection work.
+- Fix `generateLineLabel` to return `null` when required endpoint stop labels are missing, empty, or whitespace-only, preventing user-facing labels such as `undefined → Some Stop`. New line completion continues to fall back to the deterministic `Line <ordinal>` placeholder when `generateLineLabel` returns `null`.
+- Remove `as any` from all export/import validation tests directly touched by Slice 063/063b: `selectedLineExportValidation.test.ts` and `selectedLineExportSessionLoader.test.ts` now use a typed `MutableJsonObject` helper, `structuredClone`-based fixture clones, and `unknown`-parsed candidates guarded by explicit `isRecord`-equivalent checks.
+- Remove committed compiler/debug output artifacts `apps/web/tsc_output.txt` and `apps/web/tsc_output_ascii.txt`.
+- Update `.gitignore` with `apps/*/tsc_output*.txt`, `**/tsc_output*.txt`, and `**/test_output*.txt` patterns to prevent recurrence of committed compiler or test output artifacts.
+
 - Increase `SELECTED_LINE_EXPORT_ROUTE_CACHE_ENDPOINT_TOLERANCE_DEGREES` from `1e-5` to `5e-4` to accept realistic OSRM street-snap endpoint offsets (~17m observed in Hamburg v3 fixture); rename constant to clarify it is a route-cache compatibility tolerance, not a stop-position precision guarantee.
 - Add `'invalid-route-segment-stop-reference'` to `SelectedLineExportValidationIssueCode` union to fix TypeScript compile errors.
 - Fix `lineGeoJson.ts`: add missing `LineRouteSegment` import; replace `any[]` with a properly typed feature array; remove the fallback that synthesized reverse geometry from reversed stop order when `reverseRouteSegments` is absent — the rendering layer must not invent reverse route geometry.
