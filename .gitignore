@@ -25,6 +25,10 @@ apps/*/tsc_output*.txt
 .env.*
 !.env.example
 
+# LLM docs
+/docs/slices/**
+!docs/slices/.gitkeep
+
 # Logs
 *.log
 npm-debug.log*
@@ -61,8 +65,6 @@ temp/
 *.mbtiles
 *.gpkg
 *.pbf
-/docs/slices/*
-
 
 # Local OSM extracts for routing experiments.
 # These files are large, replaceable downloads and must not be committed.
