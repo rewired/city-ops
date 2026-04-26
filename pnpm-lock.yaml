@@ -26,6 +26,9 @@ importers:
       '@fontsource/material-symbols-outlined':
         specifier: ^5.2.31
         version: 5.2.42
+      '@fontsource/material-symbols-sharp':
+        specifier: ^5.2.43
+        version: 5.2.43
       react:
         specifier: ^19.0.0
         version: 19.2.5
@@ -304,6 +307,9 @@ packages:
 
   '@fontsource/material-symbols-outlined@5.2.42':
     resolution: {integrity: sha512-zqpdvl/vga8OSxbqpkpJu4zJ6i0APTww7v8s9Qw+ENBr+UeLxTuOT/3XD8Lc3RH2WRv2QmptbJvU3JT6Ppni7Q==}
+
+  '@fontsource/material-symbols-sharp@5.2.43':
+    resolution: {integrity: sha512-qZXEUio6u63K5B6TZsyR5bT7y5f0Mx3ZdXDB0sAU50tgiI8pOKBlBQKJ0ttMQ7CsPQdadphMzNROTFM/YrbrHA==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1043,6 +1049,8 @@ snapshots:
   '@fontsource/inter@5.2.8': {}
 
   '@fontsource/material-symbols-outlined@5.2.42': {}
+
+  '@fontsource/material-symbols-sharp@5.2.43': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

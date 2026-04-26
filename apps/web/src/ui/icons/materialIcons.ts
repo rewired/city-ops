@@ -16,7 +16,12 @@ export type MaterialIconName =
   | 'error'
   | 'warning'
   | 'info'
-  | 'close';
+  | 'close'
+  | 'directions_bus'
+  | 'tram'
+  | 'subway'
+  | 'train'
+  | 'directions_boat';
 
 /**
  * Canonical Material icon name mapping for workspace mode controls.
