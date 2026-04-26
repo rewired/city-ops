@@ -10,6 +10,8 @@ import { useNetworkSessionState } from './session/useNetworkSessionState';
 import { SimulationControlBar } from './simulation/SimulationControlBar';
 import { useSimulationClockController } from './simulation/useSimulationClockController';
 import { MaterialIcon } from './ui/icons/MaterialIcon';
+import { ToastProvider } from './ui/toast/ToastProvider';
+import { ToastHost } from './ui/toast/ToastHost';
 import {
   DebugModal,
   type DebugModalOverviewDiagnostics,
@@ -170,7 +172,8 @@ export default function App(): ReactElement {
   };
 
   return (
-    <div className="app-shell" data-app-surface="desktop-shell">
+    <ToastProvider>
+      <div className="app-shell" data-app-surface="desktop-shell">
       <SimulationControlBar
         clockController={clockController}
         debugAction={
@@ -189,9 +192,8 @@ export default function App(): ReactElement {
         }
         sessionActions={
           <SessionActions
-            selectedLineImportFeedback={sessionController.selectedLineImportFeedback}
             hasSelectedLineForExport={selectedCompletedLineForExport !== null}
-            onLoadStart={sessionController.clearSelectedLineImportFeedback}
+            onLoadStart={() => {}} // onLoadStart was used for clearSelectedLineImportFeedback, which is now handled by auto-dismiss
             onFileSelection={sessionController.handleLineJsonFileSelection}
             onExportSelectedLine={() => {
               if (!selectedCompletedLineForExport) {
@@ -294,6 +296,8 @@ export default function App(): ReactElement {
           service: serviceDiagnostics
         }}
       />
+      <ToastHost />
     </div>
-  );
+  </ToastProvider>
+);
 }

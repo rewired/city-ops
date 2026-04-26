@@ -1,10 +1,8 @@
 import { useRef, type ChangeEvent, type ReactElement } from 'react';
 
 import { MaterialIcon } from '../ui/icons/MaterialIcon';
-import type { SelectedLineImportFeedback } from './useNetworkSessionState';
 
 interface SessionActionsProps {
-  readonly selectedLineImportFeedback: SelectedLineImportFeedback | null;
   readonly hasSelectedLineForExport: boolean;
   readonly onLoadStart: () => void;
   readonly onFileSelection: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -13,7 +11,6 @@ interface SessionActionsProps {
 
 /** Renders compact session-level selected-line load/export icon actions with accessible labels. */
 export function SessionActions({
-  selectedLineImportFeedback,
   hasSelectedLineForExport,
   onLoadStart,
   onFileSelection,
@@ -57,17 +54,6 @@ export function SessionActions({
           void onFileSelection(event);
         }}
       />
-      {selectedLineImportFeedback ? (
-        <p
-          className={
-            selectedLineImportFeedback.kind === 'error'
-              ? 'inspector-line-json-loader__feedback inspector-line-json-loader__feedback--error'
-              : 'inspector-line-json-loader__feedback inspector-line-json-loader__feedback--success'
-          }
-        >
-          <strong>{selectedLineImportFeedback.title}:</strong> {selectedLineImportFeedback.detail}
-        </p>
-      ) : null}
     </section>
   );
 }

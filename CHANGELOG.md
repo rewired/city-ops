@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Slice 064d: Toast Feedback and Layout Safety Repair
+- Implemented a reusable Toast feedback system with four variants (success, error, warning, info).
+- Replaced raw layout-breaking import feedback text with contained toast notifications.
+- Added `ToastProvider`, `ToastHost`, and `Toast` components with Material icon support.
+- Documented global UI layout text-safety rule in `AGENTS.md` to prevent uncontrolled text from breaking app chrome.
+- Aligned toast visual style with `DESIGN.md` using semantic colors and whisper-weight borders.
+
+
 ### Added
 - **Slice 064c**: Realtime Speed, 0.1×, Pace Icon, and Header Layout Repair.
 - Add distinct `realtime` speed option (1:1 simulated-to-real second) using the Material Symbols `pace` icon.

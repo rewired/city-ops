@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react';
+import { useToast } from '../ui/toast/ToastProvider';
 
 import { MVP_TIME_BAND_IDS } from '../domain/constants/timeBands';
 import { applyLineFrequencyEditorAction } from './lineFrequencyEditorState';
@@ -13,12 +14,6 @@ import { completeLineRouting } from '../domain/routing/completeLineRouting';
 import { getDefaultRoutingAdapter } from '../domain/routing/defaultRoutingAdapter';
 import type { LineBuildSelectionState, SelectedLineDialogOpenIntent, WorkspaceToolMode } from './sessionTypes';
 
-/** Feedback contract for selected-line JSON import actions. */
-export interface SelectedLineImportFeedback {
-  readonly kind: 'success' | 'error';
-  readonly title: string;
-  readonly detail: string;
-}
 
 /** Text-input state for frequency editing fields keyed by canonical MVP time bands. */
 export type LineFrequencyInputByTimeBand = Readonly<Record<TimeBandId, string>>;
@@ -48,7 +43,6 @@ export interface NetworkSessionStateController {
   readonly lineFrequencyInputByTimeBand: LineFrequencyInputByTimeBand;
   readonly lineFrequencyControlByTimeBand: LineFrequencyControlByTimeBand;
   readonly lineFrequencyValidationByTimeBand: LineFrequencyValidationByTimeBand;
-  readonly selectedLineImportFeedback: SelectedLineImportFeedback | null;
   readonly selectedLineDialogOpenIntent: SelectedLineDialogOpenIntent | null;
   readonly handleToolModeSelection: (nextMode: WorkspaceToolMode) => void;
   readonly setSessionStops: Dispatch<SetStateAction<readonly Stop[]>>;
@@ -63,7 +57,6 @@ export interface NetworkSessionStateController {
     action?: SelectedLineFrequencyUpdateAction
   ) => void;
   readonly handleLineJsonFileSelection: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
-  readonly clearSelectedLineImportFeedback: () => void;
 }
 
 const INITIAL_LINE_BUILD_SELECTION_STATE: LineBuildSelectionState = {
@@ -93,7 +86,7 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
     useState<LineFrequencyControlByTimeBand>(createEmptyLineFrequencyControlByTimeBand);
   const [lineFrequencyValidationByTimeBand, setLineFrequencyValidationByTimeBand] =
     useState<LineFrequencyValidationByTimeBand>(createEmptyLineFrequencyValidationByTimeBand);
-  const [selectedLineImportFeedback, setSelectedLineImportFeedback] = useState<SelectedLineImportFeedback | null>(null);
+  const { pushToast } = useToast();
   const [selectedLineDialogOpenIntent, setSelectedLineDialogOpenIntent] =
     useState<SelectedLineDialogOpenIntent | null>(null);
 
@@ -140,7 +133,6 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
     lineFrequencyInputByTimeBand,
     lineFrequencyControlByTimeBand,
     lineFrequencyValidationByTimeBand,
-    selectedLineImportFeedback,
     selectedLineDialogOpenIntent,
     handleToolModeSelection: (nextMode) => {
       setActiveToolMode(nextMode);
@@ -201,8 +193,8 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
 
       const parsedResult = await parseSelectedLineExportFile(selectedFile);
       if (!parsedResult.ok) {
-        setSelectedLineImportFeedback({
-          kind: 'error',
+        pushToast({
+          variant: 'error',
           title: 'Line JSON could not be loaded',
           detail: parsedResult.issue.message
         });
@@ -216,8 +208,8 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
           ? `${firstIssue.message} (code: ${firstIssue.code}, path: ${firstIssue.path})${validationResult.issues.length > 1 ? ` plus ${validationResult.issues.length - 1} more issues.` : ''}`
           : 'The selected line JSON failed validation.';
 
-        setSelectedLineImportFeedback({
-          kind: 'error',
+        pushToast({
+          variant: 'error',
           title: 'Line JSON failed validation',
           detail
         });
@@ -226,8 +218,8 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
 
       const conversionResult = convertSelectedLineExportPayloadToSession(validationResult.payload);
       if (!conversionResult.ok) {
-        setSelectedLineImportFeedback({
-          kind: 'error',
+        pushToast({
+          variant: 'error',
           title: 'Line JSON could not be converted',
           detail: conversionResult.issue.message
         });
@@ -264,16 +256,13 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
       setSelectedLineId(finalLine.id);
       setSelectedStop(null);
       setLineBuildSelection(INITIAL_LINE_BUILD_SELECTION_STATE);
-      setSelectedLineImportFeedback({
-        kind: 'success',
+      pushToast({
+        variant: 'success',
         title: 'Line JSON loaded',
         detail: needsRouting 
           ? `Loaded line ${finalLine.id} and generated missing routing.`
           : `Loaded line ${finalLine.id} with its original stop labels and routed geometry.`
       });
     },
-    clearSelectedLineImportFeedback: () => {
-      setSelectedLineImportFeedback(null);
-    }
   };
 };

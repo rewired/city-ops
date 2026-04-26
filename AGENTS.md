@@ -247,6 +247,13 @@ Do not mix:
 * no UI-only constants redefining domain semantics
 * no design-driven domain changes without explicit approval
 
+### UI Layout safety
+
+* Debug/status/diagnostic/transient feedback must be rendered only through contained UI surfaces.
+* Acceptable surfaces: toast, modal/dialog, inspector/debug panel, or a bounded inline component that wraps safely.
+* Raw long text must not be inserted directly into app chrome/header/layout containers.
+* If uncertain, use a small modal or toast rather than letting text escape into layout.
+
 ---
 
 ## MVP scope guardrails
