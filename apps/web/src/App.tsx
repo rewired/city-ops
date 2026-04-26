@@ -97,6 +97,7 @@ export default function App(): ReactElement {
     sessionController.selectedLine,
     clockController.activeSimulationTimeBandId,
     clockController.currentSimulationMinuteOfDay,
+    clockController.currentSimulationSecondOfDay,
     MVP_DEMAND_SCENARIO
   );
   const inspectorPanelState = resolveInspectorPanelState(

@@ -6,7 +6,7 @@ import { projectLinePlanningVehicles, projectNetworkPlanningVehicles } from './l
 import { resolveLineServiceBandHeadwayMinutes, type Line } from '../types/line';
 import type { Stop } from '../types/stop';
 import type { TimeBandId } from '../types/timeBand';
-import type { SimulationMinuteOfDay } from '../types/simulationClock';
+import type { SimulationMinuteOfDay, SimulationSecondOfDay } from '../types/simulationClock';
 import type { LineRouteSegment, RouteStatus } from '../types/lineRoute';
 
 const MAX_READINESS_ISSUES_VISIBLE = 5;
@@ -100,6 +100,7 @@ export const useNetworkPlanningProjections = (
   selectedLine: Line | null,
   activeSimulationTimeBandId: TimeBandId,
   currentSimulationMinuteOfDay: SimulationMinuteOfDay,
+  currentSimulationSecondOfDay: SimulationSecondOfDay,
   sessionDemandNodes: readonly DemandNode[] = []
 ): NetworkPlanningProjections => {
   const staticNetworkSummaryKpis = projectStaticNetworkSummaryKpis(sessionStops.length, sessionLines, selectedLine);
@@ -130,7 +131,7 @@ export const useNetworkPlanningProjections = (
     sessionLines,
     routeBaselinesByLineId,
     networkPlanningVehicleProjections,
-    currentSimulationMinuteOfDay,
+    currentSimulationSecondOfDay,
     activeSimulationTimeBandId
   );
   const selectedLineVehicleProjection = selectedLine

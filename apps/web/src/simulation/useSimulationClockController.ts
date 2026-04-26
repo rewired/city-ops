@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { deriveTimeBandIdFromMinuteOfDay, createInitialSimulationClockState, applySimulationClockCommand } from '../domain/simulation/simulationClock';
-import type { SimulationMinuteOfDay, SimulationSpeedId } from '../domain/types/simulationClock';
+import { deriveTimeBandIdFromMinuteOfDay, createInitialSimulationClockState, applySimulationClockCommand, deriveSimulationSecondOfDay } from '../domain/simulation/simulationClock';
+import type { SimulationMinuteOfDay, SimulationSecondOfDay, SimulationSpeedId } from '../domain/types/simulationClock';
 
 /** Shell clock controller contract exposing state, derived read values, and command handlers. */
 export interface SimulationClockController {
   readonly simulationClockState: ReturnType<typeof createInitialSimulationClockState>;
   readonly currentSimulationMinuteOfDay: SimulationMinuteOfDay;
+  readonly currentSimulationSecondOfDay: SimulationSecondOfDay;
   readonly activeSimulationTimeBandId: ReturnType<typeof deriveTimeBandIdFromMinuteOfDay>;
   readonly handlePauseClock: () => void;
   readonly handleResumeClock: () => void;
@@ -20,35 +21,41 @@ export const useSimulationClockController = (): SimulationClockController => {
   const lastClockTickRealMillisecondsRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
+    let animationFrameId: number;
+
+    const tick = () => {
       const nowMilliseconds = performance.now();
       const previousTick = lastClockTickRealMillisecondsRef.current;
       lastClockTickRealMillisecondsRef.current = nowMilliseconds;
 
-      if (previousTick === null) {
-        return;
+      if (previousTick !== null) {
+        const elapsedRealMilliseconds = nowMilliseconds - previousTick;
+        setSimulationClockState((currentClockState) =>
+          applySimulationClockCommand(currentClockState, {
+            type: 'advance-elapsed',
+            elapsedRealMilliseconds
+          }).nextState
+        );
       }
 
-      const elapsedRealMilliseconds = nowMilliseconds - previousTick;
-      setSimulationClockState((currentClockState) =>
-        applySimulationClockCommand(currentClockState, {
-          type: 'advance-elapsed',
-          elapsedRealMilliseconds
-        }).nextState
-      );
-    }, 250);
+      animationFrameId = window.requestAnimationFrame(tick);
+    };
+
+    animationFrameId = window.requestAnimationFrame(tick);
 
     return () => {
-      window.clearInterval(intervalId);
+      window.cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   const currentSimulationMinuteOfDay = simulationClockState.timestamp.minuteOfDay;
+  const currentSimulationSecondOfDay = deriveSimulationSecondOfDay(simulationClockState);
   const activeSimulationTimeBandId = deriveTimeBandIdFromMinuteOfDay(currentSimulationMinuteOfDay);
 
   return {
     simulationClockState,
     currentSimulationMinuteOfDay,
+    currentSimulationSecondOfDay,
     activeSimulationTimeBandId,
     handlePauseClock: () => {
       setSimulationClockState((currentClockState) =>

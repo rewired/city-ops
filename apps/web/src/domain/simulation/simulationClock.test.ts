@@ -6,6 +6,8 @@ import {
   createInitialSimulationClockState,
   createSimulationDayIndex,
   createSimulationMinuteOfDay,
+  createSimulationSecondOfDay,
+  deriveSimulationSecondOfDay,
   deriveTimeBandIdFromMinuteOfDay,
   formatSimulationMinuteOfDay,
   setSimulationSpeed,
@@ -119,5 +121,31 @@ describe('simulationClock', () => {
     const initialState = createInitialSimulationClockState();
 
     expect(setSimulationSpeedFromUnknown(initialState, '999x')).toBe(initialState);
+  });
+
+  describe('SimulationSecondOfDay', () => {
+    it('creates branded seconds from finite numbers', () => {
+      expect(createSimulationSecondOfDay(3600)).toBe(3600);
+      expect(createSimulationSecondOfDay(3600.5)).toBe(3600.5);
+    });
+
+    it('derives continuous seconds from clock state including carryover', () => {
+      const state = {
+        ...createInitialSimulationClockState(),
+        timestamp: {
+          dayIndex: createSimulationDayIndex(1),
+          minuteOfDay: createSimulationMinuteOfDay(360)
+        },
+        carryoverScaledRealMilliseconds: 500 // half a minute at 1x
+      };
+
+      // 360 * 60 + (500 / 1000) * 60 = 21600 + 30 = 21630
+      expect(deriveSimulationSecondOfDay(state)).toBe(21630);
+    });
+
+    it('handles zero carryover correctly', () => {
+      const state = createInitialSimulationClockState();
+      expect(deriveSimulationSecondOfDay(state)).toBe(360 * 60);
+    });
   });
 });

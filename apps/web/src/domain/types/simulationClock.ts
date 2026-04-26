@@ -11,6 +11,11 @@ export type SimulationDayIndex = number & { readonly __brand: 'SimulationDayInde
 export type SimulationMinuteOfDay = number & { readonly __brand: 'SimulationMinuteOfDay' };
 
 /**
+ * Branded second-of-day value for continuous projection, allows fractional seconds.
+ */
+export type SimulationSecondOfDay = number & { readonly __brand: 'SimulationSecondOfDay' };
+
+/**
  * Immutable simulation timestamp tuple used by the simulation clock baseline.
  */
 export interface SimulationTimestamp {

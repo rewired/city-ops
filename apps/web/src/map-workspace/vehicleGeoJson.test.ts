@@ -27,7 +27,7 @@ const createVehicleNetworkProjection = (
       routeStatus: 'routed',
       vehicles: [
         {
-          id: createLineVehicleProjectionId('line-1:420'),
+          id: createLineVehicleProjectionId('line-1:vehicle-0'),
           lineId,
           lineLabel: 'Line 1',
           activeTimeBandId: 'morning-rush',
@@ -62,7 +62,7 @@ describe('buildVehicleFeatureCollection', () => {
           coordinates: [13.405, 52.52]
         },
         properties: {
-          projectedVehicleId: createLineVehicleProjectionId('line-1:420'),
+          projectedVehicleId: createLineVehicleProjectionId('line-1:vehicle-0'),
           lineId,
           projectionStatus: 'projected',
           degraded: false
@@ -84,7 +84,7 @@ describe('buildVehicleFeatureCollection', () => {
           coordinates: [9.9937, 53.5511]
         },
         properties: {
-          projectedVehicleId: createLineVehicleProjectionId('line-1:420'),
+          projectedVehicleId: createLineVehicleProjectionId('line-1:vehicle-0'),
           lineId,
           projectionStatus: 'degraded-projected',
           degraded: true
@@ -129,7 +129,7 @@ describe('buildVehicleFeatureCollection', () => {
             routeStatus: 'routed',
             vehicles: [
               {
-                id: createLineVehicleProjectionId('line-1:420'),
+                id: createLineVehicleProjectionId('line-1:vehicle-0'),
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',
@@ -140,7 +140,7 @@ describe('buildVehicleFeatureCollection', () => {
                 status: 'projected'
               },
               {
-                id: createLineVehicleProjectionId('line-1:430'),
+                id: createLineVehicleProjectionId('line-1:vehicle-1'),
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',
@@ -151,7 +151,7 @@ describe('buildVehicleFeatureCollection', () => {
                 status: 'degraded-projected'
               },
               {
-                id: createLineVehicleProjectionId('line-1:440'),
+                id: createLineVehicleProjectionId('line-1:vehicle-2'),
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',
@@ -162,7 +162,7 @@ describe('buildVehicleFeatureCollection', () => {
                 status: 'unavailable'
               },
               {
-                id: createLineVehicleProjectionId('line-1:450'),
+                id: createLineVehicleProjectionId('line-1:vehicle-3'),
                 lineId,
                 lineLabel: 'Line 1',
                 activeTimeBandId: 'morning-rush',

@@ -11,7 +11,7 @@ import { createLineVehicleProjectionId } from '../types/lineVehicleProjection';
 import type { RouteGeometryCoordinate } from '../types/lineRoute';
 import type { LineRouteBaseline, RouteSegmentBaseline } from '../types/routeBaseline';
 import type { LinePlanningVehicleProjection, LineBandVehicleProjection } from '../types/linePlanningVehicleProjection';
-import type { SimulationMinuteOfDay } from '../types/simulationClock';
+import type { SimulationMinuteOfDay, SimulationSecondOfDay } from '../types/simulationClock';
 import type { TimeBandId } from '../types/timeBand';
 import { clampRouteSegmentProgressRatio, projectCoordinateAlongRouteGeometry } from './routeGeometryInterpolation';
 
@@ -82,7 +82,7 @@ const projectVehiclesForLine = (
   line: Line,
   routeBaseline: LineRouteBaseline,
   planningProjection: LineBandVehicleProjection,
-  currentMinuteOfDay: SimulationMinuteOfDay,
+  currentSecondOfDay: SimulationSecondOfDay,
   activeTimeBandId: TimeBandId
 ): LineVehicleProjectionForLine => {
   if (planningProjection.serviceState !== 'frequency' || planningProjection.status === 'route-unavailable') {
@@ -116,7 +116,7 @@ const projectVehiclesForLine = (
   const totalForwardSeconds = routeBaseline.totalTravelTimeSeconds;
   const totalReverseSeconds = routeBaseline.totalReverseTravelTimeSeconds ?? totalForwardSeconds;
   const recoverySeconds = DEFAULT_TURNAROUND_RECOVERY_MINUTES * SECONDS_PER_MINUTE;
-  const currentSecondsOfDay = currentMinuteOfDay * SECONDS_PER_MINUTE;
+  const currentSecondsOfDay = currentSecondOfDay;
 
   const isLoop = line.topology === 'loop';
   const isBidirectional = line.servicePattern === 'bidirectional';
@@ -186,7 +186,7 @@ const projectVehiclesForLine = (
 
     const degradedNote = segmentProgress.note ?? fallbackNote;
     vehicles.push({
-      id: createLineVehicleProjectionId(`${line.id}:${activeTimeBandId}:bus-${i}`),
+      id: createLineVehicleProjectionId(`${line.id}:vehicle-${i}`),
       lineId: line.id,
       lineLabel: line.label,
       activeTimeBandId,
@@ -217,7 +217,7 @@ export const projectLineVehicleNetwork = (
   completedLines: readonly Line[],
   routeBaselinesByLineId: ReadonlyMap<string, LineRouteBaseline>,
   planningProjections: readonly LinePlanningVehicleProjection[],
-  currentMinuteOfDay: SimulationMinuteOfDay,
+  currentSecondOfDay: SimulationSecondOfDay,
   activeTimeBandId: TimeBandId
 ): LineVehicleNetworkProjection => {
   const planningByLineId = new Map(planningProjections.map((p) => [p.lineId, p]));
@@ -239,7 +239,7 @@ export const projectLineVehicleNetwork = (
       };
     }
 
-    return projectVehiclesForLine(line, routeBaseline, bandPlanning, currentMinuteOfDay, activeTimeBandId);
+    return projectVehiclesForLine(line, routeBaseline, bandPlanning, currentSecondOfDay, activeTimeBandId);
   });
 
   const summary = lines.reduce<LineVehicleProjectionSummary>(

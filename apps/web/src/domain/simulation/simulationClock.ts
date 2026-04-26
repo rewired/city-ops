@@ -6,6 +6,7 @@ import {
   MIN_SIMULATION_MINUTE_OF_DAY,
   REAL_MILLISECONDS_PER_SIMULATION_MINUTE,
   SIMULATION_MINUTES_PER_DAY,
+  SIMULATION_SECONDS_PER_MINUTE,
   SIMULATION_SPEED_DEFINITIONS
 } from '../constants/simulationClock';
 import {
@@ -19,6 +20,7 @@ import type {
   SimulationClockUpdateResult,
   SimulationDayIndex,
   SimulationMinuteOfDay,
+  SimulationSecondOfDay,
   SimulationRunningState,
   SimulationSpeedDefinition,
   SimulationSpeedId
@@ -54,6 +56,17 @@ export const createSimulationMinuteOfDay = (rawMinuteOfDay: number): SimulationM
   }
 
   return rawMinuteOfDay as SimulationMinuteOfDay;
+};
+
+/**
+ * Creates a branded simulation second-of-day for continuous projection.
+ */
+export const createSimulationSecondOfDay = (rawSecondOfDay: number): SimulationSecondOfDay => {
+  if (!Number.isFinite(rawSecondOfDay)) {
+    throw new Error('Simulation second of day must be a finite number.');
+  }
+
+  return rawSecondOfDay as SimulationSecondOfDay;
 };
 
 /**
@@ -93,6 +106,17 @@ export const deriveTimeBandIdFromMinuteOfDay = (minuteOfDay: SimulationMinuteOfD
  */
 export const formatSimulationMinuteOfDay = (minuteOfDay: SimulationMinuteOfDay): string =>
   formatMinuteOfDayToClock(createMinuteOfDay(minuteOfDay));
+
+/**
+ * Derives the continuous simulation second-of-day for smooth projection from clock state.
+ */
+export const deriveSimulationSecondOfDay = (state: SimulationClockState): SimulationSecondOfDay => {
+  const minuteSeconds = state.timestamp.minuteOfDay * SIMULATION_SECONDS_PER_MINUTE;
+  const fractionSeconds =
+    (state.carryoverScaledRealMilliseconds / REAL_MILLISECONDS_PER_SIMULATION_MINUTE) * SIMULATION_SECONDS_PER_MINUTE;
+
+  return createSimulationSecondOfDay(minuteSeconds + fractionSeconds);
+};
 
 /**
  * Returns a copy of clock state with running status set to paused.

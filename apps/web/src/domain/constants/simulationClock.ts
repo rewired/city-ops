@@ -21,6 +21,16 @@ export const MAX_SIMULATION_MINUTE_OF_DAY = 1439 as SimulationMinuteOfDay;
 export const SIMULATION_MINUTES_PER_DAY = 1440;
 
 /**
+ * Total seconds in one simulation minute.
+ */
+export const SIMULATION_SECONDS_PER_MINUTE = 60;
+
+/**
+ * Total seconds in one full simulation day.
+ */
+export const SIMULATION_SECONDS_PER_DAY = 86400;
+
+/**
  * Baseline real milliseconds representing one simulated minute at 1x speed.
  */
 export const REAL_MILLISECONDS_PER_SIMULATION_MINUTE = 1000;

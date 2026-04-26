@@ -73,7 +73,17 @@ All notable changes to this project will be documented in this file.
 - Resolve strict TypeScript issues in demand domain by introducing `createZeroDemandWeightByTimeBand` factory and enforcing complete `Record<TimeBandId, T>` map initialization.
 - Align test suites with canonical MVP time bands and hardened type safety requirements.
 
-## 2026-04-25
+- **Slice 064**: Vehicle Projection Continuity + Smooth Movement.
+- Continuous simulation-second projection input for smooth vehicle movement using `SimulationSecondOfDay` branded type.
+- `deriveSimulationSecondOfDay` helper for animation-frame cadence clock reads.
+- Refactored simulation clock controller to use `requestAnimationFrame` for smoother progression.
+- Stabilized projected vehicle IDs to `<lineId>:vehicle-<index>`, removing time-band dependency to prevent marker churn.
+- Updated vehicle projection logic to use continuous seconds for geometry interpolation.
+- Improved marker identity stability across time-band transitions for overlapping vehicle slot indexes.
+- Removed legacy `as any` shortcuts in vehicle projection unit tests.
+- Add ADR 0118 documenting the vehicle projection continuity and smooth movement decisions.
+
+## [0.63.3] - 2026-04-26
 
 - Slice 055: implement a deterministic, in-memory MVP demand scenario for the Hamburg area with residential origin and workplace destination nodes.
 - Slice 055: wire the scenario demand nodes into the application/session projection flow, replacing empty demand arrays in network planning projections and debug diagnostics.
