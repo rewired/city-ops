@@ -7,7 +7,10 @@ import type { TimeBandId } from './timeBand';
 /**
  * Canonical schema version literal for single-line JSON export payloads.
  */
-export const SELECTED_LINE_EXPORT_SCHEMA_VERSION = 'cityops-selected-line-export-v3' as const;
+export const SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3 = 'cityops-selected-line-export-v3' as const;
+export const SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4 = 'cityops-selected-line-export-v4' as const;
+
+export const SELECTED_LINE_EXPORT_SCHEMA_VERSION = SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4;
 
 /**
  * Discriminator literal for payloads that export one completed selected line.
@@ -72,7 +75,7 @@ export interface SelectedLineExportCountsMetadata {
  * Root payload contract for a single selected-line export JSON document.
  */
 export interface SelectedLineExportPayload {
-  readonly schemaVersion: typeof SELECTED_LINE_EXPORT_SCHEMA_VERSION;
+  readonly schemaVersion: typeof SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3 | typeof SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4;
   readonly exportKind: typeof SELECTED_LINE_EXPORT_KIND;
   readonly createdAtIsoUtc: string;
   readonly sourceMetadata: SelectedLineExportSourceMetadata;
@@ -127,14 +130,13 @@ export const buildSelectedLineExportPayload = ({
       topology: selectedLine.topology,
       servicePattern: selectedLine.servicePattern,
       frequencyByTimeBand,
-      routeSegments: selectedLine.routeSegments,
-      reverseRouteSegments: selectedLine.reverseRouteSegments
+      // v4 exports do not include cached route geometry
     },
     stops,
     metadata: {
       lineCount: 1,
       stopCount: stops.length,
-      routeSegmentCount: selectedLine.routeSegments.length,
+      routeSegmentCount: 0,
       includedTimeBandIds
     }
   };

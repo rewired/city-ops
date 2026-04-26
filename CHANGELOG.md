@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ### [Unreleased]
 
+### Slice 065: Slim Selected-Line Export and Re-route on Import
+- Implemented slim selected-line export/import format (`v4`) that stores only the line definition (topology, stops, service plan) and omits routed geometry coordinates.
+- Added `cityops-selected-line-export-v4` schema version and ensured backward compatibility with `v3` (geometry-cached) payloads.
+- Automated geometry reconstruction on import via the routing layer, ensuring fresh geometry consistent with the current routing environment.
+- Updated the import workflow to distinguish between rebuilt v4 geometry and loaded v3 geometry in toast notifications, including feedback on whether street routing or fallback routing was used.
+- Added `hamburg-line-1.v4.json` fixture for slim-export testing and verification.
+- Updated all export/import unit and round-trip tests to reflect the new geometry-free v4 save-game truth.
+
 ### Slice 064e: Modal Close Icons, Stable Clock Display, Weekday Label, and Timetable Numeric Typography
 - Replaced all "Close" text buttons in modals with a Material `close` icon button for a cleaner, consistent UI.
 - Updated the simulation clock readout to show `Day X, Weekday` above `HH:MM`, with internal centering and fixed-width layout to prevent top-bar "wobble".

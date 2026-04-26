@@ -6,7 +6,8 @@ import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 import { ROUTE_STATUSES } from '../types/lineRoute';
 import {
   SELECTED_LINE_EXPORT_KIND,
-  SELECTED_LINE_EXPORT_SCHEMA_VERSION,
+  SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3,
+  SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4,
   type SelectedLineExportPayload
 } from '../types/selectedLineExport';
 import type { TimeBandId } from '../types/timeBand';
@@ -144,13 +145,18 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
     }
   }
 
-  if (payload.schemaVersion !== SELECTED_LINE_EXPORT_SCHEMA_VERSION) {
+  if (
+    payload.schemaVersion !== SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3 &&
+    payload.schemaVersion !== SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4
+  ) {
     addIssue(
       'invalid-schema-version',
       '$.schemaVersion',
-      `schemaVersion must equal ${SELECTED_LINE_EXPORT_SCHEMA_VERSION}.`
+      `schemaVersion must equal ${SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3} or ${SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4}.`
     );
   }
+
+  const isV4 = payload.schemaVersion === SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4;
 
   if (payload.exportKind !== SELECTED_LINE_EXPORT_KIND) {
     addIssue('invalid-export-kind', '$.exportKind', `exportKind must equal ${SELECTED_LINE_EXPORT_KIND}.`);
@@ -503,10 +509,19 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
       }
     };
 
-    validateSegments(line.routeSegments, 'routeSegments', orderedStopIds);
+    if (isV4) {
+      if (line.routeSegments !== undefined) {
+        addIssue('invalid-route-segments', '$.line.routeSegments', 'v4 exports must not include routeSegments.');
+      }
+      if (line.reverseRouteSegments !== undefined) {
+        addIssue('invalid-route-segments', '$.line.reverseRouteSegments', 'v4 exports must not include reverseRouteSegments.');
+      }
+    } else {
+      validateSegments(line.routeSegments, 'routeSegments', orderedStopIds);
 
-    if (line.reverseRouteSegments !== undefined) {
-      validateSegments(line.reverseRouteSegments, 'reverseRouteSegments', [...orderedStopIds].reverse());
+      if (line.reverseRouteSegments !== undefined) {
+        validateSegments(line.reverseRouteSegments, 'reverseRouteSegments', [...orderedStopIds].reverse());
+      }
     }
 
   }
@@ -554,12 +569,20 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
         'metadata.routeSegmentCount must be a non-negative integer.'
       );
     } else if (isRecord(line)) {
-      const actualRouteSegmentCount = Array.isArray(line.routeSegments) ? line.routeSegments.length : 0;
-      if (routeSegmentCount !== actualRouteSegmentCount) {
+      if (!isV4) {
+        const actualRouteSegmentCount = Array.isArray(line.routeSegments) ? line.routeSegments.length : 0;
+        if (routeSegmentCount !== actualRouteSegmentCount) {
+          addIssue(
+            'invalid-metadata-counts',
+            '$.metadata.routeSegmentCount',
+            `metadata.routeSegmentCount (${routeSegmentCount}) must match actual routeSegments.length (${actualRouteSegmentCount}).`
+          );
+        }
+      } else if (routeSegmentCount !== 0) {
         addIssue(
           'invalid-metadata-counts',
           '$.metadata.routeSegmentCount',
-          `metadata.routeSegmentCount (${routeSegmentCount}) must match actual routeSegments.length (${actualRouteSegmentCount}).`
+          'metadata.routeSegmentCount must be 0 for v4 exports.'
         );
       }
     }

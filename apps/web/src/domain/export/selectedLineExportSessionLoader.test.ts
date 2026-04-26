@@ -8,7 +8,8 @@ import { validateSelectedLineExportPayload } from './selectedLineExportValidatio
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = dirname(currentFilePath);
-const fixturePath = resolve(currentDirPath, '../../../../../data/fixtures/selected-line-exports/hamburg-line-1.v3.json');
+const getFixturePath = (version: 'v3' | 'v4'): string => 
+  resolve(currentDirPath, `../../../../../data/fixtures/selected-line-exports/hamburg-line-1.${version}.json`);
 
 /**
  * Loose JSON-compatible helper type for intentional invalid-payload construction in tests.
@@ -18,23 +19,23 @@ type MutableJsonObject = Record<string, unknown>;
 /**
  * Reads the raw fixture file as an `unknown` candidate without any typed assumption.
  */
-const readFixtureCandidate = (): unknown =>
-  JSON.parse(readFileSync(fixturePath, 'utf-8'));
+const readFixtureCandidate = (version: 'v3' | 'v4' = 'v3'): unknown =>
+  JSON.parse(readFileSync(getFixturePath(version), 'utf-8'));
 
 /**
  * Clones the fixture into a mutable JSON object for invalid-case test construction.
  * Guards with an isRecord-equivalent check before casting to the narrow helper type.
  */
-const cloneFixtureObject = (): MutableJsonObject => {
-  const candidate = readFixtureCandidate();
+const cloneFixtureObject = (version: 'v3' | 'v4' = 'v3'): MutableJsonObject => {
+  const candidate = readFixtureCandidate(version);
   if (typeof candidate !== 'object' || candidate === null || Array.isArray(candidate)) {
     throw new Error('Fixture root must be a JSON object for clone-based test setup.');
   }
   return structuredClone(candidate) as MutableJsonObject;
 };
 
-const getValidatedFixturePayload = () => {
-  const candidate = readFixtureCandidate();
+const getValidatedFixturePayload = (version: 'v3' | 'v4' = 'v3') => {
+  const candidate = readFixtureCandidate(version);
   const validationResult = validateSelectedLineExportPayload(candidate);
   expect(validationResult.ok).toBe(true);
   if (!validationResult.ok) {
@@ -88,19 +89,12 @@ describe('convertSelectedLineExportPayloadToSession', () => {
     expect(Object.values(conversionResult.session.sessionLines[0].frequencyByTimeBand).every((plan) => plan.kind === 'no-service')).toBe(true);
   });
 
-  it('converts payload with missing routeSegments into empty session segments', () => {
-    const payload = cloneFixtureObject();
-    const line = payload['line'];
-    if (typeof line !== 'object' || line === null) {
-      throw new Error('Fixture line must be an object.');
-    }
-    const lineMut = line as MutableJsonObject;
-    delete lineMut['routeSegments'];
-    const metadata = payload['metadata'];
-    if (typeof metadata !== 'object' || metadata === null) {
-      throw new Error('Fixture metadata must be an object.');
-    }
-    (metadata as MutableJsonObject)['routeSegmentCount'] = 0;
+  it('converts payload with missing routeSegments (v3 legacy empty geometry) into empty session segments', () => {
+    const payload = cloneFixtureObject('v3');
+    const line = payload['line'] as MutableJsonObject;
+    delete line['routeSegments'];
+    const metadata = payload['metadata'] as MutableJsonObject;
+    metadata['routeSegmentCount'] = 0;
 
     const validationResult = validateSelectedLineExportPayload(payload);
     expect(validationResult.ok).toBe(true);
@@ -109,6 +103,16 @@ describe('convertSelectedLineExportPayloadToSession', () => {
     }
 
     const conversionResult = convertSelectedLineExportPayloadToSession(validationResult.payload);
+
+    expect(conversionResult.ok).toBe(true);
+    if (conversionResult.ok) {
+      expect(conversionResult.session.sessionLines[0].routeSegments).toEqual([]);
+    }
+  });
+
+  it('converts v4 slim payload into empty session segments', () => {
+    const validatedPayload = getValidatedFixturePayload('v4');
+    const conversionResult = convertSelectedLineExportPayloadToSession(validatedPayload);
 
     expect(conversionResult.ok).toBe(true);
     if (conversionResult.ok) {

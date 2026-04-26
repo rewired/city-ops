@@ -7,7 +7,8 @@ import { validateSelectedLineExportPayload } from './selectedLineExportValidatio
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = dirname(currentFilePath);
-const fixturePath = resolve(currentDirPath, '../../../../../data/fixtures/selected-line-exports/hamburg-line-1.v3.json');
+const getFixturePath = (version: 'v3' | 'v4'): string => 
+  resolve(currentDirPath, `../../../../../data/fixtures/selected-line-exports/hamburg-line-1.${version}.json`);
 
 /**
  * Loose JSON-compatible helper type for intentional invalid-payload construction in tests.
@@ -20,15 +21,15 @@ type MutableJsonObject = Record<string, unknown>;
  * Does not cast to any typed shape — the validator under test is responsible for
  * narrowing the result.
  */
-const readFixtureCandidate = (): unknown =>
-  JSON.parse(readFileSync(fixturePath, 'utf-8'));
+const readFixtureCandidate = (version: 'v3' | 'v4' = 'v3'): unknown =>
+  JSON.parse(readFileSync(getFixturePath(version), 'utf-8'));
 
 /**
  * Clones the fixture into a mutable JSON object helper type for invalid-case construction.
  * Guards with `isRecord` before casting to the narrow helper type.
  */
-const cloneFixtureObject = (): MutableJsonObject => {
-  const candidate = readFixtureCandidate();
+const cloneFixtureObject = (version: 'v3' | 'v4' = 'v3'): MutableJsonObject => {
+  const candidate = readFixtureCandidate(version);
   if (typeof candidate !== 'object' || candidate === null || Array.isArray(candidate)) {
     throw new Error('Fixture root must be a JSON object for clone-based test setup.');
   }
@@ -45,8 +46,16 @@ const expectIssue = (payload: unknown, expectedCode: string): void => {
 };
 
 describe('validateSelectedLineExportPayload fixture contract', () => {
-  it('validates committed hamburg-line-1 fixture successfully', () => {
-    const candidate = readFixtureCandidate();
+  it('validates committed hamburg-line-1.v3 fixture successfully', () => {
+    const candidate = readFixtureCandidate('v3');
+
+    const result = validateSelectedLineExportPayload(candidate);
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('validates committed hamburg-line-1.v4 fixture successfully', () => {
+    const candidate = readFixtureCandidate('v4');
 
     const result = validateSelectedLineExportPayload(candidate);
 
@@ -370,22 +379,19 @@ describe('validateSelectedLineExportPayload fixture contract', () => {
     expectIssue(payload, 'invalid-frequency-value');
   });
 
-  it('accepts payload with missing routeSegments as derived cache intent', () => {
-    const payload = cloneFixtureObject();
-    const line = payload['line'];
-    if (typeof line !== 'object' || line === null) {
-      throw new Error('Fixture line must be an object.');
-    }
-    const lineMut = line as MutableJsonObject;
-    delete lineMut['routeSegments'];
-    const metadata = payload['metadata'];
-    if (typeof metadata !== 'object' || metadata === null) {
-      throw new Error('Fixture metadata must be an object.');
-    }
-    (metadata as MutableJsonObject)['routeSegmentCount'] = 0;
+  it('rejects v4 payload that contains routeSegments', () => {
+    const payload = cloneFixtureObject('v4');
+    const line = payload['line'] as MutableJsonObject;
+    line['routeSegments'] = [];
 
-    const result = validateSelectedLineExportPayload(payload);
+    expectIssue(payload, 'invalid-route-segments');
+  });
 
-    expect(result.ok).toBe(true);
+  it('rejects v4 payload with non-zero routeSegmentCount', () => {
+    const payload = cloneFixtureObject('v4');
+    const metadata = payload['metadata'] as MutableJsonObject;
+    metadata['routeSegmentCount'] = 1;
+
+    expectIssue(payload, 'invalid-metadata-counts');
   });
 });

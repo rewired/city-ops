@@ -7,6 +7,7 @@ import { resolveLineServiceBandHeadwayMinutes, type Line, type LineServiceBandPl
 import { parseSelectedLineExportFile } from '../domain/export/selectedLineExportFileLoader';
 import { validateSelectedLineExportPayload } from '../domain/export/selectedLineExportValidation';
 import { convertSelectedLineExportPayloadToSession } from '../domain/export/selectedLineExportSessionLoader';
+import { SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4 } from '../domain/types/selectedLineExport';
 import type { Stop } from '../domain/types/stop';
 import type { TimeBandId } from '../domain/types/timeBand';
 import type { StopSelectionState } from '../map-workspace/MapWorkspaceSurface';
@@ -256,11 +257,14 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
       setSelectedLineId(finalLine.id);
       setSelectedStop(null);
       setLineBuildSelection(INITIAL_LINE_BUILD_SELECTION_STATE);
+      const isV4 = validationResult.payload.schemaVersion === SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4;
+      const isFallback = finalLine.routeSegments.some(s => s.status === 'fallback-routed');
+
       pushToast({
         variant: 'success',
         title: 'Line JSON loaded',
-        detail: needsRouting 
-          ? `Loaded line ${finalLine.id} and generated missing routing.`
+        detail: isV4
+          ? `Loaded line ${finalLine.id} with its stops and service plan. ${isFallback ? 'Fallback route geometry was used.' : 'Route geometry was rebuilt.'}`
           : `Loaded line ${finalLine.id} with its original stop labels and routed geometry.`
       });
     },

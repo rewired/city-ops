@@ -64,19 +64,19 @@ describe('buildSelectedLineExportPayload', () => {
       }
     });
 
-    expect(payload.schemaVersion).toBe('cityops-selected-line-export-v3');
+    expect(payload.schemaVersion).toBe('cityops-selected-line-export-v4');
     expect(payload.exportKind).toBe('single-line');
     expect(payload.createdAtIsoUtc).toBe('2026-04-24T12:00:00.000Z');
     expect(payload.line.id).toBe(lineId);
     expect(payload.line.orderedStopIds).toEqual([stopAId, stopBId]);
     expect(payload.line.topology).toBe('linear');
     expect(payload.line.servicePattern).toBe('one-way');
-    expect(payload.line.routeSegments).toBe(routeSegments);
+    expect((payload.line as any).routeSegments).toBeUndefined();
     expect(payload.stops.map((stop) => stop.id)).toEqual([stopAId, stopBId]);
     expect(payload.metadata).toEqual({
       lineCount: 1,
       stopCount: 2,
-      routeSegmentCount: 1,
+      routeSegmentCount: 0,
       includedTimeBandIds: ['morning-rush', 'late-morning', 'midday', 'afternoon', 'evening-rush', 'evening', 'night']
     });
     expect(payload.line.frequencyByTimeBand).toEqual({
