@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generateLineLabel, generateUniqueLineLabel } from './lineLabeling';
-import { createLineId, type Line } from '../types/line';
+import { createLineId, createNoServiceLineServiceByTimeBand, type Line } from '../types/line';
 import { createStopId, type Stop } from '../types/stop';
 
 describe('lineLabeling', () => {
@@ -38,7 +38,7 @@ describe('lineLabeling', () => {
         topology: 'linear',
         servicePattern: 'bidirectional',
         routeSegments: [],
-        frequencyByTimeBand: {} as any
+        frequencyByTimeBand: createNoServiceLineServiceByTimeBand()
       }
     ];
 

@@ -1,5 +1,5 @@
 import {
-  SELECTED_LINE_EXPORT_ENDPOINT_COORDINATE_TOLERANCE_DEGREES,
+  SELECTED_LINE_EXPORT_ROUTE_CACHE_ENDPOINT_TOLERANCE_DEGREES,
   SELECTED_LINE_EXPORT_TRAVEL_MINUTES_TOLERANCE
 } from '../constants/selectedLineExportValidation';
 import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
@@ -42,6 +42,7 @@ export type SelectedLineExportValidationIssueCode =
   | 'route-segment-adjacency-mismatch'
   | 'route-segment-endpoint-mismatch'
   | 'route-segment-total-travel-minutes-mismatch'
+  | 'invalid-route-segment-stop-reference'
   | 'invalid-route-status'
   | 'invalid-geometry'
   | 'invalid-geometry-coordinate'
@@ -438,7 +439,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
             const fromStopPosition = stopsById.get(segment.fromStopId);
             const toStopPosition = stopsById.get(segment.toStopId);
 
-            if (fromStopPosition && !coordinatesCloseEnough(start, fromStopPosition, SELECTED_LINE_EXPORT_ENDPOINT_COORDINATE_TOLERANCE_DEGREES)) {
+            if (fromStopPosition && !coordinatesCloseEnough(start, fromStopPosition, SELECTED_LINE_EXPORT_ROUTE_CACHE_ENDPOINT_TOLERANCE_DEGREES)) {
               addIssue(
                 'route-segment-endpoint-mismatch',
                 `${segmentPath}.orderedGeometry[0]`,
@@ -446,7 +447,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
               );
             }
 
-            if (toStopPosition && !coordinatesCloseEnough(end, toStopPosition, SELECTED_LINE_EXPORT_ENDPOINT_COORDINATE_TOLERANCE_DEGREES)) {
+            if (toStopPosition && !coordinatesCloseEnough(end, toStopPosition, SELECTED_LINE_EXPORT_ROUTE_CACHE_ENDPOINT_TOLERANCE_DEGREES)) {
               addIssue(
                 'route-segment-endpoint-mismatch',
                 `${segmentPath}.orderedGeometry[last]`,

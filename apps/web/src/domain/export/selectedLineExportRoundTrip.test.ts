@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { createLineId, createNoServiceLineServiceByTimeBand, type Line } from '../types/line';
 import { createStopId, type Stop } from '../types/stop';
+import {
+  createLineSegmentId,
+  createRouteDistanceMeters,
+  createRouteTravelMinutes
+} from '../types/lineRoute';
 import { buildSelectedLineExportPayload } from '../types/selectedLineExport';
 import { validateSelectedLineExportPayload } from './selectedLineExportValidation';
 import { convertSelectedLineExportPayloadToSession } from './selectedLineExportSessionLoader';
@@ -8,38 +13,40 @@ import { convertSelectedLineExportPayloadToSession } from './selectedLineExportS
 describe('selected-line export round-trip', () => {
   const mockStop1: Stop = { id: createStopId('stop-1'), label: 'Stop A', position: { lng: 9.9, lat: 53.5 } };
   const mockStop2: Stop = { id: createStopId('stop-2'), label: 'Stop B', position: { lng: 9.91, lat: 53.51 } };
-  
+
+  const lineId = createLineId('line-1');
+
   const mockLine: Line = {
-    id: createLineId('line-1'),
-    label: 'Stop A ↔ Stop B',
+    id: lineId,
+    label: 'Stop A \u2194 Stop B',
     stopIds: [mockStop1.id, mockStop2.id],
     topology: 'linear',
     servicePattern: 'bidirectional',
     routeSegments: [
       {
-        id: 'seg-1' as any,
-        lineId: 'line-1' as any,
-        fromStopId: 'stop-1' as any,
-        toStopId: 'stop-2' as any,
+        id: createLineSegmentId('seg-1'),
+        lineId,
+        fromStopId: mockStop1.id,
+        toStopId: mockStop2.id,
         orderedGeometry: [[9.9, 53.5], [9.91, 53.51]],
-        distanceMeters: 1000 as any,
-        inMotionTravelMinutes: 2 as any,
-        dwellMinutes: 0.5 as any,
-        totalTravelMinutes: 2.5 as any,
+        distanceMeters: createRouteDistanceMeters(1000),
+        inMotionTravelMinutes: createRouteTravelMinutes(2),
+        dwellMinutes: createRouteTravelMinutes(0.5),
+        totalTravelMinutes: createRouteTravelMinutes(2.5),
         status: 'routed'
       }
     ],
     reverseRouteSegments: [
-       {
-        id: 'seg-rev-1' as any,
-        lineId: 'line-1' as any,
-        fromStopId: 'stop-2' as any,
-        toStopId: 'stop-1' as any,
+      {
+        id: createLineSegmentId('seg-rev-1'),
+        lineId,
+        fromStopId: mockStop2.id,
+        toStopId: mockStop1.id,
         orderedGeometry: [[9.91, 53.51], [9.9, 53.5]],
-        distanceMeters: 1000 as any,
-        inMotionTravelMinutes: 2 as any,
-        dwellMinutes: 0.5 as any,
-        totalTravelMinutes: 2.5 as any,
+        distanceMeters: createRouteDistanceMeters(1000),
+        inMotionTravelMinutes: createRouteTravelMinutes(2),
+        dwellMinutes: createRouteTravelMinutes(0.5),
+        totalTravelMinutes: createRouteTravelMinutes(2.5),
         status: 'routed'
       }
     ],
@@ -68,6 +75,9 @@ describe('selected-line export round-trip', () => {
     const importedLine = conversionResult.session.sessionLines[0];
     const importedStops = conversionResult.session.placedStops;
 
+    expect(importedLine).toBeDefined();
+    if (!importedLine) return;
+
     // Assert preservation
     expect(importedLine.id).toBe(mockLine.id);
     expect(importedLine.label).toBe(mockLine.label);
@@ -76,13 +86,17 @@ describe('selected-line export round-trip', () => {
     expect(importedLine.servicePattern).toBe(mockLine.servicePattern);
     expect(importedLine.routeSegments).toHaveLength(mockLine.routeSegments.length);
     expect(importedLine.reverseRouteSegments).toHaveLength(mockLine.reverseRouteSegments!.length);
-    
+
     // Check first segment data
-    expect(importedLine.routeSegments[0].id).toBe(mockLine.routeSegments[0].id);
-    expect(importedLine.routeSegments[0].orderedGeometry).toEqual(mockLine.routeSegments[0].orderedGeometry);
-    
+    const firstSegment = importedLine.routeSegments[0];
+    expect(firstSegment).toBeDefined();
+    if (!firstSegment) return;
+
+    expect(firstSegment.id).toBe(mockLine.routeSegments[0]!.id);
+    expect(firstSegment.orderedGeometry).toEqual(mockLine.routeSegments[0]!.orderedGeometry);
+
     // Check stops
     expect(importedStops).toHaveLength(2);
-    expect(importedStops[0].label).toBe(mockStop1.label);
+    expect(importedStops[0]?.label).toBe(mockStop1.label);
   });
 });

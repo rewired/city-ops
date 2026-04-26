@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 063b**: Green-state repair for post-Slice-063 failures.
+- Increase `SELECTED_LINE_EXPORT_ROUTE_CACHE_ENDPOINT_TOLERANCE_DEGREES` from `1e-5` to `5e-4` to accept realistic OSRM street-snap endpoint offsets (~17m observed in Hamburg v3 fixture); rename constant to clarify it is a route-cache compatibility tolerance, not a stop-position precision guarantee.
+- Add `'invalid-route-segment-stop-reference'` to `SelectedLineExportValidationIssueCode` union to fix TypeScript compile errors.
+- Fix `lineGeoJson.ts`: add missing `LineRouteSegment` import; replace `any[]` with a properly typed feature array; remove the fallback that synthesized reverse geometry from reversed stop order when `reverseRouteSegments` is absent — the rendering layer must not invent reverse route geometry.
+- Update `lineGeoJson.test.ts`: replace the reversed-stop-order-fallback expectation with an assertion that bidirectional lines without `reverseRouteSegments` emit only the forward feature.
+- Remove all `as any` and `{} as any` shortcuts from new Slice-063 tests in `selectedLineExportRoundTrip.test.ts` and `lineLabeling.test.ts`, replacing them with canonical creators (`createLineSegmentId`, `createRouteDistanceMeters`, `createRouteTravelMinutes`, `createNoServiceLineServiceByTimeBand`).
+- Update ADR 0116 to accurately describe the staged/ranked nearby label lookup introduced in Slice 063, replacing the outdated 16px fixed-radius description.
+- Remove `test_output.txt` debug artifact from repository root.
+
+### Fixed
+- Hamburg v3 fixture (`hamburg-line-1.v3.json`) now validates successfully through `validateSelectedLineExportPayload`.
+- Session loader tests no longer fail on fixture validation.
+- Round-trip test (`selectedLineExportRoundTrip.test.ts`) is type-safe with no `as any` usage.
+
 - **Slice 063**: Session round-trip repair, deterministic line labeling, bidirectional rendering, and ranked stop-label lookup.
 - Repair selected-line JSON round-trip import to preserve cached route segments and stop labels without mandatory re-routing on load.
 - Implement deterministic line labeling (e.g., "Stop A → Stop B" or "Stop A ↔ Stop B") derived from stop sequence and service pattern, including unique numeric suffixing for duplicates.

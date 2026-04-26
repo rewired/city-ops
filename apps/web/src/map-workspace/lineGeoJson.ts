@@ -1,7 +1,7 @@
 import type { Line } from '../domain/types/line';
-import type { RouteGeometryCoordinate } from '../domain/types/lineRoute';
+import type { LineRouteSegment, RouteGeometryCoordinate } from '../domain/types/lineRoute';
 import type { Stop, StopId } from '../domain/types/stop';
-import type { MapLibreGeoJsonFeatureCollection } from './maplibreGlobal';
+import type { MapLibreGeoJsonFeature, MapLibreGeoJsonFeatureCollection } from './maplibreGlobal';
 
 /**
  * Public completed-line feature property contract projected into MapLibre GeoJSON sources.
@@ -82,7 +82,7 @@ export const buildCompletedLineFeatureCollection = ({
   readonly stopsById: ReadonlyMap<StopId, Stop>;
   readonly selectedLineId: Line['id'] | null;
 }): MapLibreGeoJsonFeatureCollection<CompletedLineFeatureProperties> => {
-  const features: any[] = [];
+  const features: MapLibreGeoJsonFeature<CompletedLineFeatureProperties>[] = [];
 
   for (const line of lines) {
     // 1. Forward direction
@@ -107,24 +107,23 @@ export const buildCompletedLineFeatureCollection = ({
       });
     }
 
-    // 2. Reverse direction (only for bidirectional lines)
+    // 2. Reverse direction: only emit when reverseRouteSegments contains usable geometry.
+    // The rendering layer must not invent reverse geometry from reversed stop order.
     if (line.servicePattern === 'bidirectional') {
-      const reverseRouteSegmentCoordinates = buildLineCoordinatesFromRouteSegments(line.reverseRouteSegments ?? []);
-      const reverseCoordinates =
-        reverseRouteSegmentCoordinates.length >= 2
-          ? reverseRouteSegmentCoordinates
-          : buildLineCoordinatesFromStops({ line, stopsById, reverse: true });
+      const reverseRouteSegmentCoordinates = line.reverseRouteSegments
+        ? buildLineCoordinatesFromRouteSegments(line.reverseRouteSegments)
+        : [];
 
-      if (reverseCoordinates.length >= 2) {
+      if (reverseRouteSegmentCoordinates.length >= 2) {
         features.push({
           type: 'Feature' as const,
           geometry: {
             type: 'LineString' as const,
-            coordinates: reverseCoordinates
+            coordinates: reverseRouteSegmentCoordinates
           },
           properties: {
             lineId: line.id,
-            travelDirection: 'reverse',
+            travelDirection: 'reverse' as const,
             selected: selectedLineId === line.id
           }
         });

@@ -32,9 +32,13 @@ Newly placed stops on named streets will use the street name as their initial la
 
 ## Update (Slice 062)
 
-- **Nearby Label Lookup**: Added a fallback lookup that queries rendered features (e.g., symbol/text layers) in a 16px radius around the snap point if the snapped line feature lacks a name.
+- **Nearby Label Lookup**: Added a fallback lookup that queries rendered features (e.g., symbol/text layers) near the snap point if the snapped line feature lacks a name. Initial implementation used a fixed 16px probe radius.
 - **Inspector Visibility**: The selected-stop inspector now resolves the full `Stop` data from the session state to display the actual label, ID, and geographic position.
 - **Placement Feedback**: The derived label is surfaced in the map debug snapshot immediately upon placement for diagnostic purposes.
+
+## Update (Slice 063)
+
+- **Staged and Ranked Label Lookup**: Replaced the fixed 16px probe with staged probes at 12px, 24px, and 40px. Candidates are ranked by layer and source hints (`road`, `street`, `highway`) to prefer street names over unrelated points of interest or boundary labels. This makes the nearby lookup more robust when stop placement is not exactly on a named-street feature anchor.
 
 ## Non-Goals
 

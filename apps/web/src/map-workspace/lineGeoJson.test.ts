@@ -230,7 +230,7 @@ describe('buildCompletedLineFeatureCollection', () => {
     expect(featureCollection.features[1]?.geometry.coordinates).toEqual([[1, 1], [0, 0]]);
   });
 
-  it('falls back to reversed stop-order geometry for bidirectional lines when reverseRouteSegments is missing', () => {
+  it('emits only the forward feature for a bidirectional line when reverseRouteSegments is absent', () => {
     const featureCollection = buildCompletedLineFeatureCollection({
       lines: [
         {
@@ -248,11 +248,9 @@ describe('buildCompletedLineFeatureCollection', () => {
       selectedLineId: null
     });
 
-    expect(featureCollection.features).toHaveLength(2);
-    expect(featureCollection.features[1]?.properties.travelDirection).toBe('reverse');
-    expect(featureCollection.features[1]?.geometry.coordinates).toEqual([
-      [10.01, 53.56], // stopB
-      [9.99, 53.55]   // stopA
-    ]);
+    // The rendering layer must not invent reverse geometry from reversed stop order.
+    // Without reverseRouteSegments, only the forward feature is emitted.
+    expect(featureCollection.features).toHaveLength(1);
+    expect(featureCollection.features[0]?.properties.travelDirection).toBe('forward');
   });
 });
