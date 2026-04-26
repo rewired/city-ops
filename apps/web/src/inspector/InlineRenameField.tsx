@@ -7,6 +7,8 @@ interface InlineRenameFieldProps {
   readonly value: string;
   /** Accessible noun used in aria labels, for example "stop" or "line". */
   readonly entityLabel: string;
+  /** Controls whether idle mode renders the current value text alongside the edit trigger. */
+  readonly idleDisplayMode?: 'value-and-edit' | 'edit-only';
   /** Called when a valid accepted value should be committed. */
   readonly onAccept: (nextValue: string) => void;
 }
@@ -15,7 +17,12 @@ interface InlineRenameFieldProps {
  * Renders a compact inline rename control with explicit edit/accept/cancel affordances.
  * Validation is local: accepted values are trimmed and cannot be empty.
  */
-export function InlineRenameField({ value, entityLabel, onAccept }: InlineRenameFieldProps): ReactElement {
+export function InlineRenameField({
+  value,
+  entityLabel,
+  idleDisplayMode = 'value-and-edit',
+  onAccept
+}: InlineRenameFieldProps): ReactElement {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [draftValue, setDraftValue] = useState<string>(value);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
@@ -61,9 +68,11 @@ export function InlineRenameField({ value, entityLabel, onAccept }: InlineRename
   if (!isEditing) {
     return (
       <div className="inline-rename-field">
-        <span className="network-inventory__item-label" title={value}>
-          {value}
-        </span>
+        {idleDisplayMode === 'value-and-edit' ? (
+          <span className="network-inventory__item-label" title={value}>
+            {value}
+          </span>
+        ) : null}
         <button
           type="button"
           className="inline-rename-field__icon-button"
