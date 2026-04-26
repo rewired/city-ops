@@ -545,9 +545,9 @@ body {
 .simulation-control-bar__brand {
   display: inline-flex;
   align-items: center;
-  font-size: 1rem;
+  font-size: 2.5rem;
   letter-spacing: 0.03em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .simulation-control-bar__clock-readout {
@@ -829,7 +829,8 @@ body {
 
 .app-toast-host {
   position: fixed;
-  top: 74px; /* Below top bar (64px) + margin */
+  top: 74px;
+  /* Below top bar (64px) + margin */
   right: 20px;
   z-index: 1000;
   display: flex;
@@ -847,9 +848,9 @@ body {
   border: 1px solid #2f415f;
   border-radius: 12px;
   background: rgba(19, 31, 49, 0.96);
-  box-shadow: 
-    rgba(0,0,0,0.4) 0px 4px 18px, 
-    rgba(0,0,0,0.2) 0px 2px 8px;
+  box-shadow:
+    rgba(0, 0, 0, 0.4) 0px 4px 18px,
+    rgba(0, 0, 0, 0.2) 0px 2px 8px;
   color: #e8eef9;
   pointer-events: auto;
   animation: toast-slide-in 240ms ease-out;
@@ -861,6 +862,7 @@ body {
     transform: translateX(20px);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -894,14 +896,26 @@ body {
   font-size: 32px;
 }
 
-.app-toast--success .app-toast__icon-area { color: #9fe3ad; }
-.app-toast--error .app-toast__icon-area { color: #ffb5b5; }
-.app-toast--warning .app-toast__icon-area { color: #ffe39c; }
-.app-toast--info .app-toast__icon-area { color: #a4cfff; }
+.app-toast--success .app-toast__icon-area {
+  color: #9fe3ad;
+}
+
+.app-toast--error .app-toast__icon-area {
+  color: #ffb5b5;
+}
+
+.app-toast--warning .app-toast__icon-area {
+  color: #ffe39c;
+}
+
+.app-toast--info .app-toast__icon-area {
+  color: #a4cfff;
+}
 
 .app-toast__content {
   flex: 1;
-  min-width: 0; /* Enable text wrapping */
+  min-width: 0;
+  /* Enable text wrapping */
 }
 
 .app-toast__title {
@@ -1020,6 +1034,7 @@ body {
   max-height: min(86vh, 860px);
   overflow: auto;
 }
+
 .inspector-dialog__header {
   display: flex;
   align-items: center;
@@ -1375,6 +1390,7 @@ body {
 .departures-dialog__table td[data-state='unconfigured'] {
   color: #f4d7a6;
 }
+
 .selected-line-inspector__value-label--served {
   color: #9fe3ad;
   font-weight: 600;

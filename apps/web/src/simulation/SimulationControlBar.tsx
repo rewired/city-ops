@@ -23,7 +23,7 @@ export function SimulationControlBar({ clockController, sessionActions, debugAct
   return (
     <section className="simulation-control-bar" aria-label="CityOps top bar">
       <div className="simulation-control-bar__brand" aria-label="Application brand">
-        <strong>CityOps</strong>
+        <strong>City</strong>Ops
       </div>
 
       <div className="simulation-control-bar__clock-readout" aria-label="Simulation day and time">
