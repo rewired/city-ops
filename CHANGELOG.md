@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 066c: Final Demand Projection Type Hygiene and Shared Semantics Repair
+- Extracted `projectLineBandDemandNodeCoverage` into a shared domain helper, ensuring that network-level and selected-line demand projections use the exact same structural connectivity logic.
+- Removed all remaining `as any` and broad unchecked casts from `servedDemandProjection.ts` and `demandCatchmentProjection.ts`.
+- Refactored `projectNetworkDemand` to use the shared line-level helper, eliminating semantic drift between network-wide and line-specific demand results.
+- Hardened `DemandNodeId` and `DemandWeight` type safety by removing redundant casts and ensuring branded identifiers are preserved through aggregation and map lookups.
+- Cleaned up `as any` shortcuts in `lineDepartureTimetableProjection.test.ts` by using properly typed `LineServiceBandPlan` objects.
+- Tightened `validateSelectedLineExportPayload` return logic by replacing broad root-level casts with explicit typed reconstruction of versioned export payloads.
+- Verified that all unit tests and strict TypeScript typechecks pass without shortcuts.
+
+
 ### Slice 066b: Green-State Repair for Demand Projection and Type Safety
 - Fixed network-wide demand projection to deduplicate residential origin nodes across multiple stops or lines, ensuring each node is counted only once in served-demand aggregates.
 - Implemented direction-aware connectivity for linear one-way lines (origin must precede destination), bidirectional lines (any pair reachable), and loop lines (any pair reachable).

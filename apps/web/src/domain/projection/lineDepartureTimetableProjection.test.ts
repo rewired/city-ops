@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { projectLineDepartureTimetable } from './lineDepartureTimetableProjection';
 import type { Line } from '../types/line';
-import { createLineId, createLineFrequencyMinutes } from '../types/line';
+import { createLineId, createLineFrequencyMinutes, createNoServiceLineServiceByTimeBand } from '../types/line';
 import type { Stop } from '../types/stop';
 import { createStopId } from '../types/stop';
 import type { TimeBandId } from '../types/timeBand';
@@ -40,8 +40,9 @@ describe('lineDepartureTimetableProjection', () => {
       topology: 'linear',
       servicePattern: 'one-way',
       frequencyByTimeBand: {
+        ...createNoServiceLineServiceByTimeBand(),
         'morning-rush': { kind: 'frequency', headwayMinutes: createLineFrequencyMinutes(10) }
-      } as any,
+      },
       routeSegments: [
         createSegment('s1', 's2', 5),
         createSegment('s2', 's3', 7)
@@ -72,8 +73,9 @@ describe('lineDepartureTimetableProjection', () => {
       topology: 'loop',
       servicePattern: 'one-way',
       frequencyByTimeBand: {
+        ...createNoServiceLineServiceByTimeBand(),
         'morning-rush': { kind: 'frequency', headwayMinutes: createLineFrequencyMinutes(10) }
-      } as any,
+      },
       routeSegments: [
         createSegment('s1', 's2', 5),
         createSegment('s2', 's3', 7),
@@ -103,8 +105,9 @@ describe('lineDepartureTimetableProjection', () => {
       topology: 'loop',
       servicePattern: 'one-way',
       frequencyByTimeBand: {
+        ...createNoServiceLineServiceByTimeBand(),
         'morning-rush': { kind: 'frequency', headwayMinutes: createLineFrequencyMinutes(10) }
-      } as any,
+      },
       routeSegments: [
         createSegment('s1', 's2', 5),
         createSegment('s2', 's3', 7)
@@ -117,3 +120,4 @@ describe('lineDepartureTimetableProjection', () => {
     expect(projection.rows[1]!.cells[0]!.state).toBe('unavailable');
   });
 });
+

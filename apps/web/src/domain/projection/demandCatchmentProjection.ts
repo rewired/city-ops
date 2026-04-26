@@ -5,6 +5,7 @@ import type { Stop, StopId } from '../types/stop';
 import { calculateStopCatchments, type StopDemandCatchment } from '../demand/demandCatchment';
 import type { Line } from '../types/line';
 import type { LineServicePlanProjection } from '../types/lineServicePlanProjection';
+import { projectLineBandDemandNodeCoverage } from '../demand/servedDemandProjection';
 
 /**
  * Network-wide demand capture and served-demand summary.
@@ -44,7 +45,7 @@ export const projectNetworkDemand = (
   const catchmentLookup = new Map<StopId, StopDemandCatchment>(catchments.map(c => [c.stopId, c]));
 
   // Calculate capture
-  const capturedNodeIds = new Set<string>();
+  const capturedNodeIds = new Set<DemandNodeId>();
   for (const c of catchments) {
     for (const id of c.capturedDemandNodeIds) {
       capturedNodeIds.add(id);
@@ -65,7 +66,7 @@ export const projectNetworkDemand = (
 
   // Calculate served demand (avoiding double counting residential nodes)
   // A residential node is served if at least one active line connects it to a workplace.
-  const servedResidentialNodeIds = new Set<string>();
+  const servedResidentialNodeIds = new Set<DemandNodeId>();
 
   for (const line of completedLines) {
     const lineService = servicePlanProjection.lines.find(l => l.lineId === line.id);
@@ -73,56 +74,22 @@ export const projectNetworkDemand = (
     
     if (!isActive) continue;
 
-    const stopIds = line.stopIds;
-    const isLoop = line.topology === 'loop';
-    const isBidirectional = line.servicePattern === 'bidirectional';
+    const { servedResidentialNodeIds: lineServedIds } = projectLineBandDemandNodeCoverage(
+      line.stopIds,
+      line.topology,
+      line.servicePattern,
+      catchmentLookup,
+      residentialNodeMap,
+      workplaceNodeMap
+    );
 
-    // For each stop, check if it captures any workplace nodes
-    const stopHasWorkplace = stopIds.map(stopId => {
-      const c = catchmentLookup.get(stopId);
-      if (!c) return false;
-      return c.capturedDemandNodeIds.some(nodeId => workplaceNodeMap.has(nodeId));
-    });
-
-    const anyWorkplaceOnLine = stopHasWorkplace.some(has => has);
-    if (!anyWorkplaceOnLine) continue;
-
-    for (let i = 0; i < stopIds.length; i++) {
-      const stopId = stopIds[i]!;
-      const c = catchmentLookup.get(stopId);
-      if (!c) continue;
-
-      // Check if this stop captures any residential nodes
-      const residentialNodeIdsAtStop = c.capturedDemandNodeIds.filter(nodeId => residentialNodeMap.has(nodeId));
-
-      if (residentialNodeIdsAtStop.length === 0) continue;
-
-      // Is there a workplace stop that can be reached from this one?
-      let canReachWorkplace = false;
-      
-      if (isLoop || isBidirectional) {
-        // In a loop or bidirectional line, any residential stop can reach any workplace stop
-        canReachWorkplace = true; // anyWorkplaceOnLine is already true
-      } else {
-        // For one-way linear, must appear before
-        for (let j = i + 1; j < stopIds.length; j++) {
-          if (stopHasWorkplace[j]) {
-            canReachWorkplace = true;
-            break;
-          }
-        }
-      }
-
-      if (canReachWorkplace) {
-        for (const nodeId of residentialNodeIdsAtStop) {
-          servedResidentialNodeIds.add(nodeId);
-        }
-      }
+    for (const id of lineServedIds) {
+      servedResidentialNodeIds.add(id);
     }
   }
 
   const activelyServedResidentialWeight = Array.from(servedResidentialNodeIds).reduce((sum, nodeId) => {
-    const node = residentialNodeMap.get(nodeId as DemandNodeId);
+    const node = residentialNodeMap.get(nodeId);
     return sum + (node?.weightByTimeBand[activeTimeBandId] || 0);
   }, 0);
 
@@ -142,3 +109,4 @@ export const projectNetworkDemand = (
     activelyServedResidentialWeight: createDemandWeight(activelyServedResidentialWeight)
   };
 };
+

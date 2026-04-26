@@ -29,53 +29,25 @@ export interface LineBandDemandProjection {
 }
 
 /**
- * Projects the served demand for a single line in a specific time band.
- * Evaluates line topology (linear/loop) and service pattern (one-way/bidirectional)
- * to determine connectivity between captured residential origins and workplace destinations.
- *
- * Deduplicates demand nodes by identity so that a node captured by multiple stops on the same
- * line is counted exactly once in the line's served demand aggregate.
+ * Result of projecting served demand node coverage for a single line band.
  */
-export const projectLineBandDemand = (
-  lineId: LineId,
+export interface LineBandDemandNodeCoverage {
+  readonly servedResidentialNodeIds: readonly DemandNodeId[];
+  readonly pairedWorkplaceNodeIds: readonly DemandNodeId[];
+}
+
+/**
+ * Projects which demand nodes are served by a line in a specific configuration.
+ * Internal helper to ensure aligned semantics between network and selected-line projections.
+ */
+export const projectLineBandDemandNodeCoverage = (
   orderedStopIds: readonly StopId[],
   topology: LineTopology,
   servicePattern: LineServicePattern,
-  timeBandId: TimeBandId,
-  serviceState: LineServiceActiveBandState | 'unset',
   catchmentLookup: ReadonlyMap<StopId, StopDemandCatchment>,
   residentialNodeMap: ReadonlyMap<DemandNodeId, DemandNode>,
   workplaceNodeMap: ReadonlyMap<DemandNodeId, DemandNode>
-): LineBandDemandProjection => {
-  const warnings: DemandProjectionWarning[] = [];
-  const ZERO_WEIGHT = createDemandWeight(0);
-
-  if (serviceState === 'unset') {
-    return {
-      lineId,
-      timeBandId,
-      serviceState,
-      capturedOriginWeight: ZERO_WEIGHT,
-      capturedDestinationWeight: ZERO_WEIGHT,
-      servedDemandWeight: ZERO_WEIGHT,
-      status: 'unconfigured',
-      warnings: [{ type: 'no-service-configured', message: 'Line service is unconfigured.' }]
-    };
-  }
-
-  if (serviceState === 'no-service') {
-    return {
-      lineId,
-      timeBandId,
-      serviceState,
-      capturedOriginWeight: ZERO_WEIGHT,
-      capturedDestinationWeight: ZERO_WEIGHT,
-      servedDemandWeight: ZERO_WEIGHT,
-      status: 'no-service',
-      warnings: []
-    };
-  }
-
+): LineBandDemandNodeCoverage => {
   // 1. Identify all nodes captured by this line
   const stopCaptures = orderedStopIds.map(stopId => {
     const catchment = catchmentLookup.get(stopId);
@@ -146,15 +118,78 @@ export const projectLineBandDemand = (
     }
   }
 
+  return {
+    servedResidentialNodeIds: Array.from(servedResidentialNodeIds),
+    pairedWorkplaceNodeIds: Array.from(pairedWorkplaceNodeIds)
+  };
+};
+
+/**
+ * Projects the served demand for a single line in a specific time band.
+ * Evaluates line topology (linear/loop) and service pattern (one-way/bidirectional)
+ * to determine connectivity between captured residential origins and workplace destinations.
+ *
+ * Deduplicates demand nodes by identity so that a node captured by multiple stops on the same
+ * line is counted exactly once in the line's served demand aggregate.
+ */
+export const projectLineBandDemand = (
+  lineId: LineId,
+  orderedStopIds: readonly StopId[],
+  topology: LineTopology,
+  servicePattern: LineServicePattern,
+  timeBandId: TimeBandId,
+  serviceState: LineServiceActiveBandState | 'unset',
+  catchmentLookup: ReadonlyMap<StopId, StopDemandCatchment>,
+  residentialNodeMap: ReadonlyMap<DemandNodeId, DemandNode>,
+  workplaceNodeMap: ReadonlyMap<DemandNodeId, DemandNode>
+): LineBandDemandProjection => {
+  const warnings: DemandProjectionWarning[] = [];
+  const ZERO_WEIGHT = createDemandWeight(0);
+
+  if (serviceState === 'unset') {
+    return {
+      lineId,
+      timeBandId,
+      serviceState,
+      capturedOriginWeight: ZERO_WEIGHT,
+      capturedDestinationWeight: ZERO_WEIGHT,
+      servedDemandWeight: ZERO_WEIGHT,
+      status: 'unconfigured',
+      warnings: [{ type: 'no-service-configured', message: 'Line service is unconfigured.' }]
+    };
+  }
+
+  if (serviceState === 'no-service') {
+    return {
+      lineId,
+      timeBandId,
+      serviceState,
+      capturedOriginWeight: ZERO_WEIGHT,
+      capturedDestinationWeight: ZERO_WEIGHT,
+      servedDemandWeight: ZERO_WEIGHT,
+      status: 'no-service',
+      warnings: []
+    };
+  }
+
+  const { servedResidentialNodeIds, pairedWorkplaceNodeIds } = projectLineBandDemandNodeCoverage(
+    orderedStopIds,
+    topology,
+    servicePattern,
+    catchmentLookup,
+    residentialNodeMap,
+    workplaceNodeMap
+  );
+
   // 3. Aggregate weights without double counting
-  const capturedOriginRaw = Array.from(servedResidentialNodeIds).reduce((sum, id) => {
+  const capturedOriginRaw = servedResidentialNodeIds.reduce((sum, id) => {
     const node = residentialNodeMap.get(id);
-    return sum + ((node?.weightByTimeBand as any)?.[timeBandId] ?? 0);
+    return sum + (node?.weightByTimeBand[timeBandId] ?? 0);
   }, 0);
 
-  const capturedDestinationRaw = Array.from(pairedWorkplaceNodeIds).reduce((sum, id) => {
+  const capturedDestinationRaw = pairedWorkplaceNodeIds.reduce((sum, id) => {
     const node = workplaceNodeMap.get(id);
-    return sum + ((node?.weightByTimeBand as any)?.[timeBandId] ?? 0);
+    return sum + (node?.weightByTimeBand[timeBandId] ?? 0);
   }, 0);
 
   const capturedOriginWeight = createDemandWeight(capturedOriginRaw);
@@ -164,21 +199,26 @@ export const projectLineBandDemand = (
   // 4. Determine status and warnings
   let status: DemandProjectionStatus = 'served';
 
+  // Identify ALL captured nodes (not just served ones) for status/warnings
   const totalOriginIds = new Set<DemandNodeId>();
   const totalDestIds = new Set<DemandNodeId>();
-  for (const { residentialIds, workplaceIds } of stopCaptures) {
-    residentialIds.forEach(id => totalOriginIds.add(id));
-    workplaceIds.forEach(id => totalDestIds.add(id));
+  for (const stopId of orderedStopIds) {
+    const catchment = catchmentLookup.get(stopId);
+    if (!catchment) continue;
+    catchment.capturedDemandNodeIds.forEach(id => {
+      if (residentialNodeMap.has(id)) totalOriginIds.add(id);
+      if (workplaceNodeMap.has(id)) totalDestIds.add(id);
+    });
   }
 
   const totalOriginRaw = Array.from(totalOriginIds).reduce((sum, id) => {
     const node = residentialNodeMap.get(id);
-    return sum + ((node?.weightByTimeBand as any)?.[timeBandId] ?? 0);
+    return sum + (node?.weightByTimeBand[timeBandId] ?? 0);
   }, 0);
 
   const totalDestRaw = Array.from(totalDestIds).reduce((sum, id) => {
     const node = workplaceNodeMap.get(id);
-    return sum + ((node?.weightByTimeBand as any)?.[timeBandId] ?? 0);
+    return sum + (node?.weightByTimeBand[timeBandId] ?? 0);
   }, 0);
 
   if (totalOriginRaw === 0 && totalDestRaw === 0) {
@@ -211,3 +251,4 @@ export const projectLineBandDemand = (
     warnings
   };
 };
+
