@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 068: Network Save Envelope and Legacy Import Cleanup
+- Introduced the `NetworkSaveEnvelope` canonical wrapper for all network-level exports, including schema metadata (`schema`, `schemaVersion`, `timestamp`, `sourceMetadata`).
+- Formalized the transition to slim network saves where route geometry is omitted and reconstructed on import; removed all legacy `v3` import support and reconstruction logic.
+- Hardened `validateSelectedLineExportPayload` to support both raw `v4` and enveloped payloads while explicitly rejecting legacy `v3` files with a specific error code.
+- Updated `useNetworkSessionState` to provide specific user feedback ("This CityOps save format is no longer supported.") when legacy `v3` files are rejected.
+- Simplified `convertSelectedLineExportPayloadToSession` to always produce empty route segments, enforcing a single truthful path for geometry reconstruction.
+- Cleaned up all legacy `v3` fixtures and updated 5+ test suites (`selectedLineExportValidation`, `selectedLineExportSessionLoader`, `lineDepartureScheduleProjection`, `lineServiceReadiness`, `lineGeoJson`, `vehicleGeoJson`) to use the `v4` baseline.
+- verified that modern `v4` exports are correctly wrapped and remain importable.
+
 ### Slice 066c: Final Demand Projection Type Hygiene and Shared Semantics Repair
 - Extracted `projectLineBandDemandNodeCoverage` into a shared domain helper, ensuring that network-level and selected-line demand projections use the exact same structural connectivity logic.
 - Removed all remaining `as any` and broad unchecked casts from `servedDemandProjection.ts` and `demandCatchmentProjection.ts`.

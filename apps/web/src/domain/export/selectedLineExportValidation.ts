@@ -4,15 +4,13 @@ import {
 } from '../constants/selectedLineExportValidation';
 import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 import { ROUTE_STATUSES } from '../types/lineRoute';
+import { NETWORK_SAVE_SCHEMA, NETWORK_SAVE_SCHEMA_VERSION } from '../types/networkSave';
 import {
   SELECTED_LINE_EXPORT_KIND,
-  SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3,
   SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4,
   type SelectedLineExportCountsMetadata,
-  type SelectedLineExportLineV3,
   type SelectedLineExportLineV4,
   type SelectedLineExportPayload,
-  type SelectedLineExportPayloadV3,
   type SelectedLineExportPayloadV4,
   type SelectedLineExportSourceMetadata,
   type SelectedLineExportStop
@@ -63,7 +61,9 @@ export type SelectedLineExportValidationIssueCode =
   | 'invalid-metadata'
   | 'invalid-metadata-counts'
   | 'invalid-metadata-included-time-band-ids'
-  | 'metadata-included-time-band-order-mismatch';
+  | 'metadata-included-time-band-order-mismatch'
+  | 'unsupported-legacy-v3'
+  | 'invalid-envelope';
 
 /**
  * One typed issue produced while validating a selected-line export payload candidate.
@@ -92,6 +92,12 @@ export type SelectedLineExportValidationResult =
 
 const CANONICAL_TIME_BAND_IDS_SET = new Set<string>(MVP_TIME_BAND_IDS);
 const ROUTE_STATUS_SET = new Set<string>(ROUTE_STATUSES);
+
+/** Legacy v3 schema version string for explicit rejection. */
+const SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3 = 'cityops-selected-line-export-v3';
+
+/** Human-readable message for unsupported v3 imports. */
+export const UNSUPPORTED_LEGACY_V3_MESSAGE = 'This CityOps save format is no longer supported.';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
@@ -124,16 +130,37 @@ const parseIsoTimestamp = (value: unknown): value is string => {
 
 /**
  * Validates unknown JSON payload input against the selected-line export domain contract.
+ * Supports both wrapped NetworkSaveEnvelope and modern raw SelectedLineExportPayloadV4.
+ * Explicitly rejects legacy v3 payloads.
  */
-export const validateSelectedLineExportPayload = (payload: unknown): SelectedLineExportValidationResult => {
+export const validateSelectedLineExportPayload = (payloadCandidate: unknown): SelectedLineExportValidationResult => {
   const issues: SelectedLineExportValidationIssue[] = [];
   const addIssue = (code: SelectedLineExportValidationIssueCode, path: string, message: string): void => {
     issues.push({ code, path, message });
   };
 
-  if (!isRecord(payload)) {
+  if (!isRecord(payloadCandidate)) {
     addIssue('invalid-root', '$', 'Payload root must be an object.');
     return { ok: false, issues };
+  }
+
+  // Detect envelope vs raw payload
+  let payload: Record<string, unknown>;
+  let pathPrefix = '$';
+
+  if (payloadCandidate.schema === NETWORK_SAVE_SCHEMA) {
+    if (payloadCandidate.schemaVersion !== NETWORK_SAVE_SCHEMA_VERSION) {
+      addIssue('invalid-envelope', '$.schemaVersion', `Unsupported envelope version ${payloadCandidate.schemaVersion}.`);
+      return { ok: false, issues };
+    }
+    if (!isRecord(payloadCandidate.payload)) {
+      addIssue('invalid-envelope', '$.payload', 'Envelope payload must be an object.');
+      return { ok: false, issues };
+    }
+    payload = payloadCandidate.payload as Record<string, unknown>;
+    pathPrefix = '$.payload';
+  } else {
+    payload = payloadCandidate;
   }
 
   const requiredRootFields = [
@@ -148,40 +175,42 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
 
   for (const fieldName of requiredRootFields) {
     if (!(fieldName in payload)) {
-      addIssue('missing-required-field', `$.${fieldName}`, `Missing required root field "${fieldName}".`);
+      addIssue('missing-required-field', `${pathPrefix}.${fieldName}`, `Missing required field "${fieldName}".`);
     }
   }
 
-  if (
-    payload.schemaVersion !== SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3 &&
-    payload.schemaVersion !== SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4
-  ) {
+  if (payload.schemaVersion === SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3) {
+    addIssue('unsupported-legacy-v3', `${pathPrefix}.schemaVersion`, UNSUPPORTED_LEGACY_V3_MESSAGE);
+    return { ok: false, issues };
+  }
+
+  if (payload.schemaVersion !== SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4) {
     addIssue(
       'invalid-schema-version',
-      '$.schemaVersion',
-      `schemaVersion must equal ${SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3} or ${SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4}.`
+      `${pathPrefix}.schemaVersion`,
+      `schemaVersion must equal ${SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4}.`
     );
   }
 
   const isV4 = payload.schemaVersion === SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4;
 
   if (payload.exportKind !== SELECTED_LINE_EXPORT_KIND) {
-    addIssue('invalid-export-kind', '$.exportKind', `exportKind must equal ${SELECTED_LINE_EXPORT_KIND}.`);
+    addIssue('invalid-export-kind', `${pathPrefix}.exportKind`, `exportKind must equal ${SELECTED_LINE_EXPORT_KIND}.`);
   }
 
   if (!parseIsoTimestamp(payload.createdAtIsoUtc)) {
-    addIssue('invalid-created-at-iso-utc', '$.createdAtIsoUtc', 'createdAtIsoUtc must be a parseable ISO timestamp string.');
+    addIssue('invalid-created-at-iso-utc', `${pathPrefix}.createdAtIsoUtc`, 'createdAtIsoUtc must be a parseable ISO timestamp string.');
   }
 
   const sourceMetadata = payload.sourceMetadata;
   if (!isRecord(sourceMetadata)) {
-    addIssue('invalid-source-metadata', '$.sourceMetadata', 'sourceMetadata must be an object.');
+    addIssue('invalid-source-metadata', `${pathPrefix}.sourceMetadata`, 'sourceMetadata must be an object.');
   } else {
     const source = sourceMetadata.source;
     if (typeof source !== 'string' || source.trim().length === 0) {
       addIssue(
         'invalid-source-metadata-source',
-        '$.sourceMetadata.source',
+        `${pathPrefix}.sourceMetadata.source`,
         'sourceMetadata.source must be a non-empty string.'
       );
     }
@@ -190,11 +219,11 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
   const stopsById = new Map<string, readonly [number, number]>();
   const stops = payload.stops;
   if (!Array.isArray(stops)) {
-    addIssue('invalid-stops', '$.stops', 'stops must be an array.');
+    addIssue('invalid-stops', `${pathPrefix}.stops`, 'stops must be an array.');
   } else {
     for (let stopIndex = 0; stopIndex < stops.length; stopIndex += 1) {
       const stop = stops[stopIndex];
-      const stopPath = `$.stops[${stopIndex}]`;
+      const stopPath = `${pathPrefix}.stops[${stopIndex}]`;
 
       if (!isRecord(stop)) {
         addIssue('invalid-stop-shape', stopPath, 'Each stop entry must be an object.');
@@ -235,22 +264,22 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
   let configuredTimeBandIds: readonly TimeBandId[] = [];
 
   if (!isRecord(line)) {
-    addIssue('invalid-line', '$.line', 'line must be an object.');
+    addIssue('invalid-line', `${pathPrefix}.line`, 'line must be an object.');
   } else {
     if (typeof line.id !== 'string' || line.id.length === 0) {
-      addIssue('invalid-line-id', '$.line.id', 'line.id must be a non-empty string.');
+      addIssue('invalid-line-id', `${pathPrefix}.line.id`, 'line.id must be a non-empty string.');
     }
 
     if (typeof line.label !== 'string' || line.label.length === 0) {
-      addIssue('invalid-line-label', '$.line.label', 'line.label must be a non-empty string.');
+      addIssue('invalid-line-label', `${pathPrefix}.line.label`, 'line.label must be a non-empty string.');
     }
 
     if (!Array.isArray(line.orderedStopIds)) {
-      addIssue('invalid-line-ordered-stop-ids', '$.line.orderedStopIds', 'line.orderedStopIds must be an array.');
+      addIssue('invalid-line-ordered-stop-ids', `${pathPrefix}.line.orderedStopIds`, 'line.orderedStopIds must be an array.');
     } else {
       const duplicateOrderedStopIds = new Set<string>();
       orderedStopIds = line.orderedStopIds.filter((stopId, stopIndex) => {
-        const stopIdPath = `$.line.orderedStopIds[${stopIndex}]`;
+        const stopIdPath = `${pathPrefix}.line.orderedStopIds[${stopIndex}]`;
         if (typeof stopId !== 'string' || stopId.length === 0) {
           addIssue('invalid-line-ordered-stop-ids', stopIdPath, 'orderedStopIds entries must be non-empty strings.');
           return false;
@@ -267,22 +296,22 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
     }
 
     if (line.topology !== 'linear' && line.topology !== 'loop') {
-      addIssue('invalid-line-topology', '$.line.topology', 'line.topology must be "linear" or "loop".');
+      addIssue('invalid-line-topology', `${pathPrefix}.line.topology`, 'line.topology must be "linear" or "loop".');
     }
 
     if (line.servicePattern !== 'one-way' && line.servicePattern !== 'bidirectional') {
-      addIssue('invalid-line-service-pattern', '$.line.servicePattern', 'line.servicePattern must be "one-way" or "bidirectional".');
+      addIssue('invalid-line-service-pattern', `${pathPrefix}.line.servicePattern`, 'line.servicePattern must be "one-way" or "bidirectional".');
     }
 
     if (!isRecord(line.frequencyByTimeBand)) {
-      addIssue('invalid-line-frequency-map', '$.line.frequencyByTimeBand', 'line.frequencyByTimeBand must be an object.');
+      addIssue('invalid-line-frequency-map', `${pathPrefix}.line.frequencyByTimeBand`, 'line.frequencyByTimeBand must be an object.');
     } else {
       const included: TimeBandId[] = [];
       for (const [timeBandId, servicePlan] of Object.entries(line.frequencyByTimeBand)) {
         if (!CANONICAL_TIME_BAND_IDS_SET.has(timeBandId)) {
           addIssue(
             'invalid-frequency-time-band-id',
-            `$.line.frequencyByTimeBand.${timeBandId}`,
+            `${pathPrefix}.line.frequencyByTimeBand.${timeBandId}`,
             `Unsupported time-band id "${timeBandId}" in frequencyByTimeBand.`
           );
           continue;
@@ -291,7 +320,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
         if (!isRecord(servicePlan)) {
           addIssue(
             'invalid-frequency-value',
-            `$.line.frequencyByTimeBand.${timeBandId}`,
+            `${pathPrefix}.line.frequencyByTimeBand.${timeBandId}`,
             'Each frequencyByTimeBand entry must be an object service plan.'
           );
           continue;
@@ -306,7 +335,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
           if (!isFiniteNumber(servicePlan.headwayMinutes) || servicePlan.headwayMinutes <= 0) {
             addIssue(
               'invalid-frequency-value',
-              `$.line.frequencyByTimeBand.${timeBandId}.headwayMinutes`,
+              `${pathPrefix}.line.frequencyByTimeBand.${timeBandId}.headwayMinutes`,
               'frequency.headwayMinutes must be a positive finite number.'
             );
           } else {
@@ -317,7 +346,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
 
         addIssue(
           'invalid-frequency-value',
-          `$.line.frequencyByTimeBand.${timeBandId}.kind`,
+          `${pathPrefix}.line.frequencyByTimeBand.${timeBandId}.kind`,
           'Service plan kind must be "frequency" or "no-service".'
         );
       }
@@ -334,7 +363,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
         return;
       }
 
-      const segmentsPath = `$.line.${segmentsKey}`;
+      const segmentsPath = `${pathPrefix}.line.${segmentsKey}`;
       if (!Array.isArray(segments)) {
         addIssue('invalid-route-segments', segmentsPath, `line.${segmentsKey} must be an array.`);
         return;
@@ -518,19 +547,12 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
 
     if (isV4) {
       if (line.routeSegments !== undefined) {
-        addIssue('invalid-route-segments', '$.line.routeSegments', 'v4 exports must not include routeSegments.');
+        addIssue('invalid-route-segments', `${pathPrefix}.line.routeSegments`, 'v4 exports must not include routeSegments.');
       }
       if (line.reverseRouteSegments !== undefined) {
-        addIssue('invalid-route-segments', '$.line.reverseRouteSegments', 'v4 exports must not include reverseRouteSegments.');
-      }
-    } else {
-      validateSegments(line.routeSegments, 'routeSegments', orderedStopIds);
-
-      if (line.reverseRouteSegments !== undefined) {
-        validateSegments(line.reverseRouteSegments, 'reverseRouteSegments', [...orderedStopIds].reverse());
+        addIssue('invalid-route-segments', `${pathPrefix}.line.reverseRouteSegments`, 'v4 exports must not include reverseRouteSegments.');
       }
     }
-
   }
 
   if (Array.isArray(orderedStopIds) && orderedStopIds.length > 0) {
@@ -540,7 +562,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
       if (!stopsById.has(stopId)) {
         addIssue(
           'stop-reference-mismatch',
-          `$.line.orderedStopIds[${stopOrderIndex}]`,
+          `${pathPrefix}.line.orderedStopIds[${stopOrderIndex}]`,
           `ordered stop id "${stopId}" is missing from stops array.`
         );
       }
@@ -548,31 +570,31 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
 
     for (const stopId of stopsById.keys()) {
       if (!referencedStopIdSet.has(stopId)) {
-        addIssue('stop-reference-mismatch', '$.stops', `stops contains unreferenced stop id "${stopId}".`);
+        addIssue('stop-reference-mismatch', `${pathPrefix}.stops`, `stops contains unreferenced stop id "${stopId}".`);
       }
     }
   }
 
   const metadata = payload.metadata;
   if (!isRecord(metadata)) {
-    addIssue('invalid-metadata', '$.metadata', 'metadata must be an object.');
+    addIssue('invalid-metadata', `${pathPrefix}.metadata`, 'metadata must be an object.');
   } else {
     if (metadata.lineCount !== 1) {
-      addIssue('invalid-metadata-counts', '$.metadata.lineCount', 'metadata.lineCount must equal 1.');
+      addIssue('invalid-metadata-counts', `${pathPrefix}.metadata.lineCount`, 'metadata.lineCount must equal 1.');
     }
 
     const stopCount = metadata.stopCount;
     if (typeof stopCount !== 'number' || !Number.isInteger(stopCount) || stopCount < 0) {
-      addIssue('invalid-metadata-counts', '$.metadata.stopCount', 'metadata.stopCount must be a non-negative integer.');
+      addIssue('invalid-metadata-counts', `${pathPrefix}.metadata.stopCount`, 'metadata.stopCount must be a non-negative integer.');
     } else if (Array.isArray(stops) && stopCount !== stops.length) {
-      addIssue('invalid-metadata-counts', '$.metadata.stopCount', 'metadata.stopCount must match stops.length.');
+      addIssue('invalid-metadata-counts', `${pathPrefix}.metadata.stopCount`, 'metadata.stopCount must match stops.length.');
     }
 
     const routeSegmentCount = metadata.routeSegmentCount;
     if (typeof routeSegmentCount !== 'number' || !Number.isInteger(routeSegmentCount) || routeSegmentCount < 0) {
       addIssue(
         'invalid-metadata-counts',
-        '$.metadata.routeSegmentCount',
+        `${pathPrefix}.metadata.routeSegmentCount`,
         'metadata.routeSegmentCount must be a non-negative integer.'
       );
     } else if (isRecord(line)) {
@@ -588,7 +610,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
       } else if (routeSegmentCount !== 0) {
         addIssue(
           'invalid-metadata-counts',
-          '$.metadata.routeSegmentCount',
+          `${pathPrefix}.metadata.routeSegmentCount`,
           'metadata.routeSegmentCount must be 0 for v4 exports.'
         );
       }
@@ -597,7 +619,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
     if (!Array.isArray(metadata.includedTimeBandIds)) {
       addIssue(
         'invalid-metadata-included-time-band-ids',
-        '$.metadata.includedTimeBandIds',
+        `${pathPrefix}.metadata.includedTimeBandIds`,
         'metadata.includedTimeBandIds must be an array.'
       );
     } else {
@@ -609,7 +631,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
       if (invalidTimeBandId !== undefined) {
         addIssue(
           'invalid-metadata-included-time-band-ids',
-          '$.metadata.includedTimeBandIds',
+          `${pathPrefix}.metadata.includedTimeBandIds`,
           'includedTimeBandIds must contain only canonical TimeBandId values.'
         );
       }
@@ -620,7 +642,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
       ) {
         addIssue(
           'metadata-included-time-band-order-mismatch',
-          '$.metadata.includedTimeBandIds',
+          `${pathPrefix}.metadata.includedTimeBandIds`,
           'includedTimeBandIds must list exactly the configured service-plan bands in canonical order.'
         );
       } else if (invalidTimeBandId === undefined) {
@@ -628,7 +650,7 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
           if (includedTimeBandIds[index] !== configuredTimeBandIds[index]) {
             addIssue(
               'metadata-included-time-band-order-mismatch',
-              '$.metadata.includedTimeBandIds',
+              `${pathPrefix}.metadata.includedTimeBandIds`,
               'includedTimeBandIds must list exactly the configured service-plan bands in canonical order.'
             );
             break;
@@ -655,23 +677,12 @@ export const validateSelectedLineExportPayload = (payload: unknown): SelectedLin
     metadata: payload.metadata as SelectedLineExportCountsMetadata
   };
 
-  if (isV4) {
-    return {
-      ok: true,
-      payload: {
-        ...validatedPayloadBase,
-        schemaVersion: SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4,
-        line: payload.line as SelectedLineExportLineV4
-      }
-    };
-  }
-
   return {
     ok: true,
     payload: {
       ...validatedPayloadBase,
-      schemaVersion: SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3,
-      line: payload.line as SelectedLineExportLineV3
+      schemaVersion: SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4,
+      line: payload.line as SelectedLineExportLineV4
     }
   };
 };

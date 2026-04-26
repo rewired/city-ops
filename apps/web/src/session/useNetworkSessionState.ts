@@ -205,9 +205,15 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
       const validationResult = validateSelectedLineExportPayload(parsedResult.parsed);
       if (!validationResult.ok) {
         const firstIssue = validationResult.issues[0];
-        const detail = firstIssue
-          ? `${firstIssue.message} (code: ${firstIssue.code}, path: ${firstIssue.path})${validationResult.issues.length > 1 ? ` plus ${validationResult.issues.length - 1} more issues.` : ''}`
-          : 'The selected line JSON failed validation.';
+        
+        let detail = 'The selected line JSON failed validation.';
+        if (firstIssue) {
+          if (firstIssue.code === 'unsupported-legacy-v3') {
+            detail = firstIssue.message;
+          } else {
+            detail = `${firstIssue.message} (code: ${firstIssue.code}, path: ${firstIssue.path})${validationResult.issues.length > 1 ? ` plus ${validationResult.issues.length - 1} more issues.` : ''}`;
+          }
+        }
 
         pushToast({
           variant: 'error',
@@ -229,43 +235,34 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
 
       const importedLine = conversionResult.session.sessionLines[0];
       
-      // Use cached route segments if present and valid (checked by validationResult above)
-      // Only re-route if segments are missing.
-      let finalLine: Line = importedLine;
-      const needsRouting = importedLine.routeSegments.length === 0 || 
-        (importedLine.servicePattern === 'bidirectional' && !importedLine.reverseRouteSegments);
+      // Player-authored network truth is slim; route geometry must always be rebuilt on import.
+      const routingResult = await completeLineRouting({
+        lineId: importedLine.id,
+        orderedStopIds: importedLine.stopIds,
+        placedStops: conversionResult.session.placedStops,
+        topology: importedLine.topology,
+        servicePattern: importedLine.servicePattern,
+        routingAdapter: getDefaultRoutingAdapter()
+      });
 
-      if (needsRouting) {
-        const routingResult = await completeLineRouting({
-          lineId: importedLine.id,
-          orderedStopIds: importedLine.stopIds,
-          placedStops: conversionResult.session.placedStops,
-          topology: importedLine.topology,
-          servicePattern: importedLine.servicePattern,
-          routingAdapter: getDefaultRoutingAdapter()
-        });
-
-        finalLine = {
-          ...importedLine,
-          routeSegments: importedLine.routeSegments.length > 0 ? importedLine.routeSegments : routingResult.routeSegments,
-          reverseRouteSegments: importedLine.reverseRouteSegments ?? routingResult.reverseRouteSegments
-        };
-      }
+      const finalLine: Line = {
+        ...importedLine,
+        routeSegments: routingResult.routeSegments,
+        reverseRouteSegments: routingResult.reverseRouteSegments
+      };
 
       setSessionStops(conversionResult.session.placedStops);
       setSessionLines([finalLine]);
       setSelectedLineId(finalLine.id);
       setSelectedStop(null);
       setLineBuildSelection(INITIAL_LINE_BUILD_SELECTION_STATE);
-      const isV4 = validationResult.payload.schemaVersion === SELECTED_LINE_EXPORT_SCHEMA_VERSION_V4;
+      
       const isFallback = finalLine.routeSegments.some(s => s.status === 'fallback-routed');
 
       pushToast({
         variant: 'success',
         title: 'Line JSON loaded',
-        detail: isV4
-          ? `Loaded line ${finalLine.id} with its stops and service plan. ${isFallback ? 'Fallback route geometry was used.' : 'Route geometry was rebuilt.'}`
-          : `Loaded line ${finalLine.id} with its original stop labels and routed geometry.`
+        detail: `Loaded line ${finalLine.id} with its stops and service plan. ${isFallback ? 'Fallback route geometry was used.' : 'Route geometry was rebuilt.'}`
       });
     },
   };

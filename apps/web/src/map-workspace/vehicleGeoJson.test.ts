@@ -194,7 +194,7 @@ describe('buildVehicleFeatureCollection', () => {
   it('keeps fixture-backed vehicle rendering behavior explicit for projected/degraded and unavailable statuses', () => {
     const fixturePath = path.resolve(
       currentDirPath,
-      '../../../../data/fixtures/selected-line-exports/hamburg-line-1.v3.json'
+      '../../../../data/fixtures/selected-line-exports/hamburg-line-1.v4.json'
     );
     const payload = JSON.parse(readFileSync(fixturePath, 'utf8')) as SelectedLineExportPayload;
     const fixtureLineId = createLineId(payload.line.id);

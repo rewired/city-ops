@@ -1,12 +1,8 @@
 import { createLineId, createLineFrequencyMinutes, type Line } from '../types/line';
 import {
-  createLineSegmentId,
-  createRouteDistanceMeters,
-  createRouteTravelMinutes,
   type LineRouteSegment
 } from '../types/lineRoute';
 import {
-  SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3,
   type SelectedLineExportPayload
 } from '../types/selectedLineExport';
 import { createStopId, type Stop } from '../types/stop';
@@ -46,20 +42,6 @@ export type SelectedLineExportSessionLoadResult =
       readonly issue: SelectedLineExportSessionLoadFailure;
     };
 
-const convertLineRouteSegments = (segments: readonly LineRouteSegment[]): readonly LineRouteSegment[] =>
-  segments.map((segment) => ({
-    id: createLineSegmentId(segment.id),
-    lineId: createLineId(segment.lineId),
-    fromStopId: createStopId(segment.fromStopId),
-    toStopId: createStopId(segment.toStopId),
-    orderedGeometry: segment.orderedGeometry,
-    distanceMeters: createRouteDistanceMeters(segment.distanceMeters),
-    inMotionTravelMinutes: createRouteTravelMinutes(segment.inMotionTravelMinutes),
-    dwellMinutes: createRouteTravelMinutes(segment.dwellMinutes),
-    totalTravelMinutes: createRouteTravelMinutes(segment.totalTravelMinutes),
-    status: segment.status
-  }));
-
 const convertLineServiceByTimeBand = (payload: SelectedLineExportPayload): Line['frequencyByTimeBand'] =>
   Object.fromEntries(
     Object.entries(payload.line.frequencyByTimeBand).map(([timeBandId, servicePlan]) => {
@@ -79,6 +61,8 @@ const convertLineServiceByTimeBand = (payload: SelectedLineExportPayload): Line[
 
 /**
  * Converts one validated selected-line export payload into canonical in-memory session entities.
+ * Formalizes that player-authored network truth remains slim; route geometry is empty
+ * after conversion and must be reconstructed by the routing layer.
  */
 export const convertSelectedLineExportPayloadToSession = (
   payload: SelectedLineExportPayload
@@ -105,18 +89,6 @@ export const convertSelectedLineExportPayloadToSession = (
     }
   }
 
-  let routeSegments: readonly LineRouteSegment[] = [];
-  let reverseRouteSegments: readonly LineRouteSegment[] | undefined = undefined;
-
-  if (payload.schemaVersion === SELECTED_LINE_EXPORT_SCHEMA_VERSION_V3) {
-    if (payload.line.routeSegments) {
-      routeSegments = convertLineRouteSegments(payload.line.routeSegments);
-    }
-    if (payload.line.reverseRouteSegments) {
-      reverseRouteSegments = convertLineRouteSegments(payload.line.reverseRouteSegments);
-    }
-  }
-
   const line: Line = {
     id: createLineId(payload.line.id),
     label: payload.line.label,
@@ -124,8 +96,8 @@ export const convertSelectedLineExportPayloadToSession = (
     topology: payload.line.topology,
     servicePattern: payload.line.servicePattern,
     frequencyByTimeBand: convertLineServiceByTimeBand(payload),
-    routeSegments,
-    reverseRouteSegments
+    routeSegments: [],
+    reverseRouteSegments: undefined
   };
 
   return {
