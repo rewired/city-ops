@@ -344,7 +344,7 @@ describe('evaluateLineServiceReadiness', () => {
       path.dirname(fileURLToPath(import.meta.url)),
       '../../../../../data/fixtures/selected-line-exports/hamburg-line-1.v4.json'
     );
-    const payload = JSON.parse(readFileSync(fixturePath, 'utf8')) as SelectedLineExportPayload;
+    const payload = (JSON.parse(readFileSync(fixturePath, 'utf8')) as { payload: SelectedLineExportPayload }).payload;
 
     const line: Line = {
       id: createLineId(payload.line.id),

@@ -276,6 +276,10 @@ export interface MapLibreMap {
   easeTo(options: { center?: MapLibreLngLatTuple; zoom?: number; padding?: { top: number; bottom: number; left: number; right: number } }): void;
   /** Fits the map viewport to a provided bounding box with optional padding. */
   fitBounds(bounds: [MapLibreLngLatTuple, MapLibreLngLatTuple], options?: { padding?: number | { top: number; bottom: number; left: number; right: number } }): void;
+  /** Updates a paint property for an existing style layer. */
+  setPaintProperty(layerId: string, name: string, value: MapLibreExpressionValue): void;
+  /** Updates a layout property for an existing style layer. */
+  setLayoutProperty(layerId: string, name: string, value: MapLibreExpressionValue): void;
 }
 
 /**

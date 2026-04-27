@@ -185,8 +185,8 @@ describe('buildCompletedLineFeatureCollection', () => {
       currentDirPath,
       '../../../../data/fixtures/selected-line-exports/hamburg-line-1.v4.json'
     );
-    const payload = JSON.parse(readFileSync(fixturePath, 'utf8')) as SelectedLineExportPayload;
-    const loadResult = convertSelectedLineExportPayloadToSession(payload);
+    const envelope = JSON.parse(readFileSync(fixturePath, 'utf8')) as { payload: SelectedLineExportPayload };
+    const loadResult = convertSelectedLineExportPayloadToSession(envelope.payload);
 
     expect(loadResult.ok).toBe(true);
     if (!loadResult.ok) {

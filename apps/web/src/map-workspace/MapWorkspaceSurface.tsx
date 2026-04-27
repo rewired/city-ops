@@ -57,6 +57,7 @@ import {
   runWhenMapStyleReady,
   setupMapResizeBinding
 } from './mapWorkspaceLifecycle';
+import { applyBasemapSemanticReadabilityOverrides } from './mapBaseStyleOverrides';
 import type { MapLibreMap } from './maplibreGlobal';
 
 /** Canonical single-stop selection contract shared by marker highlighting and shell inspector state. */
@@ -346,6 +347,7 @@ export function MapWorkspaceSurface({
     const mapInstance = createMapWorkspaceInstance(containerElement);
     mapInstanceRef.current = mapInstance;
     const onMapLoad = (): void => {
+      applyBasemapSemanticReadabilityOverrides(mapInstance);
       const sourceSyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
         stopSync: {
@@ -489,6 +491,7 @@ export function MapWorkspaceSurface({
     }
 
     return runWhenMapStyleReady(mapInstance, () => {
+      applyBasemapSemanticReadabilityOverrides(mapInstance);
       syncAllMapWorkspaceSources({
         map: mapInstance,
         stopSync: {
@@ -534,6 +537,7 @@ export function MapWorkspaceSurface({
     }
 
     return runWhenMapStyleReady(mapInstance, () => {
+      applyBasemapSemanticReadabilityOverrides(mapInstance);
       const styleReadySyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
         lineSync: {
@@ -585,6 +589,7 @@ export function MapWorkspaceSurface({
     }
 
     return runWhenMapStyleReady(mapInstance, () => {
+      applyBasemapSemanticReadabilityOverrides(mapInstance);
       const styleReadySyncDiagnostics = syncAllMapWorkspaceSources({
         map: mapInstance,
         vehicleSync: {

@@ -196,7 +196,8 @@ describe('buildVehicleFeatureCollection', () => {
       currentDirPath,
       '../../../../data/fixtures/selected-line-exports/hamburg-line-1.v4.json'
     );
-    const payload = JSON.parse(readFileSync(fixturePath, 'utf8')) as SelectedLineExportPayload;
+    const envelope = JSON.parse(readFileSync(fixturePath, 'utf8')) as { payload: SelectedLineExportPayload };
+    const payload = envelope.payload;
     const fixtureLineId = createLineId(payload.line.id);
 
     const result = buildVehicleFeatureCollection({
