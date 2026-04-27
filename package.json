@@ -7,6 +7,7 @@
     "build:web": "pnpm --filter @city-ops/web build",
     "typecheck:web": "pnpm --filter @city-ops/web typecheck",
     "test:web": "pnpm --filter @city-ops/web test",
+    "local-assets:prepare": "node scripts/local-assets/prepare-local-assets.mjs",
     "scenarios:build": "node scripts/scenarios/build-scenario-registry.mjs",
     "test": "pnpm test:web"
   },
