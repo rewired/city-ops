@@ -14,17 +14,26 @@ interface SimulationControlBarProps {
   readonly clockController: SimulationClockController;
   readonly sessionActions: ReactElement;
   readonly debugAction: ReactElement;
+  readonly scenarioTitle?: string | null | undefined;
 }
+
 
 const CANONICAL_SIMULATION_SPEED_IDS = ['realtime', '0.1x', '0.5x', '1x', '5x', '10x', '20x'] as const;
 
 /** Renders the integrated top bar with brand, simulation clock controls, speed controls, and compact session actions. */
-export function SimulationControlBar({ clockController, sessionActions, debugAction }: SimulationControlBarProps): ReactElement {
+export function SimulationControlBar({
+  clockController,
+  sessionActions,
+  debugAction,
+  scenarioTitle
+}: SimulationControlBarProps): ReactElement {
   return (
     <section className="simulation-control-bar" aria-label="CityOps top bar">
       <div className="simulation-control-bar__brand" aria-label="Application brand">
         <strong>City</strong>Ops
+        {scenarioTitle && <span className="simulation-control-bar__scenario-title"> — {scenarioTitle}</span>}
       </div>
+
 
       <div className="simulation-control-bar__clock-readout" aria-label="Simulation day and time">
         <span className="simulation-control-bar__clock-day">

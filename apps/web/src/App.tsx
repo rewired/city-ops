@@ -29,7 +29,11 @@ import { BlockingDataOperationModal } from './ui/data-operation/BlockingDataOper
 import type { ActiveDataOperation } from './ui/data-operation/types';
 
 import { AppShell } from './AppShell';
+import { loadScenarioRegistry } from './domain/scenario/loadScenarioRegistry';
+import type { ScenarioRegistryEntry, ScenarioRegistry } from './domain/scenario/scenarioRegistry';
+import { ScenarioSelectionScreen } from './scenario/ScenarioSelectionScreen';
 import './App.css';
+
 
 const buildSelectedLineExportFilename = (lineId: string): string => `cityops-line-${lineId}.json`;
 
@@ -111,8 +115,31 @@ export default function App(): ReactElement {
   );
   const [mapFocusIntent, setMapFocusIntent] = useState<MapFocusIntent | null>(null);
   const [activeDataOperation, setActiveDataOperation] = useState<ActiveDataOperation | null>(null);
+  const [selectedScenario, setSelectedScenario] = useState<ScenarioRegistryEntry | null>(null);
+  const [registryState, setRegistryState] = useState<{
+    status: 'loading' | 'loaded' | 'failed';
+    registry: ScenarioRegistry | null;
+    error: string | null;
+  }>({ status: 'loading', registry: null, error: null });
+
+  const fetchRegistry = useCallback(async () => {
+    setRegistryState({ status: 'loading', registry: null, error: null });
+    const result = await loadScenarioRegistry();
+    if (result.status === 'loaded') {
+      setRegistryState({ status: 'loaded', registry: result.registry, error: null });
+    } else {
+      setRegistryState({ status: 'failed', registry: null, error: result.message });
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRegistry();
+  }, [fetchRegistry]);
+  
   const [osmStopCandidates, setOsmStopCandidates] = useState<readonly OsmStopCandidate[]>([]);
   const [selectedOsmCandidateAnchor, setSelectedOsmCandidateAnchor] = useState<OsmStopCandidateStreetAnchorResolution | null>(null);
+
+
 
   const osmStopCandidateGroups = useMemo(
     () => consolidateOsmStopCandidates(osmStopCandidates),
@@ -120,6 +147,8 @@ export default function App(): ReactElement {
   );
   
   useEffect(() => {
+    if (!selectedScenario) return;
+
     let cancelled = false;
 
     const loadCandidates = async (): Promise<void> => {
@@ -158,7 +187,8 @@ export default function App(): ReactElement {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedScenario]);
+
 
   const projections = useNetworkPlanningProjections(
     sessionController.sessionLines,
@@ -264,6 +294,55 @@ const toolModeControlOptions: ReadonlyArray<{
     []
   );
 
+  if (registryState.status === 'loading') {
+    return (
+      <div className="scenario-loading-state" aria-label="Scenario loading state">
+        <div className="scenario-loading-state__spinner" aria-hidden="true" />
+        <p>Syncing operational scenario registry payload...</p>
+      </div>
+    );
+  }
+
+  if (registryState.status === 'failed') {
+    return (
+      <div className="scenario-error-state" aria-label="Scenario registry error state">
+        <MaterialIcon name="error" className="scenario-error-state__icon" />
+        <h1 className="scenario-error-state__title">Registry Synchronization Failure</h1>
+        <p className="scenario-error-state__message">
+          The dashboard was unable to load available playable zones. Ensure static pipelines remain active.
+        </p>
+        <p className="scenario-error-state__message">
+          {registryState.error}
+        </p>
+        <div className="scenario-error-state__command-box">
+          <span>Run generating process:</span>
+          <code className="scenario-error-state__command">pnpm scenarios:build</code>
+        </div>
+        <button
+          type="button"
+          className="scenario-error-state__retry-button"
+          onClick={fetchRegistry}
+        >
+          <MaterialIcon name="restart_alt" />
+
+          <span>Retry Synchronization</span>
+        </button>
+      </div>
+    );
+  }
+
+  if (!selectedScenario && registryState.registry) {
+    return (
+      <ScenarioSelectionScreen
+        scenarios={registryState.registry.scenarios}
+        onSelectScenario={(scenario) => {
+          setSelectedScenario(scenario);
+        }}
+        onReloadRegistry={fetchRegistry}
+      />
+    );
+  }
+
   return (
     <AppShell
       isBlocked={activeDataOperation !== null}
@@ -272,6 +351,8 @@ const toolModeControlOptions: ReadonlyArray<{
     >
       <SimulationControlBar
         clockController={clockController}
+        scenarioTitle={selectedScenario?.title}
+
         debugAction={
           <button
             type="button"
