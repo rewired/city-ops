@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "hamburg-core-mvp",
+  "title": "Hamburg Core MVP",
+  "description": "Build an initial bus network in central Hamburg.",
+  "areaId": "hvv-mvp",
+  "requiredAssets": {
+    "routing": {
+      "areaId": "hvv-mvp",
+      "engine": "osrm",
+      "profile": "car",
+      "algorithm": "mld"
+    },
+    "stopCandidates": {
+      "areaId": "hvv-mvp"
+    }
+  },
+  "initialViewport": {
+    "lng": 10.0,
+    "lat": 53.55,
+    "zoom": 11
+  },
+  "playableBounds": {
+    "west": 9.75,
+    "south": 53.43,
+    "east": 10.2,
+    "north": 53.7
+  },
+  "startingBudget": 250000,
+  "simulationStart": {
+    "weekday": "monday",
+    "time": "05:00"
+  },
+  "demandProfileId": "hamburg-core-synthetic-v1",
+  "objectives": [
+    {
+      "objectiveId": "serve-work-demand",
+      "label": "Serve 35% of workplace demand"
+    },
+    {
+      "objectiveId": "wait-under-12",
+      "label": "Keep average wait below 12 minutes"
+    }
+  ]
+}
