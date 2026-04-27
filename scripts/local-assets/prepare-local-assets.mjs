@@ -51,7 +51,12 @@ function runPowerShell(scriptPath, scriptArgs) {
 const prepareOsrmScript = path.join(rootDir, 'scripts/routing/prepare-osrm.ps1');
 runPowerShell(prepareOsrmScript, ['-Area', areaId]);
 
-// 2. Rebuild scenario registry
+// 2. Invoke Stop Candidate Generation
+console.log('Generating stop candidates...');
+const prepareStopsScript = path.join(rootDir, 'scripts/osm/start-stop-candidate-generation.ps1');
+runPowerShell(prepareStopsScript, ['-Area', areaId]);
+
+// 3. Rebuild scenario registry
 console.log('Rebuilding scenario registry...');
 const buildRegistryResult = child_process.spawnSync('node', ['scripts/scenarios/build-scenario-registry.mjs'], { stdio: 'inherit', cwd: rootDir });
 

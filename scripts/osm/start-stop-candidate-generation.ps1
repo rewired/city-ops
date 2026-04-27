@@ -6,6 +6,9 @@ param(
     [string]$OutputGeoJson = "",
 
     [Parameter(Mandatory=$false)]
+    [string]$Area = "",
+
+    [Parameter(Mandatory=$false)]
     [string]$ImageName = "cityops-osmium-tooling:local",
 
     [Parameter(Mandatory=$false)]
@@ -41,27 +44,60 @@ if ([string]::IsNullOrEmpty($imageCheck)) {
     & "$PSScriptRoot\setup-osmium-tooling.ps1" -ImageName $ImageName
 }
 
-# 4. Resolve Input PBF
-if ([string]::IsNullOrEmpty($InputPbf)) {
-    $osmDataDir = Join-Path $RootPath "data/osm"
-    $pbfFiles = Get-ChildItem -Path $osmDataDir -Filter "*.pbf" -Recurse | Where-Object { $_.Extension -eq ".pbf" -or $_.Extension -eq ".osm.pbf" }
+# 4. Resolve Paths
+$IntermediateDir = ""
 
-    if ($pbfFiles.Count -eq 0) {
-        Write-Error "No .osm.pbf files found in '$osmDataDir'. Please provide -InputPbf or place a PBF file in the data/osm folder."
+if (-not [string]::IsNullOrEmpty($Area)) {
+    if (-not [string]::IsNullOrEmpty($InputPbf) -or -not [string]::IsNullOrEmpty($OutputGeoJson)) {
+        Write-Error "Use either -Area or explicit -InputPbf/-OutputGeoJson, not both."
         exit 1
-    } elseif ($pbfFiles.Count -gt 1) {
-        Write-Host "Multiple PBF files found in '$osmDataDir':" -ForegroundColor Yellow
-        $pbfFiles | ForEach-Object { Write-Host " - $($_.FullName)" }
-        Write-Error "Ambigous input. Please specify -InputPbf explicitly."
-        exit 1
-    } else {
-        $InputPbf = $pbfFiles[0].FullName
-        Write-Host "Auto-resolved input PBF: $InputPbf" -ForegroundColor Gray
     }
+
+    $AreaFilePath = Join-Path $RootPath "data\areas\${Area}.area.json"
+    if (-not (Test-Path $AreaFilePath)) {
+        Write-Error "Area configuration file not found: $AreaFilePath"
+        exit 1
+    }
+
+    $AreaConfig = Get-Content $AreaFilePath -Raw | ConvertFrom-Json
+    
+    if (-not $AreaConfig.sourcePbfFile) { Write-Error "Missing 'sourcePbfFile' in $AreaFilePath"; exit 1 }
+    if (-not $AreaConfig.stopCandidates -or -not $AreaConfig.stopCandidates.expectedGeoJsonFile) { Write-Error "Missing 'stopCandidates.expectedGeoJsonFile' in $AreaFilePath"; exit 1 }
+
+    $InputPbf = Join-Path $RootPath $AreaConfig.sourcePbfFile
+    $OutputGeoJson = Join-Path $RootPath $AreaConfig.stopCandidates.expectedGeoJsonFile
+    
+    if (-not (Test-Path $InputPbf)) {
+        Write-Error "Source PBF not found: $InputPbf"
+        exit 1
+    }
+
+    $IntermediateDir = Join-Path $RootPath "data\generated\osm\stop-candidates\${Area}"
 } else {
-    # Ensure absolute path
-    if (-not [System.IO.Path]::IsPathRooted($InputPbf)) {
-        $InputPbf = (Resolve-Path $InputPbf).Path
+    if ([string]::IsNullOrEmpty($InputPbf)) {
+        $osmDataDir = Join-Path $RootPath "data/osm"
+        $pbfFiles = Get-ChildItem -Path $osmDataDir -Filter "*.pbf" -Recurse | Where-Object { $_.Extension -eq ".pbf" -or $_.Extension -eq ".osm.pbf" }
+
+        if ($pbfFiles.Count -eq 0) {
+            Write-Error "No .osm.pbf files found in '$osmDataDir'. Please provide -InputPbf or place a PBF file in the data/osm folder."
+            exit 1
+        } elseif ($pbfFiles.Count -gt 1) {
+            Write-Host "Multiple PBF files found in '$osmDataDir':" -ForegroundColor Yellow
+            $pbfFiles | ForEach-Object { Write-Host " - $($_.FullName)" }
+            Write-Error "Ambigous input. Please specify -InputPbf explicitly."
+            exit 1
+        } else {
+            $InputPbf = $pbfFiles[0].FullName
+            Write-Host "Auto-resolved input PBF: $InputPbf" -ForegroundColor Gray
+        }
+    } else {
+        if (-not [System.IO.Path]::IsPathRooted($InputPbf)) {
+            $InputPbf = (Resolve-Path $InputPbf).Path
+        }
+    }
+
+    if ([string]::IsNullOrEmpty($OutputGeoJson)) {
+        $OutputGeoJson = Join-Path $RootPath "apps/web/public/generated/osm-stop-candidates.geojson"
     }
 }
 
@@ -70,9 +106,9 @@ if (-not (Test-Path $InputPbf)) {
     exit 1
 }
 
-# 5. Resolve Output Path
-if ([string]::IsNullOrEmpty($OutputGeoJson)) {
-    $OutputGeoJson = Join-Path $RootPath "apps/web/public/generated/osm-stop-candidates.geojson"
+$OutputDir = Split-Path $OutputGeoJson -Parent
+if (-not (Test-Path $OutputDir)) {
+    New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 }
 
 # 6. Call Build Script
@@ -83,6 +119,10 @@ $params = @{
     InputPbf = $InputPbf
     OutputGeoJson = $OutputGeoJson
     ImageName = $ImageName
+}
+
+if (-not [string]::IsNullOrEmpty($IntermediateDir)) {
+    $params.Add("IntermediateDir", $IntermediateDir)
 }
 
 if ($KeepIntermediate) {
