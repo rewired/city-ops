@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 
 import { buildSelectedLineExportPayload } from './domain/types/selectedLineExport';
 import { useNetworkPlanningProjections } from './domain/projection/useNetworkPlanningProjections';
@@ -11,6 +11,10 @@ import { SimulationControlBar } from './simulation/SimulationControlBar';
 import { useSimulationClockController } from './simulation/useSimulationClockController';
 import { MaterialIcon } from './ui/icons/MaterialIcon';
 import { ToastHost } from './ui/toast/ToastHost';
+import { loadOsmStopCandidates } from './domain/osm/osmStopCandidateSource';
+import { consolidateOsmStopCandidates } from './domain/osm/osmStopCandidateConsolidation';
+import type { OsmStopCandidate, OsmStopCandidateGroup, OsmStopCandidateGroupId } from './domain/types/osmStopCandidate';
+import type { OsmStopCandidateStreetAnchorResolution } from './domain/osm/osmStopCandidateAnchorTypes';
 import {
   DebugModal,
   type DebugModalOverviewDiagnostics,
@@ -44,6 +48,7 @@ const downloadJsonFile = (filename: string, payload: unknown): void => {
 const resolveInspectorPanelState = (
   selectedLine: ReturnType<typeof useNetworkSessionState>['selectedLine'],
   selectedStop: ReturnType<typeof useNetworkSessionState>['selectedStop'],
+  selectedOsmCandidateGroupId: ReturnType<typeof useNetworkSessionState>['selectedOsmCandidateGroupId'],
   sessionStops: readonly import('./domain/types/stop').Stop[]
 ): InspectorPanelState => {
   if (selectedLine) {
@@ -63,6 +68,13 @@ const resolveInspectorPanelState = (
         stop
       };
     }
+  }
+  
+  if (selectedOsmCandidateGroupId) {
+    return {
+      mode: 'osm-candidate-selected',
+      candidateGroupId: selectedOsmCandidateGroupId
+    };
   }
 
   return {
@@ -99,6 +111,54 @@ export default function App(): ReactElement {
   );
   const [mapFocusIntent, setMapFocusIntent] = useState<MapFocusIntent | null>(null);
   const [activeDataOperation, setActiveDataOperation] = useState<ActiveDataOperation | null>(null);
+  const [osmStopCandidates, setOsmStopCandidates] = useState<readonly OsmStopCandidate[]>([]);
+  const [selectedOsmCandidateAnchor, setSelectedOsmCandidateAnchor] = useState<OsmStopCandidateStreetAnchorResolution | null>(null);
+
+  const osmStopCandidateGroups = useMemo(
+    () => consolidateOsmStopCandidates(osmStopCandidates),
+    [osmStopCandidates]
+  );
+  
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCandidates = async (): Promise<void> => {
+      setActiveDataOperation({
+        title: 'Workspace Initialization',
+        phase: 'Loading OSM stop candidates...',
+        progress: { kind: 'indeterminate' }
+      });
+
+      try {
+        const candidates = await loadOsmStopCandidates();
+        if (cancelled) return;
+
+        setActiveDataOperation({
+          title: 'Workspace Initialization',
+          phase: 'Grouping stop-facility candidates...',
+          progress: { kind: 'indeterminate' }
+        });
+
+        // Ensure the "Grouping" phase is painted before potentially heavy sync work
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        if (cancelled) return;
+
+        setOsmStopCandidates(candidates);
+      } catch (error) {
+        console.error('[App] OSM candidate load failed:', error);
+      } finally {
+        if (!cancelled) {
+          setActiveDataOperation(null);
+        }
+      }
+    };
+
+    loadCandidates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const projections = useNetworkPlanningProjections(
     sessionController.sessionLines,
@@ -112,6 +172,7 @@ export default function App(): ReactElement {
   const inspectorPanelState = resolveInspectorPanelState(
     sessionController.selectedLine,
     sessionController.selectedStop,
+    sessionController.selectedOsmCandidateGroupId,
     sessionController.sessionStops
   );
   const selectedCompletedLineForExport =
@@ -134,6 +195,7 @@ const toolModeControlOptions: ReadonlyArray<{
     activeToolMode: sessionController.activeToolMode,
     selectedStopId: sessionController.selectedStopId,
     selectedLineId: sessionController.selectedLineId,
+    selectedOsmCandidateGroupId: sessionController.selectedOsmCandidateGroupId,
     totalStopCount: sessionController.sessionStops.length,
     completedLineCount: sessionController.sessionLines.length,
     totalProjectedVehicleCount: projections.vehicleNetworkProjection.summary.totalProjectedVehicleCount,
@@ -294,6 +356,11 @@ const toolModeControlOptions: ReadonlyArray<{
           onMapFocusIntentConsumed={setMapFocusIntent}
           onDebugSnapshotChange={handleMapDebugSnapshotChange}
           onActiveDataOperationChange={setActiveDataOperation}
+          selectedOsmCandidateGroupId={sessionController.selectedOsmCandidateGroupId}
+          adoptedOsmCandidateGroupIds={sessionController.adoptedOsmCandidateGroupIds}
+          onOsmCandidateSelectionChange={sessionController.setSelectedOsmCandidateGroupId}
+          osmStopCandidates={osmStopCandidates}
+          onOsmCandidateAnchorResolved={setSelectedOsmCandidateAnchor}
         />
       </main>
 
@@ -322,6 +389,10 @@ const toolModeControlOptions: ReadonlyArray<{
         onLineRename={sessionController.renameLineLabel}
         openDialogIntent={sessionController.selectedLineDialogOpenIntent}
         onOpenDialogIntentConsumed={sessionController.setSelectedLineDialogOpenIntent}
+        onOsmCandidateAdopt={sessionController.adoptOsmCandidateGroup}
+        osmStopCandidateGroups={osmStopCandidateGroups}
+        selectedOsmCandidateAnchor={selectedOsmCandidateAnchor}
+        adoptedOsmCandidateGroupIds={sessionController.adoptedOsmCandidateGroupIds}
       />
 
       <DebugModal

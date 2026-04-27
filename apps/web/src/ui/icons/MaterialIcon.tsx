@@ -30,6 +30,10 @@ export interface MaterialIconProps {
    * Optional font variation settings to override defaults.
    */
   readonly settings?: MaterialIconSettings;
+  /**
+   * Optional CSS class to apply to the icon container.
+   */
+  readonly className?: string;
 }
 
 /**
@@ -38,11 +42,16 @@ export interface MaterialIconProps {
 export function MaterialIcon({ 
   name, 
   variant = 'outlined', 
-  settings 
+  settings,
+  className: incomingClassName
 }: MaterialIconProps): ReactElement {
-  const className = variant === 'sharp' 
+  const baseClassName = variant === 'sharp' 
     ? 'material-symbols-sharp app-material-icon app-material-icon--sharp'
     : 'material-symbols-outlined app-material-icon';
+
+  const fullClassName = incomingClassName 
+    ? `${baseClassName} ${incomingClassName}` 
+    : baseClassName;
 
   const style: CSSProperties = settings ? {
     fontVariationSettings: [
@@ -54,7 +63,7 @@ export function MaterialIcon({
   } : {};
 
   return (
-    <span className={className} style={style} aria-hidden="true">
+    <span className={fullClassName} style={style} aria-hidden="true">
       {name}
     </span>
   );

@@ -15,6 +15,12 @@ export interface StopSelectedInspectorPanelState {
   readonly stop: Stop;
 }
 
+/** Carries inspector data when an OSM candidate is the active selection context. */
+export interface OsmCandidateSelectedInspectorPanelState {
+  readonly mode: 'osm-candidate-selected';
+  readonly candidateGroupId: import('../domain/types/osmStopCandidate').OsmStopCandidateGroupId;
+}
+
 /** Carries inspector data when neither a line nor stop is selected. */
 export interface EmptyInspectorPanelState {
   readonly mode: 'empty';
@@ -24,4 +30,5 @@ export interface EmptyInspectorPanelState {
 export type InspectorPanelState =
   | LineSelectedInspectorPanelState
   | StopSelectedInspectorPanelState
+  | OsmCandidateSelectedInspectorPanelState
   | EmptyInspectorPanelState;

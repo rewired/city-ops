@@ -15,6 +15,9 @@ import type { StopSelectionState } from '../map-workspace/MapWorkspaceSurface';
 import { completeLineRouting } from '../domain/routing/completeLineRouting';
 import { getDefaultRoutingAdapter } from '../domain/routing/defaultRoutingAdapter';
 import type { LineBuildSelectionState, SelectedLineDialogOpenIntent, WorkspaceToolMode } from './sessionTypes';
+import type { OsmStopCandidateGroupId, OsmStopCandidateGroup } from '../domain/types/osmStopCandidate';
+import type { OsmStopCandidateStreetAnchorResolution } from '../domain/osm/osmStopCandidateAnchorTypes';
+import { evaluateOsmStopCandidateAdoptionEligibility, createStopFromOsmCandidateGroup } from '../domain/osm/osmStopCandidateAdoption';
 
 
 /** Text-input state for frequency editing fields keyed by canonical MVP time bands. */
@@ -46,6 +49,8 @@ export interface NetworkSessionStateController {
   readonly lineFrequencyControlByTimeBand: LineFrequencyControlByTimeBand;
   readonly lineFrequencyValidationByTimeBand: LineFrequencyValidationByTimeBand;
   readonly selectedLineDialogOpenIntent: SelectedLineDialogOpenIntent | null;
+  readonly selectedOsmCandidateGroupId: OsmStopCandidateGroupId | null;
+  readonly adoptedOsmCandidateGroupIds: ReadonlySet<OsmStopCandidateGroupId>;
   readonly handleToolModeSelection: (nextMode: WorkspaceToolMode) => void;
   readonly setSessionStops: Dispatch<SetStateAction<readonly Stop[]>>;
   readonly setSelectedStop: Dispatch<SetStateAction<StopSelectionState | null>>;
@@ -53,6 +58,8 @@ export interface NetworkSessionStateController {
   readonly setSessionLines: Dispatch<SetStateAction<readonly Line[]>>;
   readonly setSelectedLineId: Dispatch<SetStateAction<Line['id'] | null>>;
   readonly setSelectedLineDialogOpenIntent: Dispatch<SetStateAction<SelectedLineDialogOpenIntent | null>>;
+  readonly setSelectedOsmCandidateGroupId: (nextId: OsmStopCandidateGroupId | null) => void;
+  readonly adoptOsmCandidateGroup: (group: OsmStopCandidateGroup, anchor: OsmStopCandidateStreetAnchorResolution) => void;
   /** Commits a stop label rename for one stop id. */
   readonly renameStopLabel: (stopId: Stop['id'], nextLabel: string) => void;
   /** Commits a line label rename for one line id with accepted-symbol normalization. */
@@ -95,6 +102,8 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
   const { pushToast } = useToast();
   const [selectedLineDialogOpenIntent, setSelectedLineDialogOpenIntent] =
     useState<SelectedLineDialogOpenIntent | null>(null);
+  const [selectedOsmCandidateGroupId, setSelectedOsmCandidateGroupId] = useState<OsmStopCandidateGroupId | null>(null);
+  const [adoptedOsmCandidateGroupIds, setAdoptedOsmCandidateGroupIds] = useState<ReadonlySet<OsmStopCandidateGroupId>>(new Set());
 
   const selectedLine = useMemo(
     () => sessionLines.find((line) => line.id === selectedLineId) ?? null,
@@ -140,18 +149,81 @@ export const useNetworkSessionState = (): NetworkSessionStateController => {
     lineFrequencyControlByTimeBand,
     lineFrequencyValidationByTimeBand,
     selectedLineDialogOpenIntent,
+    selectedOsmCandidateGroupId,
+    adoptedOsmCandidateGroupIds,
     handleToolModeSelection: (nextMode) => {
       setActiveToolMode(nextMode);
+      setSelectedOsmCandidateGroupId(null);
       if (nextMode !== 'build-line') {
         setLineBuildSelection(INITIAL_LINE_BUILD_SELECTION_STATE);
       }
     },
     setSessionStops,
-    setSelectedStop,
+    setSelectedStop: (nextSelection) => {
+      setSelectedStop(nextSelection);
+      if (nextSelection) {
+        setSelectedOsmCandidateGroupId(null);
+        setSelectedLineId(null);
+      }
+    },
     setLineBuildSelection,
     setSessionLines,
-    setSelectedLineId,
+    setSelectedLineId: (nextId) => {
+      setSelectedLineId(nextId);
+      if (nextId) {
+        setSelectedOsmCandidateGroupId(null);
+        setSelectedStop(null);
+      }
+    },
     setSelectedLineDialogOpenIntent,
+    setSelectedOsmCandidateGroupId: (nextId) => {
+      setSelectedOsmCandidateGroupId(nextId);
+      if (nextId) {
+        setSelectedStop(null);
+        setSelectedLineId(null);
+      }
+    },
+    adoptOsmCandidateGroup: (group, anchor) => {
+      const eligibility = evaluateOsmStopCandidateAdoptionEligibility({
+        group,
+        anchor,
+        existingStops: sessionStops,
+        adoptedCandidateGroupIds: adoptedOsmCandidateGroupIds
+      });
+
+      if (!eligibility.canAdopt) {
+        pushToast({
+          variant: 'error',
+          title: 'Cannot adopt stop',
+          detail: eligibility.reason
+        });
+        return;
+      }
+
+      const nextStopIndex = sessionStops.length + 1;
+      const newStop = createStopFromOsmCandidateGroup({
+        group,
+        anchor,
+        nextStopIndex
+      });
+
+      setSessionStops((current) => [...current, newStop]);
+      setAdoptedOsmCandidateGroupIds((current) => {
+        const next = new Set(current);
+        next.add(group.id);
+        return next;
+      });
+
+      // After adoption, select the new stop and clear candidate selection
+      setSelectedStop({ selectedStopId: newStop.id });
+      setSelectedOsmCandidateGroupId(null);
+
+      pushToast({
+        variant: 'success',
+        title: 'Stop adopted',
+        detail: `Adopted "${newStop.label}" from OSM candidate group.`
+      });
+    },
     renameStopLabel: (stopId, nextLabel) => {
       setSessionStops((currentStops) =>
         currentStops.map((stop) => (stop.id === stopId ? { ...stop, label: nextLabel } : stop))

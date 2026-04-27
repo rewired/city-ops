@@ -6,6 +6,7 @@ import { InlineRenameField } from './InlineRenameField';
 import { SelectedLineInspector } from './SelectedLineInspector';
 import { NetworkInventory } from './NetworkInventory';
 import { INSPECTOR_TAB_IDS, INSPECTOR_TAB_LABELS, type InspectorTabId } from './inspectorTabs';
+import { OsmStopCandidateInspector } from './OsmStopCandidateInspector';
 import type { InspectorPanelState } from './types';
 import type {
   LineFrequencyControlByTimeBand,
@@ -45,6 +46,10 @@ interface InspectorPanelProps {
   readonly onLineRename: (lineId: Line['id'], nextLabel: string) => void;
   readonly openDialogIntent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null;
   readonly onOpenDialogIntentConsumed: (intent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null) => void;
+  readonly onOsmCandidateAdopt: (group: import('../domain/types/osmStopCandidate').OsmStopCandidateGroup, anchor: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution) => void;
+  readonly osmStopCandidateGroups: readonly import('../domain/types/osmStopCandidate').OsmStopCandidateGroup[];
+  readonly selectedOsmCandidateAnchor: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution | null;
+  readonly adoptedOsmCandidateGroupIds: ReadonlySet<import('../domain/types/osmStopCandidate').OsmStopCandidateGroupId>;
 }
 
 const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
@@ -54,6 +59,10 @@ const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
 
   if (panelState.mode === 'stop-selected') {
     return `Stop selected (${panelState.selection.selectedStopId})`;
+  }
+
+  if (panelState.mode === 'osm-candidate-selected') {
+    return `OSM candidate selected (${panelState.candidateGroupId})`;
   }
 
   return 'No active line or stop selection';
@@ -84,7 +93,11 @@ export function InspectorPanel({
   onStopRename,
   onLineRename,
   openDialogIntent,
-  onOpenDialogIntentConsumed
+  onOpenDialogIntentConsumed,
+  onOsmCandidateAdopt,
+  osmStopCandidateGroups,
+  selectedOsmCandidateAnchor,
+  adoptedOsmCandidateGroupIds
 }: InspectorPanelProps): ReactElement {
   const [activeTabId, setActiveTabId] = useState<InspectorTabId>('network');
   const [linesViewMode, setLinesViewMode] = useState<'list' | 'detail'>('list');
@@ -270,6 +283,21 @@ export function InspectorPanel({
           )}
         </section>
       ) : null}
+
+      {inspectorPanelState.mode === 'osm-candidate-selected' ? (() => {
+        const candidateGroup = osmStopCandidateGroups.find(g => g.id === inspectorPanelState.candidateGroupId);
+        if (!candidateGroup) return null;
+        
+        return (
+          <OsmStopCandidateInspector
+            candidateGroup={candidateGroup}
+            anchorResolution={selectedOsmCandidateAnchor}
+            existingStops={placedStops}
+            adoptedCandidateGroupIds={adoptedOsmCandidateGroupIds}
+            onAdopt={onOsmCandidateAdopt}
+          />
+        );
+      })() : null}
 
     </aside>
   );

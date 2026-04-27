@@ -13,3 +13,8 @@ export const OSM_STOP_CANDIDATE_STREET_ANCHOR_READY_MAX_DISTANCE_METERS = 35;
  * Beyond this, it is considered "blocked" for automatic adoption.
  */
 export const OSM_STOP_CANDIDATE_STREET_ANCHOR_REVIEW_MAX_DISTANCE_METERS = 60;
+
+/**
+ * Minimum distance (in meters) to an existing CityOps stop to prevent duplicate adoption.
+ */
+export const OSM_STOP_CANDIDATE_ADOPTION_DUPLICATE_DISTANCE_METERS = 15;

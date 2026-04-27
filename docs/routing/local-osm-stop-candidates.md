@@ -76,7 +76,19 @@ When a candidate group is hovered, the app resolves its **Street Anchor Status**
 
 Visible markers may appear off-street if their display position is away from the curb, but future adoption will use the resolved street-snapped anchor to ensure valid routing truth.
 
-- Candidates remain non-canonical; selecting one does not create a CityOps stop in this slice.
+### Adoption Workflow
+
+Adoption is the process of converting an external OSM candidate group into a canonical CityOps stop.
+
+1. **Selection**: Click on a candidate group circle in **Inspect** mode.
+2. **Review**: The inspector panel shows the resolved street anchor and distance.
+3. **Adopt**: Click **Adopt stop** if the candidate is "ready" (has a valid street anchor).
+
+Once adopted:
+- The stop becomes a standard CityOps stop.
+- The original OSM candidate is hidden from the overlay in the current session.
+- The stop's position is set to the **resolved street anchor**, ensuring it is safe for routing.
+- The stop name is inherited from the candidate group label.
 
 ## Attribution and Licensing
 

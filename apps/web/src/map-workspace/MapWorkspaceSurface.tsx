@@ -17,7 +17,7 @@ import type { Stop, StopId } from '../domain/types/stop';
 import { createStopId } from '../domain/types/stop';
 import { loadOsmStopCandidates } from '../domain/osm/osmStopCandidateSource';
 import { consolidateOsmStopCandidates } from '../domain/osm/osmStopCandidateConsolidation';
-import type { OsmStopCandidate, OsmStopCandidateGroup } from '../domain/types/osmStopCandidate';
+import type { OsmStopCandidate, OsmStopCandidateGroup, OsmStopCandidateGroupId } from '../domain/types/osmStopCandidate';
 import { createUniqueStopLabel } from '../domain/stop/stopLabeling';
 import { generateLineLabel, generateUniqueLineLabel } from '../domain/line/lineLabeling';
 import type { LineBuildSelectionState, MapFocusIntent, WorkspaceToolMode } from '../session/sessionTypes';
@@ -30,8 +30,10 @@ import {
 import {
   bindCompletedLineFeatureInteractions,
   bindStopFeatureInteractions,
+  bindOsmCandidateFeatureInteractions,
   decodeLineIdFromFeatureProperties,
   decodeStopIdFromFeatureProperties,
+  decodeOsmCandidateGroupIdFromFeatureProperties,
   handleStopFeatureInteraction,
   resolveInspectModeMapClickSelection,
   setupMapWorkspaceInteractions,
@@ -93,6 +95,11 @@ interface MapWorkspaceSurfaceProps {
     } | null
   ) => void;
   readonly onActiveDataOperationChange: (operation: ActiveDataOperation | null) => void;
+  readonly selectedOsmCandidateGroupId: OsmStopCandidateGroupId | null;
+  readonly adoptedOsmCandidateGroupIds: ReadonlySet<OsmStopCandidateGroupId>;
+  readonly onOsmCandidateSelectionChange: (nextSelectionId: OsmStopCandidateGroupId | null) => void;
+  readonly osmStopCandidates: readonly OsmStopCandidate[];
+  readonly onOsmCandidateAnchorResolved: (resolution: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution | null) => void;
 }
 
 /** Canonical map diagnostics payload surfaced to shell-owned debug modal state. */
@@ -167,9 +174,6 @@ const buildDeterministicStop = (
   })
 });
 
-/**
- * Renders the CityOps workspace as a real MapLibre map surface with local click telemetry and minimal stop-placement validation.
- */
 export function MapWorkspaceSurface({
   activeToolMode,
   selectedStopId,
@@ -186,7 +190,12 @@ export function MapWorkspaceSurface({
   mapFocusIntent,
   onMapFocusIntentConsumed,
   onDebugSnapshotChange,
-  onActiveDataOperationChange
+  onActiveDataOperationChange,
+  selectedOsmCandidateGroupId,
+  adoptedOsmCandidateGroupIds,
+  onOsmCandidateSelectionChange,
+  osmStopCandidates,
+  onOsmCandidateAnchorResolved
 }: MapWorkspaceSurfaceProps): ReactElement {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<MapLibreMap | null>(null);
@@ -225,11 +234,10 @@ export function MapWorkspaceSurface({
   const draftStopIdsRef = useRef<readonly StopId[]>(draftLineState.stopIds);
   const draftStopIdSetRef = useRef<ReadonlySet<StopId>>(draftStopIdSet);
   const stopsByIdRef = useRef<ReadonlyMap<StopId, Stop>>(new Map());
-  const [osmStopCandidates, setOsmStopCandidates] = useState<readonly OsmStopCandidate[]>([]);
 
   const osmStopCandidateGroups = useMemo(
-    () => consolidateOsmStopCandidates(osmStopCandidates),
-    [osmStopCandidates]
+    () => consolidateOsmStopCandidates(osmStopCandidates).filter(g => !adoptedOsmCandidateGroupIds.has(g.id)),
+    [osmStopCandidates, adoptedOsmCandidateGroupIds]
   );
 
   const clearSelectedCompletedLine = (): void => {
@@ -277,65 +285,6 @@ export function MapWorkspaceSurface({
     draftStopIdSetRef.current = draftStopIdSet;
   }, [draftStopIdSet]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadCandidates = async (): Promise<void> => {
-      onActiveDataOperationChange({
-        title: 'Workspace Initialization',
-        phase: 'Loading OSM stop candidates...',
-        progress: { kind: 'indeterminate' }
-      });
-
-      try {
-        const candidates = await loadOsmStopCandidates();
-        if (cancelled) return;
-
-        onActiveDataOperationChange({
-          title: 'Workspace Initialization',
-          phase: 'Validating generated candidate data...',
-          progress: { kind: 'indeterminate' }
-        });
-
-        // Small delay to ensure the phase is visible if it completes instantly
-        await new Promise((resolve) => setTimeout(resolve, 60));
-        if (cancelled) return;
-
-        onActiveDataOperationChange({
-          title: 'Workspace Initialization',
-          phase: 'Grouping stop-facility candidates...',
-          progress: { kind: 'indeterminate' }
-        });
-
-        // Ensure the "Grouping" phase is painted before potentially heavy sync work
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        if (cancelled) return;
-
-        setOsmStopCandidates(candidates);
-
-        onActiveDataOperationChange({
-          title: 'Workspace Initialization',
-          phase: 'Preparing map overlay...',
-          progress: { kind: 'indeterminate' }
-        });
-
-        // Brief wait to allow map style/source sync to kick in
-        await new Promise((resolve) => setTimeout(resolve, 60));
-      } catch (error) {
-        console.error('[MapWorkspaceSurface] OSM candidate load failed:', error);
-      } finally {
-        if (!cancelled) {
-          onActiveDataOperationChange(null);
-        }
-      }
-    };
-
-    loadCandidates();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [onActiveDataOperationChange]);
 
   useEffect(() => {
     const containerElement = mapContainerRef.current;
@@ -442,7 +391,6 @@ export function MapWorkspaceSurface({
         const streetLayerIds = resolveStreetLayerIdsFromStyle(mapInstance);
         const { resolveOsmStopCandidateGroupStreetAnchor } = require('./osmStopCandidateStreetAnchorResolution');
         const anchorResolution = resolveOsmStopCandidateGroupStreetAnchor(mapInstance, group, streetLayerIds);
-
         setHoveredOsmCandidate({
           ...nextHover,
           anchorResolution
@@ -462,10 +410,36 @@ export function MapWorkspaceSurface({
       }
     });
 
+    const osmCandidateInteractionBinding = bindOsmCandidateFeatureInteractions(mapInstance, (event) => {
+      if (activeToolModeRef.current !== 'inspect') {
+        return;
+      }
+
+      const clickedFeature = event.features?.[0];
+      const groupId = decodeOsmCandidateGroupIdFromFeatureProperties(clickedFeature?.properties);
+
+      if (!groupId) {
+        return;
+      }
+
+      onOsmCandidateSelectionChange(groupId);
+
+      const group = osmStopCandidateGroups.find((g) => g.id === groupId);
+      if (group) {
+        const streetLayerIds = resolveStreetLayerIdsFromStyle(mapInstance);
+        const { resolveOsmStopCandidateGroupStreetAnchor } = require('./osmStopCandidateStreetAnchorResolution');
+        const anchorResolution = resolveOsmStopCandidateGroupStreetAnchor(mapInstance, group, streetLayerIds);
+        onOsmCandidateAnchorResolved(anchorResolution);
+      } else {
+        onOsmCandidateAnchorResolved(null);
+      }
+    });
+
     return () => {
       interactions.dispose();
+      osmCandidateInteractionBinding.dispose();
     };
-  }, [activeToolMode, onPlacedStopsChange, onStopSelectionChange]);
+  }, [activeToolMode, onPlacedStopsChange, onStopSelectionChange, onOsmCandidateSelectionChange]);
 
   useEffect(() => {
     const mapInstance = mapInstanceRef.current;

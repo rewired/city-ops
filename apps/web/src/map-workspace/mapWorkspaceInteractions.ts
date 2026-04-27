@@ -8,6 +8,7 @@ import {
   MAP_LAYER_ID_STOPS_CIRCLE,
   MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE
 } from './mapRenderConstants';
+import { createOsmStopCandidateGroupId, type OsmStopCandidateGroupId } from '../domain/types/osmStopCandidate';
 import {
   type MapLibreInteractionEvent,
   type MapLibreMap
@@ -156,9 +157,26 @@ export const decodeLineIdFromFeatureProperties = (properties: Record<string, unk
   return createLineId(lineIdValue);
 };
 
+/** Decodes an OSM candidate group id from map feature properties and returns null when absent or invalid. */
+export const decodeOsmCandidateGroupIdFromFeatureProperties = (
+  properties: Record<string, unknown> | undefined
+): OsmStopCandidateGroupId | null => {
+  const groupIdValue = properties?.candidateGroupId;
+
+  if (typeof groupIdValue !== 'string') {
+    return null;
+  }
+
+  return createOsmStopCandidateGroupId(groupIdValue);
+};
+
 /** Returns true when the click point intersects stop or completed-line interactive feature layers. */
 export const hasInteractiveSelectionFeatureAtPoint = (map: MapLibreMap, event: MapLibreInteractionEvent): boolean => {
-  const interactiveSelectionLayers: readonly string[] = [MAP_LAYER_ID_STOPS_CIRCLE, MAP_LAYER_ID_COMPLETED_LINES];
+  const interactiveSelectionLayers: readonly string[] = [
+    MAP_LAYER_ID_STOPS_CIRCLE,
+    MAP_LAYER_ID_COMPLETED_LINES,
+    MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE
+  ];
   const renderedFeatures = map.queryRenderedFeatures(event.point, { layers: interactiveSelectionLayers });
 
   return renderedFeatures.length > 0;
@@ -321,6 +339,20 @@ export const bindCompletedLineFeatureInteractions = (
   return {
     dispose: () => {
       map.off('click', MAP_LAYER_ID_COMPLETED_LINES, onCompletedLineClick);
+    }
+  };
+};
+
+/** Binds click interactions for rendered OSM stop candidate features and provides a dispose hook. */
+export const bindOsmCandidateFeatureInteractions = (
+  map: MapLibreMap,
+  onOsmCandidateFeatureClick: (event: MapLibreInteractionEvent) => void
+): MapWorkspaceInteractionBinding => {
+  map.on('click', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateFeatureClick);
+
+  return {
+    dispose: () => {
+      map.off('click', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateFeatureClick);
     }
   };
 };

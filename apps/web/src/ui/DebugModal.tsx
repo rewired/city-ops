@@ -19,6 +19,7 @@ export interface DebugModalOverviewDiagnostics {
   readonly totalProjectedVehicleCount: number;
   readonly draftOrderedStopIds: readonly string[];
   readonly completedLineIds: readonly string[];
+  readonly selectedOsmCandidateGroupId: string | null;
   readonly demandNodeSummary: readonly DemandNodeSummary[];
 }
 
@@ -140,6 +141,7 @@ export function DebugModal({
                 <tr><th scope="row">Stop count</th><td>{overviewDiagnostics.totalStopCount}</td></tr>
                 <tr><th scope="row">Completed line count</th><td>{overviewDiagnostics.completedLineCount}</td></tr>
                 <tr><th scope="row">Projected vehicle count</th><td>{overviewDiagnostics.totalProjectedVehicleCount}</td></tr>
+                <tr><th scope="row">Selected OSM candidate id</th><td>{overviewDiagnostics.selectedOsmCandidateGroupId ?? 'none'}</td></tr>
                 <tr>
                   <th scope="row">Draft ordered stop ids</th>
                   <td>{overviewDiagnostics.draftOrderedStopIds.length > 0 ? overviewDiagnostics.draftOrderedStopIds.join(' → ') : 'none'}</td>
