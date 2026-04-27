@@ -24,15 +24,24 @@ export function ScenarioSelectionScreen({
 }: ScenarioSelectionScreenProps): ReactElement {
   return (
     <div className="scenario-selection-screen" aria-label="Scenario Selection Workspace">
-      <header className="scenario-selection-screen__header">
-        <div className="scenario-selection-screen__brand">
-          <strong>City</strong>Ops
-        </div>
-        <h1 className="scenario-selection-screen__title">Select a Scenario</h1>
-        <p className="scenario-selection-screen__subtitle">
-          Choose your operational theatre. Build robust transit connections.
-        </p>
-      </header>
+      <div className="scenario-selection-screen__splash-container">
+        <img
+          src="/images/cityops-splash.png"
+          alt="CityOps Splash"
+          className="scenario-selection-screen__splash-image"
+        />
+      </div>
+
+      <div className="scenario-selection-screen__content">
+        <header className="scenario-selection-screen__header">
+          <div className="scenario-selection-screen__brand">
+            <strong>City</strong>Ops
+          </div>
+          <h1 className="scenario-selection-screen__title">Choose Scenario</h1>
+          <p className="scenario-selection-screen__subtitle">
+            Local asset readiness determines scenario accessibility. Build robust transit connections.
+          </p>
+        </header>
 
       <main className="scenario-selection-screen__grid" role="list">
         {scenarios.map((entry) => {
@@ -116,7 +125,7 @@ export function ScenarioSelectionScreen({
           </button>
         </footer>
       )}
-
+      </div>
     </div>
   );
 }
