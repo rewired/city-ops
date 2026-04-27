@@ -96,3 +96,10 @@ apps/web/public/generated/**
 # Intermediate OSM generated files
 data/generated/osm/**
 !data/generated/osm/.gitkeep
+
+# Scenario setup and local asset overrides
+data/generated/download-helpers/*.html
+data/osm/*.osm.pbf
+data/routing/osrm/**
+apps/web/public/generated/**
+!apps/web/public/generated/.gitkeep

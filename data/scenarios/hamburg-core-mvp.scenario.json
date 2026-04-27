@@ -16,7 +16,7 @@
     }
   },
   "initialViewport": {
-    "lng": 10.0,
+    "lng": 10,
     "lat": 53.55,
     "zoom": 11
   },
