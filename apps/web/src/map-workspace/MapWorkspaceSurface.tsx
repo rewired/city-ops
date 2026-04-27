@@ -404,7 +404,7 @@ export function MapWorkspaceSurface({
         osmStopCandidateSync: osmStopCandidates
       });
     });
-  }, [activeToolMode, draftStopIdSet, placedStops, selectedStopId]);
+  }, [activeToolMode, draftStopIdSet, placedStops, selectedStopId, osmStopCandidates]);
 
   useEffect(() => {
     const mapInstance = mapInstanceRef.current;
@@ -458,7 +458,7 @@ export function MapWorkspaceSurface({
         }
       }));
     });
-  }, [draftLineState.stopIds, placedStops, selectedLineId, sessionLines]);
+  }, [draftLineState.stopIds, placedStops, selectedLineId, sessionLines, osmStopCandidates]);
 
   useEffect(() => {
     const mapInstance = mapInstanceRef.current;
@@ -506,7 +506,7 @@ export function MapWorkspaceSurface({
         }
       }));
     });
-  }, [vehicleNetworkProjection]);
+  }, [vehicleNetworkProjection, osmStopCandidates]);
 
   useEffect(() => {
     const mapInstance = mapInstanceRef.current;

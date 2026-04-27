@@ -59,26 +59,34 @@ export const loadOsmStopCandidates = async (): Promise<readonly OsmStopCandidate
     return [];
   }
 
-  const candidates: OsmStopCandidate[] = json.features.map((feature) => {
-    const position: StopPosition = {
-      lng: feature.geometry.coordinates[0],
-      lat: feature.geometry.coordinates[1]
-    };
+  const candidates: OsmStopCandidate[] = json.features
+    .filter((feature) => {
+      if (!isValidOsmStopCandidateKind(feature.properties.kind)) {
+        console.warn(
+          `[osm-stop-candidate-source] Skipping feature with invalid kind: ${feature.properties.kind} (candidateId: ${feature.properties.candidateId})`
+        );
+        return false;
+      }
+      return true;
+    })
+    .map((feature) => {
+      const position: StopPosition = {
+        lng: feature.geometry.coordinates[0],
+        lat: feature.geometry.coordinates[1]
+      };
 
-    const kind: OsmStopCandidateKind = normalizeOsmStopCandidateKind(feature.properties.kind);
+      const hasOsmElementType = feature.properties.osmElementType != null && feature.properties.osmElementType !== '';
 
-    const hasOsmElementType = feature.properties.osmElementType != null && feature.properties.osmElementType !== '';
-
-    return {
-      id: createOsmStopCandidateId(feature.properties.candidateId),
-      position,
-      label: feature.properties.label,
-      kind,
-      source: 'osm' as const,
-      ...(hasOsmElementType ? { osmElementType: feature.properties.osmElementType as 'node' | 'way' | 'relation' } : {}),
-      ...(feature.properties.osmElementId != null && feature.properties.osmElementId !== '' ? { osmElementId: feature.properties.osmElementId } : {})
-    };
-  });
+      return {
+        id: createOsmStopCandidateId(feature.properties.candidateId),
+        position,
+        label: feature.properties.label,
+        kind: feature.properties.kind as OsmStopCandidateKind,
+        source: 'osm' as const,
+        ...(hasOsmElementType ? { osmElementType: feature.properties.osmElementType as 'node' | 'way' | 'relation' } : {}),
+        ...(feature.properties.osmElementId != null && feature.properties.osmElementId !== '' ? { osmElementId: feature.properties.osmElementId } : {})
+      };
+    });
 
   return candidates;
 };
@@ -183,15 +191,12 @@ const isValidOsmStopCandidateProperties = (value: unknown): boolean => {
   return true;
 };
 
-const normalizeOsmStopCandidateKind = (kind: string): OsmStopCandidateKind => {
-  switch (kind) {
-    case 'bus-stop':
-      return 'bus-stop';
-    case 'public-transport-platform':
-      return 'public-transport-platform';
-    case 'public-transport-stop-position':
-      return 'public-transport-stop-position';
-    default:
-      return 'bus-stop';
-  }
+const KNOWN_OSM_STOP_CANDIDATE_KINDS: readonly string[] = [
+  'bus-stop',
+  'public-transport-platform',
+  'public-transport-stop-position'
+] as const;
+
+const isValidOsmStopCandidateKind = (kind: string): kind is OsmStopCandidateKind => {
+  return KNOWN_OSM_STOP_CANDIDATE_KINDS.includes(kind as OsmStopCandidateKind);
 };
