@@ -1,0 +1,84 @@
+.scenario-loading-state,
+.scenario-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background: var(--cityops-color-bg-dark);
+  color: var(--cityops-color-text-lightest);
+  box-sizing: border-box;
+  text-align: center;
+  padding: 20px;
+}
+
+.scenario-loading-state__spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(59, 130, 246, 0.2);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: scenario-spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes scenario-spin {
+  to { transform: rotate(360deg); }
+}
+
+.scenario-error-state__icon {
+  font-size: 3rem;
+  color: #ef4444;
+  margin-bottom: 16px;
+}
+
+.scenario-error-state__title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #ffffff;
+}
+
+.scenario-error-state__message {
+  font-size: 1rem;
+  color: #b3c5dd;
+  margin: 0 0 24px 0;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.scenario-error-state__command-box {
+  background: #151d2a;
+  border: 1px solid #27364d;
+  border-radius: var(--cityops-radius-md);
+  padding: 12px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scenario-error-state__command {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  color: #7baaf7;
+  font-weight: 600;
+}
+
+.scenario-error-state__retry-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #223147;
+  color: #ffffff;
+  border: 1px solid #344866;
+  padding: 10px 20px;
+  border-radius: var(--cityops-radius-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.scenario-error-state__retry-button:hover {
+  background: #2c3e59;
+}
