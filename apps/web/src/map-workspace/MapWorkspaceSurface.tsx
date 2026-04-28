@@ -66,6 +66,7 @@ import {
 } from './mapWorkspaceOsmCandidateHover';
 import { applyMapWorkspaceFocusIntent } from './mapWorkspaceFocus';
 import { buildMapWorkspaceDebugSnapshot, type MapWorkspaceDebugSnapshot } from './mapWorkspaceDebugSnapshot';
+import { useMapWorkspaceSourceSync, type MapWorkspaceFeatureDiagnostics, type LayerFeatureDiagnostics } from './useMapWorkspaceSourceSync';
 
 /** Canonical single-stop selection contract shared by marker highlighting and shell inspector state. */
 export type { StopSelectionState } from './mapWorkspaceInteractions';
@@ -108,16 +109,7 @@ interface DraftLineState {
   readonly metadata: DraftLineMetadata | null;
 }
 
-interface LayerFeatureDiagnostics {
-  readonly builderFeatureCount: number;
-  readonly sourceFeatureCount: number;
-  readonly renderedFeatureCount: number;
-}
 
-interface MapWorkspaceFeatureDiagnostics {
-  readonly lines: LayerFeatureDiagnostics;
-  readonly vehicles: LayerFeatureDiagnostics;
-}
 
 const STOP_LABEL_PREFIX = 'Stop';
 const INITIAL_DRAFT_LINE_STATE: DraftLineState = { stopIds: [], metadata: null };
@@ -411,213 +403,19 @@ export function MapWorkspaceSurface({
     };
   }, [activeToolMode, onPlacedStopsChange, onStopSelectionChange, onOsmCandidateSelectionChange]);
 
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
-      map: mapInstance,
-      stopSync: {
-        stops: placedStops,
-        selectedStopId,
-        draftStopIds: draftStopIdSet,
-        isBuildLineModeActive: activeToolMode === 'build-line',
-        selectedLine: sessionLines.find(l => l.id === selectedLineId) ?? null
-      }
-    });
-
-    if (sourceSyncDiagnostics) {
-      return;
-    }
-
-    return runWhenMapStyleReady(mapInstance, () => {
-      applyBasemapSemanticReadabilityOverrides(mapInstance);
-      syncAllMapWorkspaceSources({
-        map: mapInstance,
-        stopSync: {
-          stops: placedStops,
-          selectedStopId,
-          draftStopIds: draftStopIdSet,
-          isBuildLineModeActive: activeToolMode === 'build-line',
-          selectedLine: sessionLines.find(l => l.id === selectedLineId) ?? null
-        }
-      });
-    });
-  }, [activeToolMode, draftStopIdSet, placedStops, selectedStopId]);
-
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
-      map: mapInstance,
-      lineSync: {
-        sessionLines,
-        selectedLineId,
-        draftStopIds: draftLineState.stopIds,
-        stopsById: new Map(placedStops.map((stop) => [stop.id, stop] as const))
-      }
-    });
-
-    if (sourceSyncDiagnostics) {
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        lines: {
-          ...currentDiagnostics.lines,
-          builderFeatureCount: sourceSyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
-          sourceFeatureCount: sourceSyncDiagnostics.lineSourceFeatureCount
-        }
-      }));
-      return;
-    }
-
-    return runWhenMapStyleReady(mapInstance, () => {
-      applyBasemapSemanticReadabilityOverrides(mapInstance);
-      const styleReadySyncDiagnostics = syncAllMapWorkspaceSources({
-        map: mapInstance,
-        lineSync: {
-          sessionLines,
-          selectedLineId,
-          draftStopIds: draftLineState.stopIds,
-          stopsById: new Map(placedStops.map((stop) => [stop.id, stop] as const))
-        }
-      });
-
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        lines: {
-          ...currentDiagnostics.lines,
-          builderFeatureCount:
-            styleReadySyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
-          sourceFeatureCount: styleReadySyncDiagnostics.lineSourceFeatureCount
-        }
-      }));
-    });
-  }, [draftLineState.stopIds, placedStops, selectedLineId, sessionLines]);
-
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
-      map: mapInstance,
-      vehicleSync: {
-        vehicleNetworkProjection
-      }
-    });
-
-    if (sourceSyncDiagnostics) {
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        vehicles: {
-          ...currentDiagnostics.vehicles,
-          builderFeatureCount: sourceSyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
-          sourceFeatureCount: sourceSyncDiagnostics.vehicleSourceFeatureCount
-        }
-      }));
-      return;
-    }
-
-    return runWhenMapStyleReady(mapInstance, () => {
-      applyBasemapSemanticReadabilityOverrides(mapInstance);
-      const styleReadySyncDiagnostics = syncAllMapWorkspaceSources({
-        map: mapInstance,
-        vehicleSync: {
-          vehicleNetworkProjection
-        }
-      });
-
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        vehicles: {
-          ...currentDiagnostics.vehicles,
-          builderFeatureCount:
-            styleReadySyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
-          sourceFeatureCount: styleReadySyncDiagnostics.vehicleSourceFeatureCount
-        }
-      }));
-    });
-  }, [vehicleNetworkProjection]);
-
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
-      map: mapInstance,
-      osmStopCandidateSync: osmStopCandidateGroups
-    });
-
-    if (sourceSyncDiagnostics) {
-      return;
-    }
-
-    return runWhenMapStyleReady(mapInstance, () => {
-      applyBasemapSemanticReadabilityOverrides(mapInstance);
-      syncAllMapWorkspaceSources({
-        map: mapInstance,
-        osmStopCandidateSync: osmStopCandidateGroups
-      });
-    });
-  }, [osmStopCandidateGroups]);
-
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const refreshRenderedFeatureDiagnostics = (): void => {
-      const lineRenderedFeatureCount = countRenderedFeaturesForLayers(mapInstance, [
-        MAP_LAYER_ID_COMPLETED_LINES,
-        MAP_LAYER_ID_DRAFT_LINE
-      ]);
-      const vehicleRenderedFeatureCount = countRenderedFeaturesForLayers(mapInstance, [MAP_LAYER_ID_VEHICLES]);
-
-      setFeatureDiagnostics((currentDiagnostics) => {
-        if (
-          currentDiagnostics.lines.renderedFeatureCount === lineRenderedFeatureCount &&
-          currentDiagnostics.vehicles.renderedFeatureCount === vehicleRenderedFeatureCount
-        ) {
-          return currentDiagnostics;
-        }
-
-        return {
-          ...currentDiagnostics,
-          lines: {
-            ...currentDiagnostics.lines,
-            renderedFeatureCount: lineRenderedFeatureCount
-          },
-          vehicles: {
-            ...currentDiagnostics.vehicles,
-            renderedFeatureCount: vehicleRenderedFeatureCount
-          }
-        };
-      });
-    };
-
-    refreshRenderedFeatureDiagnostics();
-    mapInstance.on('render', refreshRenderedFeatureDiagnostics);
-    mapInstance.on('idle', refreshRenderedFeatureDiagnostics);
-
-    return () => {
-      mapInstance.off('render', refreshRenderedFeatureDiagnostics);
-      mapInstance.off('idle', refreshRenderedFeatureDiagnostics);
-    };
-  }, []);
+  useMapWorkspaceSourceSync({
+    mapRef: mapInstanceRef,
+    activeToolMode,
+    placedStops,
+    selectedStopId,
+    draftStopIds: draftLineState.stopIds,
+    draftStopIdSet,
+    sessionLines,
+    selectedLineId,
+    vehicleNetworkProjection,
+    osmStopCandidateGroups,
+    setFeatureDiagnostics
+  });
 
   useEffect(() => {
     const mapInstance = mapInstanceRef.current;
