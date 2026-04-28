@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { createStopId, type Stop } from '../domain/types/stop';
 import { createRoutingProviderId, type RoutingAdapter } from '../domain/routing/RoutingAdapter';
 import { prepareCompletedDraftLine } from './mapWorkspaceLineCompletion';
+import type { Line } from '../domain/types/line';
+import { createLineId, createNoServiceLineServiceByTimeBand } from '../domain/types/line';
 
 describe('prepareCompletedDraftLine', () => {
   const stop1: Stop = { id: createStopId('stop-1'), position: { lng: 10, lat: 50 }, label: 'S1' };
@@ -39,15 +41,15 @@ describe('prepareCompletedDraftLine', () => {
   });
 
   it('assigns unique labels avoiding existing line labels', async () => {
-    const existingLine = {
-      id: 'line-1',
+    const existingLine: Line = {
+      id: createLineId('line-1'),
       label: 'S1 → S2',
       stopIds: [],
       topology: 'linear',
       servicePattern: 'one-way',
       routeSegments: [],
-      frequencyByTimeBand: {}
-    } as any;
+      frequencyByTimeBand: createNoServiceLineServiceByTimeBand()
+    };
 
     const line = await prepareCompletedDraftLine({
       draftStopIds,
