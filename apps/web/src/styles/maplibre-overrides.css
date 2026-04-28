@@ -1,0 +1,4 @@
+.maplibregl-ctrl-group {
+  border-radius: var(--cityops-radius-md);
+  overflow: hidden;
+}
