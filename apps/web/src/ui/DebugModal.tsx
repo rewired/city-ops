@@ -1,6 +1,6 @@
 import { useState, type ReactElement } from 'react';
 
-import type { MapWorkspaceDebugSnapshot } from '../map-workspace/MapWorkspaceSurface';
+import type { MapWorkspaceDebugSnapshot } from '../map-workspace/mapWorkspaceDebugSnapshot';
 import type { WorkspaceToolMode } from '../session/sessionTypes';
 
 /** Ordered debug-tab identifiers for the shell-owned diagnostics modal. */

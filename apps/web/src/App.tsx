@@ -4,7 +4,8 @@ import { buildSelectedLineExportPayload } from './domain/types/selectedLineExpor
 import { useNetworkPlanningProjections } from './domain/projection/useNetworkPlanningProjections';
 import { InspectorPanel } from './inspector/InspectorPanel';
 import type { InspectorPanelState } from './inspector/types';
-import { MapWorkspaceSurface, type MapWorkspaceDebugSnapshot } from './map-workspace/MapWorkspaceSurface';
+import { MapWorkspaceSurface } from './map-workspace/MapWorkspaceSurface';
+import type { MapWorkspaceDebugSnapshot } from './map-workspace/mapWorkspaceDebugSnapshot';
 import { SessionActions } from './session/SessionActions';
 import { useNetworkSessionState } from './session/useNetworkSessionState';
 import { SimulationControlBar } from './simulation/SimulationControlBar';

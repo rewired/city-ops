@@ -60,6 +60,7 @@ import { applyBasemapSemanticReadabilityOverrides } from './mapBaseStyleOverride
 import type { MapLibreMap } from './maplibreGlobal';
 import { resolveOsmStopCandidateGroupStreetAnchor } from './osmStopCandidateStreetAnchorResolution';
 import { applyMapWorkspaceFocusIntent } from './mapWorkspaceFocus';
+import { buildMapWorkspaceDebugSnapshot, type MapWorkspaceDebugSnapshot } from './mapWorkspaceDebugSnapshot';
 
 /** Canonical single-stop selection contract shared by marker highlighting and shell inspector state. */
 export type { StopSelectionState } from './mapWorkspaceInteractions';
@@ -101,28 +102,7 @@ interface MapWorkspaceSurfaceProps {
   readonly onOsmCandidateAnchorResolved: (resolution: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution | null) => void;
 }
 
-/** Canonical map diagnostics payload surfaced to shell-owned debug modal state. */
-export interface MapWorkspaceDebugSnapshot {
-  readonly interactionStatus: MapSurfaceInteractionState['status'];
-  readonly pointerSummary: string;
-  readonly geographicSummary: string;
-  readonly lineDiagnosticsSummary: string;
-  readonly vehicleDiagnosticsSummary: string;
-  readonly stopSelectionSummary: string;
-  readonly placementInstruction: string;
-  readonly placementStreetRuleHint: string;
-  readonly buildLineInstruction: string;
-  readonly buildLineMinimumRequirement: string;
-  readonly completedOverlayNote: string;
-  readonly draftOverlayNote: string;
-  readonly draftMetadataSummary: string;
-  readonly lastPlacedStopLabel: string | null;
-  readonly osmStopCandidateRawCount?: number | undefined;
-  readonly osmStopCandidateGroupCount?: number | undefined;
-  readonly osmStopCandidateAnchorLastStatus?: string | undefined;
-  readonly osmStopCandidateAnchorLastDistanceMeters?: number | undefined;
-  readonly osmStopCandidateStreetLayerCount?: number | undefined;
-}
+
 
 interface DraftLineMetadata {
   readonly draftOrdinal: number;
@@ -750,63 +730,39 @@ export function MapWorkspaceSurface({
     };
   }, [onSelectedLineIdChange]);
 
-  const pointerSummary = interactionState.pointer
-    ? `x:${interactionState.pointer.screenX.toFixed(1)} y:${interactionState.pointer.screenY.toFixed(1)}`
-    : 'none';
-  const geographicSummary =
-    interactionState.pointer?.lng !== undefined && interactionState.pointer.lat !== undefined
-      ? `lng:${interactionState.pointer.lng.toFixed(5)} lat:${interactionState.pointer.lat.toFixed(5)}`
-      : 'lng/lat unavailable';
-  const stopSelectionSummary = selectedStopId ? `Selected stop: ${selectedStopId}` : 'Selected stop: none';
-  const lineDiagnosticsSummary = `Line features: builder ${featureDiagnostics.lines.builderFeatureCount} / source ${featureDiagnostics.lines.sourceFeatureCount} / rendered ${featureDiagnostics.lines.renderedFeatureCount}`;
-  const vehicleDiagnosticsSummary = `Vehicle features: builder ${featureDiagnostics.vehicles.builderFeatureCount} / source ${featureDiagnostics.vehicles.sourceFeatureCount} / rendered ${featureDiagnostics.vehicles.renderedFeatureCount}`;
   const placementUiFeedback = buildPlacementUiFeedback(activeToolMode, placementAttemptResult);
   const buildLineUiFeedback = buildLineModeUiFeedback(activeToolMode, draftLineState.stopIds);
-  const draftMetadataSummary = draftLineState.metadata
-    ? `Draft #${draftLineState.metadata.draftOrdinal} @ ${draftLineState.metadata.startedAtIsoUtc}`
-    : 'Draft inactive';
   const buildLineBlockerSummary = buildLineUiFeedback.canCompleteDraft
     ? 'Ready to complete.'
     : `Blocked: ${buildLineUiFeedback.minimumStopRequirement}`;
 
   useEffect(() => {
-    onDebugSnapshotChange({
-      interactionStatus: interactionState.status,
-      pointerSummary,
-      geographicSummary,
-      lineDiagnosticsSummary,
-      vehicleDiagnosticsSummary,
-      stopSelectionSummary,
-      placementInstruction: placementUiFeedback.modeInstruction ?? 'n/a',
-      placementStreetRuleHint: placementUiFeedback.streetRuleHint ?? 'n/a',
-      buildLineInstruction: buildLineUiFeedback.modeInstruction ?? 'n/a',
-      buildLineMinimumRequirement: buildLineUiFeedback.minimumStopRequirement ?? 'n/a',
-      completedOverlayNote: LINE_OVERLAY_COPY.completed,
-      draftOverlayNote: LINE_OVERLAY_COPY.draft,
-      draftMetadataSummary,
+    const nextSnapshot = buildMapWorkspaceDebugSnapshot({
+      interactionState,
+      selectedStopId,
+      featureDiagnostics,
+      activeToolMode,
+      placementAttemptResult,
+      draftStopIds: draftLineState.stopIds,
+      draftMetadata: draftLineState.metadata,
       lastPlacedStopLabel,
       osmStopCandidateGroupCount: osmStopCandidateGroups.length,
-      osmStopCandidateAnchorLastStatus: hoveredOsmCandidate?.anchorResolution?.status,
-      osmStopCandidateAnchorLastDistanceMeters: hoveredOsmCandidate?.anchorResolution?.distanceMeters ?? undefined,
+      hoveredOsmCandidateAnchorResolution: hoveredOsmCandidate?.anchorResolution,
       osmStopCandidateStreetLayerCount: mapInstanceRef.current ? resolveStreetLayerIdsFromStyle(mapInstanceRef.current).length : undefined
     });
+    onDebugSnapshotChange(nextSnapshot);
   }, [
-    buildLineUiFeedback.minimumStopRequirement,
-    buildLineUiFeedback.modeInstruction,
-    draftMetadataSummary,
-    geographicSummary,
-    interactionState.status,
+    interactionState,
+    selectedStopId,
+    featureDiagnostics,
+    activeToolMode,
+    placementAttemptResult,
+    draftLineState.stopIds,
+    draftLineState.metadata,
     lastPlacedStopLabel,
-    lineDiagnosticsSummary,
-    onDebugSnapshotChange,
-    placementUiFeedback.modeInstruction,
-    placementUiFeedback.streetRuleHint,
-    pointerSummary,
-    stopSelectionSummary,
-    stopSelectionSummary,
-    vehicleDiagnosticsSummary,
     osmStopCandidateGroups.length,
-    hoveredOsmCandidate?.anchorResolution
+    hoveredOsmCandidate?.anchorResolution,
+    onDebugSnapshotChange
   ]);
 
   useEffect(() => {
