@@ -4,9 +4,9 @@ services:
   osrm:
     image: osrm/osrm-backend
     container_name: city-ops-osrm
-    restart: always
+    restart: "no"
     ports:
       - "5000:5000"
     volumes:
       - ../../../data/routing/osrm:/data
-    command: "osrm-routed --algorithm mld /data/${OSRM_FILE:-hvv-mvp.osrm}"
+    command: "osrm-routed --algorithm mld /data/${OSRM_FILE:-hvv-mvp/hvv-mvp.osrm}"

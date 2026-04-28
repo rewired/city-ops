@@ -54,11 +54,11 @@ For advanced workflows or debugging, the following commands are available:
   ```
 - **Start Routing Service Directly**:
   ```powershell
-  .\scripts\routing\start-osrm.ps1 -Area hvv-mvp
+  pnpm routing:start:hamburg
   ```
 - **Verify OSRM Routing**:
   ```powershell
-  pnpm tsx scripts/routing/smoke-test-osrm.ts
+  pnpm routing:smoke-test
   ```
 
 ## Local & Generated File Policy

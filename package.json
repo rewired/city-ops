@@ -11,6 +11,11 @@
     "scenarios:build": "node scripts/scenarios/build-scenario-registry.mjs",
     "scenario:setup": "node scripts/scenarios/setup-scenario.mjs",
     "scenario:setup:hamburg": "node scripts/scenarios/setup-scenario.mjs --preset hamburg-core-mvp --prepare-assets",
+    "routing:start": "node scripts/routing/start-osrm.mjs",
+    "routing:start:hamburg": "node scripts/routing/start-osrm.mjs --area hvv-mvp",
+    "routing:smoke-test": "tsx scripts/routing/smoke-test-osrm.ts",
+    "routing:logs": "docker compose -f docker/routing/osrm/docker-compose.yml logs --tail 100 osrm",
+    "routing:stop": "docker compose -f docker/routing/osrm/docker-compose.yml down",
     "test": "pnpm test:web"
   },
   "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8",
