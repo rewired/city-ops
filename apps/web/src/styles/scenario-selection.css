@@ -61,12 +61,15 @@
 .scenario-selection-screen__brand {
   font-size: 1.5rem;
   letter-spacing: 0.04em;
-  color: #7baaf7;
+  color: var(--cityops-wordmark-ops-color);
   margin-bottom: 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
 }
 
 .scenario-selection-screen__brand strong {
-  color: #ffffff;
+  color: var(--cityops-wordmark-city-color);
+  font-weight: 700;
 }
 
 .scenario-selection-screen__title {

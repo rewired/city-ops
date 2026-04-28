@@ -16,6 +16,7 @@
     "@fontsource/inter": "^5.2.8",
     "@fontsource/material-symbols-outlined": "^5.2.31",
     "@fontsource/material-symbols-sharp": "^5.2.43",
+    "@fontsource/montserrat": "^5.2.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

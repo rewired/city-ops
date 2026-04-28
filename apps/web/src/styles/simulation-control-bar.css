@@ -16,6 +16,14 @@
   font-size: 2.5rem;
   letter-spacing: 0.03em;
   text-transform: none;
+  color: var(--cityops-wordmark-ops-color);
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+}
+
+.simulation-control-bar__brand strong {
+  color: var(--cityops-wordmark-city-color);
+  font-weight: 700;
 }
 
 .simulation-control-bar__clock-readout {
@@ -170,4 +178,5 @@
   color: var(--cityops-color-text-secondary-muted);
   margin-left: 12px;
   letter-spacing: 0.02em;
+  font-family: Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }

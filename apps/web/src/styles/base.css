@@ -21,6 +21,10 @@ body,
   --cityops-color-accent-blue: #0075de;
   --cityops-color-accent-blue-hover: #3c73c0;
   
+  /* Wordmark Branding */
+  --cityops-wordmark-city-color: #ffffff;
+  --cityops-wordmark-ops-color: #016be6;
+  
   /* Semantic Colors */
   --cityops-color-success: #9fe3ad;
   --cityops-color-danger: #ffb5b5;

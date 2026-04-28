@@ -29,6 +29,9 @@ importers:
       '@fontsource/material-symbols-sharp':
         specifier: ^5.2.43
         version: 5.2.43
+      '@fontsource/montserrat':
+        specifier: ^5.2.8
+        version: 5.2.8
       react:
         specifier: ^19.0.0
         version: 19.2.5
@@ -377,6 +380,9 @@ packages:
 
   '@fontsource/material-symbols-sharp@5.2.43':
     resolution: {integrity: sha512-qZXEUio6u63K5B6TZsyR5bT7y5f0Mx3ZdXDB0sAU50tgiI8pOKBlBQKJ0ttMQ7CsPQdadphMzNROTFM/YrbrHA==}
+
+  '@fontsource/montserrat@5.2.8':
+    resolution: {integrity: sha512-xTjLxSbSfCycDB0pwmNsfNvdfWPaDaRQ2LC6yt/ZI7SdvXG52zHnzNYC/09mzuAuWNJyShkteutfCoDgym56hQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1269,6 +1275,8 @@ snapshots:
   '@fontsource/material-symbols-outlined@5.2.42': {}
 
   '@fontsource/material-symbols-sharp@5.2.43': {}
+
+  '@fontsource/montserrat@5.2.8': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
