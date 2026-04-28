@@ -19,20 +19,20 @@ export interface LoadScenarioDemandResult {
   readonly message?: string;
 }
 
-interface UntrustedDemandNode {
-  id?: unknown;
-  label?: unknown;
-  position?: unknown;
-  role?: unknown;
-  demandClass?: unknown;
-  weightByTimeBand?: unknown;
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-interface UntrustedDemandPayload {
-  schemaVersion?: unknown;
-  scenarioId?: unknown;
-  demandProfileId?: unknown;
-  nodes?: unknown;
+function isDemandNodeRole(value: unknown): value is DemandNodeRole {
+  return value === 'origin' || value === 'destination';
+}
+
+function isDemandClass(value: unknown): value is DemandClass {
+  return value === 'residential' || value === 'workplace';
+}
+
+function isCanonicalTimeBandKey(key: string): key is TimeBandId {
+  return MVP_TIME_BAND_IDS.includes(key as TimeBandId);
 }
 
 /**
@@ -59,64 +59,68 @@ export async function loadScenarioDemandNodes(scenarioId: string): Promise<LoadS
       };
     }
 
-    const payload = (await response.json()) as UntrustedDemandPayload;
+    const payload: unknown = await response.json();
 
-    if (!payload || typeof payload !== 'object') {
+    if (!isRecord(payload)) {
       return { status: 'failed', message: 'Payload is not a valid JSON object', nodes: [] };
     }
 
-    if (!Array.isArray(payload.nodes)) {
+    const nodes = payload.nodes;
+    if (!Array.isArray(nodes)) {
       return { status: 'failed', message: 'Payload "nodes" field must be an array', nodes: [] };
     }
 
     const validatedNodes: DemandNode[] = [];
 
-    for (let i = 0; i < payload.nodes.length; i++) {
-      const rawNode = payload.nodes[i] as UntrustedDemandNode;
+    for (let i = 0; i < nodes.length; i++) {
+      const rawNode: unknown = nodes[i];
 
-      if (!rawNode || typeof rawNode !== 'object') {
+      if (!isRecord(rawNode)) {
         return { status: 'failed', message: `Node at index ${i} is not an object`, nodes: [] };
       }
 
-      if (typeof rawNode.id !== 'string' || !rawNode.id.trim()) {
+      const id = rawNode.id;
+      if (typeof id !== 'string' || !id.trim()) {
         return { status: 'failed', message: `Node at index ${i} has missing/invalid id`, nodes: [] };
       }
 
-      if (typeof rawNode.label !== 'string' || !rawNode.label.trim()) {
+      const label = rawNode.label;
+      if (typeof label !== 'string' || !label.trim()) {
         return { status: 'failed', message: `Node at index ${i} has missing/invalid label`, nodes: [] };
       }
 
-      const position = rawNode.position as Record<string, unknown> | null;
+      const position = rawNode.position;
       if (
-        !position ||
-        typeof position !== 'object' ||
+        !isRecord(position) ||
         typeof position.lng !== 'number' ||
         !Number.isFinite(position.lng) ||
         typeof position.lat !== 'number' ||
         !Number.isFinite(position.lat)
       ) {
-        return { status: 'failed', message: `Node "${rawNode.id}" has invalid spatial coordinates`, nodes: [] };
+        return { status: 'failed', message: `Node "${id}" has invalid spatial coordinates`, nodes: [] };
       }
 
-      if (rawNode.role !== 'origin' && rawNode.role !== 'destination') {
-        return { status: 'failed', message: `Node "${rawNode.id}" role "${rawNode.role}" is unsupported`, nodes: [] };
+      const role = rawNode.role;
+      if (!isDemandNodeRole(role)) {
+        return { status: 'failed', message: `Node "${id}" role "${role}" is unsupported`, nodes: [] };
       }
 
-      if (rawNode.demandClass !== 'residential' && rawNode.demandClass !== 'workplace') {
-        return { status: 'failed', message: `Node "${rawNode.id}" demandClass "${rawNode.demandClass}" is unsupported`, nodes: [] };
+      const demandClass = rawNode.demandClass;
+      if (!isDemandClass(demandClass)) {
+        return { status: 'failed', message: `Node "${id}" demandClass "${demandClass}" is unsupported`, nodes: [] };
       }
 
       // MVP Rule: residential -> origin, workplace -> destination
-      if (rawNode.demandClass === 'residential' && rawNode.role !== 'origin') {
-        return { status: 'failed', message: `Node "${rawNode.id}" pairs residential class with non-origin role`, nodes: [] };
+      if (demandClass === 'residential' && role !== 'origin') {
+        return { status: 'failed', message: `Node "${id}" pairs residential class with non-origin role`, nodes: [] };
       }
-      if (rawNode.demandClass === 'workplace' && rawNode.role !== 'destination') {
-        return { status: 'failed', message: `Node "${rawNode.id}" pairs workplace class with non-destination role`, nodes: [] };
+      if (demandClass === 'workplace' && role !== 'destination') {
+        return { status: 'failed', message: `Node "${id}" pairs workplace class with non-destination role`, nodes: [] };
       }
 
-      const weightByTimeBand = rawNode.weightByTimeBand as Record<string, unknown> | null;
-      if (!weightByTimeBand || typeof weightByTimeBand !== 'object') {
-        return { status: 'failed', message: `Node "${rawNode.id}" weight map missing`, nodes: [] };
+      const weightByTimeBand = rawNode.weightByTimeBand;
+      if (!isRecord(weightByTimeBand)) {
+        return { status: 'failed', message: `Node "${id}" weight map missing`, nodes: [] };
       }
 
       // Check that all required MVP timebands are present
@@ -125,7 +129,7 @@ export async function loadScenarioDemandNodes(scenarioId: string): Promise<LoadS
         if (typeof weight !== 'number' || !Number.isFinite(weight) || weight < 0) {
           return {
             status: 'failed',
-            message: `Node "${rawNode.id}" missing/invalid weight for mandatory band "${timeBandId}"`,
+            message: `Node "${id}" missing/invalid weight for mandatory band "${timeBandId}"`,
             nodes: []
           };
         }
@@ -134,26 +138,29 @@ export async function loadScenarioDemandNodes(scenarioId: string): Promise<LoadS
       // Reject unknown timebands
       const weightKeys = Object.keys(weightByTimeBand);
       for (const key of weightKeys) {
-        if (!MVP_TIME_BAND_IDS.includes(key as TimeBandId)) {
+        if (!isCanonicalTimeBandKey(key)) {
           return {
             status: 'failed',
-            message: `Node "${rawNode.id}" contains forbidden custom band key "${key}"`,
+            message: `Node "${id}" contains forbidden custom band key "${key}"`,
             nodes: []
           };
         }
       }
 
+      // Build weight map safely
       const weightMap = {} as Record<TimeBandId, DemandWeight>;
       for (const timeBandId of MVP_TIME_BAND_IDS) {
-        weightMap[timeBandId] = createDemandWeight(weightByTimeBand[timeBandId] as number);
+        const weight = weightByTimeBand[timeBandId];
+        // We already validated that weight is a finite non-negative number
+        weightMap[timeBandId] = createDemandWeight(weight as number);
       }
 
       validatedNodes.push({
-        id: createDemandNodeId(rawNode.id),
-        label: rawNode.label,
+        id: createDemandNodeId(id),
+        label,
         position: { lng: position.lng, lat: position.lat },
-        role: rawNode.role as DemandNodeRole,
-        demandClass: rawNode.demandClass as DemandClass,
+        role,
+        demandClass,
         weightByTimeBand: weightMap
       });
     }

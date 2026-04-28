@@ -1,5 +1,6 @@
 import { calculateGreatCircleDistanceMeters, type GeometryCoordinate } from '../../lib/geometry';
 import { STOP_ACCESS_RADIUS_METERS } from '../constants/demand';
+import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 import type { DemandNode, DemandNodeId, DemandWeight } from '../types/demandNode';
 import { createDemandWeight, createZeroDemandWeightByTimeBand } from '../types/demandNode';
 import type { Stop, StopId } from '../types/stop';
@@ -40,14 +41,16 @@ export const calculateStopCatchments = (
 
     for (const node of capturedNodes) {
       if (node.demandClass === 'residential' && node.role === 'origin') {
-        for (const [timeBandId, weight] of Object.entries(node.weightByTimeBand)) {
-          const current = residentialOriginWeightByTimeBand[timeBandId as TimeBandId] || 0;
-          residentialOriginWeightByTimeBand[timeBandId as TimeBandId] = createDemandWeight(current + weight);
+        for (const timeBandId of MVP_TIME_BAND_IDS) {
+          const weight = node.weightByTimeBand[timeBandId];
+          const current = residentialOriginWeightByTimeBand[timeBandId] || 0;
+          residentialOriginWeightByTimeBand[timeBandId] = createDemandWeight(current + weight);
         }
       } else if (node.demandClass === 'workplace' && node.role === 'destination') {
-        for (const [timeBandId, weight] of Object.entries(node.weightByTimeBand)) {
-          const current = workplaceDestinationWeightByTimeBand[timeBandId as TimeBandId] || 0;
-          workplaceDestinationWeightByTimeBand[timeBandId as TimeBandId] = createDemandWeight(current + weight);
+        for (const timeBandId of MVP_TIME_BAND_IDS) {
+          const weight = node.weightByTimeBand[timeBandId];
+          const current = workplaceDestinationWeightByTimeBand[timeBandId] || 0;
+          workplaceDestinationWeightByTimeBand[timeBandId] = createDemandWeight(current + weight);
         }
       }
     }

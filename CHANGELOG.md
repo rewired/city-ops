@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 131b: Demand Loader Hardening and Documentation Compliance
+- Hardened the scenario-bound demand loading path by eliminating unsafe type casts in `loadScenarioDemandNodes.ts`.
+- Introduced local type guards (`isRecord`, `isDemandNodeRole`, `isDemandClass`) to narrow unknown input safely.
+- Refactored `demandCatchment.ts` to iterate over canonical time bands instead of unchecked keys.
+- Deleted legacy hardcoded demand models (`mvpDemandScenario.ts` and its test).
+- Added parser-oriented validation tests and Hamburg JSON fixture verification in `loadScenarioDemandNodes.test.ts`.
+- Added ADR 0140 to record the scenario-bound demand overlay implementation.
+
+### Slice 131: Scenario Demand Overlay Skeleton
+- Added demand visibility toggle state in `App.tsx` connected to map workspace capabilities.
+- Implemented dynamic client-side loader fetching scenario-bound demand nodes.
+- Created GeoJSON mapping layer for spatial nodes and integrated access-radius scoring.
+- Added basic demand visualization.
+
 ### Slice 103b: Fix Blocking Modal Blur Scope
 - Refactored the application layout to separate the blurred app shell from global overlays (modals and toasts).
 - Introduced `AppShell.tsx` layout component to manage structural isolation of filtered subtrees.
