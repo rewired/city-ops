@@ -16,6 +16,8 @@ import type { OsmStopCandidate, OsmStopCandidateGroup, OsmStopCandidateGroupId }
 import { createUniqueStopLabel } from '../domain/stop/stopLabeling';
 import { prepareCompletedDraftLine } from './mapWorkspaceLineCompletion';
 import type { LineBuildSelectionState, MapFocusIntent, WorkspaceToolMode } from '../session/sessionTypes';
+import { INITIAL_DRAFT_LINE_STATE, type DraftLineState } from './mapWorkspaceDraftState';
+import { useMapWorkspaceInteractionBindings } from './useMapWorkspaceInteractionBindings';
 
 import type { ActiveDataOperation } from '../ui/data-operation/types';
 import {
@@ -24,15 +26,6 @@ import {
   MAP_LAYER_ID_VEHICLES
 } from './mapRenderConstants';
 import {
-  bindCompletedLineFeatureInteractions,
-  bindStopFeatureInteractions,
-  bindOsmCandidateFeatureInteractions,
-  decodeLineIdFromFeatureProperties,
-  decodeStopIdFromFeatureProperties,
-  decodeOsmCandidateGroupIdFromFeatureProperties,
-  handleStopFeatureInteraction,
-  resolveInspectModeMapClickSelection,
-  setupMapWorkspaceInteractions,
   type MapSurfaceInteractionState,
   type PlacementAttemptResult,
   type StopSelectionState
@@ -59,8 +52,6 @@ import { applyBasemapSemanticReadabilityOverrides } from './mapBaseStyleOverride
 import type { MapLibreMap } from './maplibreGlobal';
 import {
   isStaleOsmStopCandidateHover,
-  resolveOsmStopCandidateHover,
-  resolveCachedOsmStopCandidateStreetAnchor,
   type ResolvedOsmStopCandidateHoverPayload,
   type OsmStopCandidateAnchorResolutionCache
 } from './mapWorkspaceOsmCandidateHover';
@@ -99,20 +90,7 @@ interface MapWorkspaceSurfaceProps {
 
 
 
-interface DraftLineMetadata {
-  readonly draftOrdinal: number;
-  readonly startedAtIsoUtc: string;
-}
-
-interface DraftLineState {
-  readonly stopIds: readonly StopId[];
-  readonly metadata: DraftLineMetadata | null;
-}
-
-
-
 const STOP_LABEL_PREFIX = 'Stop';
-const INITIAL_DRAFT_LINE_STATE: DraftLineState = { stopIds: [], metadata: null };
 const INITIAL_LAYER_FEATURE_DIAGNOSTICS: LayerFeatureDiagnostics = {
   builderFeatureCount: 0,
   sourceFeatureCount: 0,
@@ -209,9 +187,7 @@ export function MapWorkspaceSurface({
     }
   }, [placedStops, hoveredStop]);
 
-  const clearSelectedCompletedLine = (): void => {
-    onSelectedLineIdChange(null);
-  };
+
 
   useEffect(() => {
     activeToolModeRef.current = activeToolMode;
@@ -326,82 +302,28 @@ export function MapWorkspaceSurface({
     }
   }, [activeToolMode]);
 
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const interactions = setupMapWorkspaceInteractions({
-      map: mapInstance,
-      activeToolMode,
-      setInteractionState,
-      setPlacementAttemptResult,
-      onStopSelectionChange,
-      onStopHoverChange: setHoveredStop,
-      buildLineContracts: {
-        onInspectModeNonFeatureMapClick: () => {
-          onStopSelectionChange(resolveInspectModeMapClickSelection());
-          clearSelectedCompletedLine();
-        }
-      },
-      onOsmCandidateHoverChange: (nextHover) => {
-        const resolved = resolveOsmStopCandidateHover({
-          map: mapInstance,
-          hover: nextHover,
-          groups: osmStopCandidateGroups,
-          cache: anchorResolutionCacheRef.current
-        });
-        setHoveredOsmCandidate(resolved);
-      },
-      onValidPlacement: (lng, lat, labelCandidate) => {
-        let createdStop!: Stop;
-        onPlacedStopsChange((currentStops) => {
-          const nextOrdinal = currentStops.length + 1;
-          const nextStop = buildDeterministicStop(nextOrdinal, lng, lat, labelCandidate, currentStops);
-          createdStop = nextStop;
-          setLastPlacedStopLabel(nextStop.label ?? null);
-          return [...currentStops, nextStop];
-        });
-
-        return createdStop;
-      }
-    });
-
-    const osmCandidateInteractionBinding = bindOsmCandidateFeatureInteractions(mapInstance, (event) => {
-      if (activeToolModeRef.current !== 'inspect') {
-        return;
-      }
-
-      const clickedFeature = event.features?.[0];
-      const groupId = decodeOsmCandidateGroupIdFromFeatureProperties(clickedFeature?.properties);
-
-      if (!groupId) {
-        return;
-      }
-
-      onOsmCandidateSelectionChange(groupId);
-      setHoveredOsmCandidate(null);
-
-      const group = osmStopCandidateGroups.find((g) => g.id === groupId);
-      if (group) {
-        const anchorResolution = resolveCachedOsmStopCandidateStreetAnchor({
-          map: mapInstance,
-          group,
-          cache: anchorResolutionCacheRef.current
-        });
-        onOsmCandidateAnchorResolved(anchorResolution);
-      } else {
-        onOsmCandidateAnchorResolved(null);
-      }
-    });
-
-    return () => {
-      interactions.dispose();
-      osmCandidateInteractionBinding.dispose();
-    };
-  }, [activeToolMode, onPlacedStopsChange, onStopSelectionChange, onOsmCandidateSelectionChange]);
+  useMapWorkspaceInteractionBindings({
+    mapRef: mapInstanceRef,
+    activeToolMode,
+    activeToolModeRef,
+    sessionLineCountRef,
+    onStopSelectionChangeRef,
+    stopsByIdRef,
+    anchorResolutionCacheRef,
+    osmStopCandidateGroups,
+    setInteractionState,
+    setPlacementAttemptResult,
+    setHoveredStop,
+    setHoveredOsmCandidate,
+    setDraftLineState,
+    onPlacedStopsChange,
+    onStopSelectionChange,
+    onSelectedLineIdChange,
+    onOsmCandidateSelectionChange,
+    onOsmCandidateAnchorResolved,
+    createStop: buildDeterministicStop,
+    onStopCreated: (stop) => setLastPlacedStopLabel(stop.label ?? null)
+  });
 
   useMapWorkspaceSourceSync({
     mapRef: mapInstanceRef,
@@ -416,79 +338,6 @@ export function MapWorkspaceSurface({
     osmStopCandidateGroups,
     setFeatureDiagnostics
   });
-
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const stopInteractionBinding = bindStopFeatureInteractions(mapInstance, (event) => {
-      const clickedFeature = event.features?.[0];
-      const stopId = decodeStopIdFromFeatureProperties(clickedFeature?.properties);
-
-      if (!stopId) {
-        return;
-      }
-
-      handleStopFeatureInteraction(stopId, {
-        activeToolMode: activeToolModeRef.current,
-        sessionLineCount: sessionLineCountRef.current,
-        stopsById: stopsByIdRef.current,
-        onStopSelectionChange: onStopSelectionChangeRef.current,
-        clearSelectedCompletedLine,
-        appendStopToDraftLine: (nextStopId, sessionLineCount) => {
-          setDraftLineState((currentDraft) => {
-            const nextMetadata =
-              currentDraft.metadata ??
-              ({
-                draftOrdinal: sessionLineCount + 1,
-                startedAtIsoUtc: new Date().toISOString()
-              } as const);
-
-            return {
-              stopIds: [...currentDraft.stopIds, nextStopId],
-              metadata: nextMetadata
-            };
-          });
-        }
-      });
-      setHoveredStop(null);
-    });
-
-    return () => {
-      stopInteractionBinding.dispose();
-    };
-  }, []);
-
-  useEffect(() => {
-    const mapInstance = mapInstanceRef.current;
-
-    if (!mapInstance) {
-      return;
-    }
-
-    const completedLineInteractionBinding = bindCompletedLineFeatureInteractions(mapInstance, (event) => {
-      if (activeToolModeRef.current === 'build-line') {
-        return;
-      }
-
-      const clickedFeature = event.features?.[0];
-      const clickedLineId = decodeLineIdFromFeatureProperties(clickedFeature?.properties);
-
-      if (!clickedLineId) {
-        return;
-      }
-
-      onStopSelectionChangeRef.current(null);
-      onSelectedLineIdChange(clickedLineId);
-    });
-
-    return () => {
-      completedLineInteractionBinding.dispose();
-    };
-  }, [onSelectedLineIdChange]);
 
   const placementUiFeedback = buildPlacementUiFeedback(activeToolMode, placementAttemptResult);
   const buildLineUiFeedback = buildLineModeUiFeedback(activeToolMode, draftLineState.stopIds);
