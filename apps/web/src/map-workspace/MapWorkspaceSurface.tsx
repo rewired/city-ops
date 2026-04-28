@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 
 import {
-  LINE_BUILD_PLACEHOLDER_LABEL_PREFIX,
   MINIMUM_STOPS_REQUIRED_TO_COMPLETE_LINE
 } from '../domain/constants/lineBuilding';
 
-import { completeLineRouting } from '../domain/routing/completeLineRouting';
 import { getDefaultRoutingAdapter } from '../domain/routing/defaultRoutingAdapter';
 import type { Line } from '../domain/types/line';
-import { createLineId, createNoServiceLineServiceByTimeBand, type LineTopology, type LineServicePattern } from '../domain/types/line';
+import { type LineTopology, type LineServicePattern } from '../domain/types/line';
 import type { LineVehicleNetworkProjection } from '../domain/types/lineVehicleProjection';
 import type { Stop, StopId } from '../domain/types/stop';
 import { createStopId } from '../domain/types/stop';
@@ -16,8 +14,9 @@ import { loadOsmStopCandidates } from '../domain/osm/osmStopCandidateSource';
 import { consolidateOsmStopCandidates } from '../domain/osm/osmStopCandidateConsolidation';
 import type { OsmStopCandidate, OsmStopCandidateGroup, OsmStopCandidateGroupId } from '../domain/types/osmStopCandidate';
 import { createUniqueStopLabel } from '../domain/stop/stopLabeling';
-import { generateLineLabel, generateUniqueLineLabel } from '../domain/line/lineLabeling';
+import { prepareCompletedDraftLine } from './mapWorkspaceLineCompletion';
 import type { LineBuildSelectionState, MapFocusIntent, WorkspaceToolMode } from '../session/sessionTypes';
+
 import type { ActiveDataOperation } from '../ui/data-operation/types';
 import {
   MAP_LAYER_ID_COMPLETED_LINES,
@@ -804,49 +803,23 @@ export function MapWorkspaceSurface({
 
     const { topology, servicePattern } = options;
 
-    // 1. Snapshot draft, ordinal, and placed stops to ensure async safety
+    // 1. Snapshot draft, placed stops, and existing lines to ensure async safety
     const snapshottedStopIds = [...draftStopIds];
-    const snapshottedOrdinal = sessionLines.length + 1;
     const snapshottedPlacedStops = [...placedStops];
-    const nextCreatedLineId = createLineId(`line-${snapshottedOrdinal}`);
+    const snapshottedExistingLines = [...sessionLines];
 
     setIsCompletingLine(true);
 
     try {
-      // 2. Resolve route segments (async, street-routed if available)
-      const routingResult = await completeLineRouting({
-        lineId: nextCreatedLineId,
-        orderedStopIds: snapshottedStopIds,
+      // 2. Call extracted helper to prepare the canonical line
+      const createdLine = await prepareCompletedDraftLine({
+        draftStopIds: snapshottedStopIds,
         placedStops: snapshottedPlacedStops,
+        existingLines: snapshottedExistingLines,
         topology,
         servicePattern,
         routingAdapter: getDefaultRoutingAdapter()
       });
-
-      // 3. Generate deterministic line label from stop labels
-      const lineStops = snapshottedStopIds
-        .map(id => snapshottedPlacedStops.find(s => s.id === id))
-        .filter((s): s is Stop => !!s);
-      
-      const baseLabel = generateLineLabel(lineStops, topology, servicePattern) 
-        ?? `${LINE_BUILD_PLACEHOLDER_LABEL_PREFIX} ${snapshottedOrdinal}`;
-      
-      const finalLabel = generateUniqueLineLabel({
-        baseLabel,
-        existingLines: sessionLines
-      });
-
-      // 4. Commit the new line to session state
-      const createdLine: Line = {
-        id: nextCreatedLineId,
-        label: finalLabel,
-        stopIds: snapshottedStopIds,
-        topology,
-        servicePattern,
-        routeSegments: routingResult.routeSegments,
-        reverseRouteSegments: routingResult.reverseRouteSegments,
-        frequencyByTimeBand: createNoServiceLineServiceByTimeBand()
-      };
 
       onSessionLinesChange((currentLines) => [...currentLines, createdLine]);
       onSelectedLineIdChange(createdLine.id);
@@ -856,7 +829,7 @@ export function MapWorkspaceSurface({
         requestId: Date.now()
       });
 
-      // 4. Clear draft and close dialog only after success
+      // 3. Clear draft and close dialog only after success
       setDraftLineState(INITIAL_DRAFT_LINE_STATE);
       setIsCompletionDialogOpen(false);
     } catch (error) {
@@ -865,6 +838,7 @@ export function MapWorkspaceSurface({
       setIsCompletingLine(false);
     }
   };
+
 
   return (
     <section className="map-workspace" aria-label="Map workspace surface">
