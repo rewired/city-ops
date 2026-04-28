@@ -1,0 +1,16 @@
+.inspector-status-badge {
+  display: inline-flex;
+  margin-top: 8px;
+  margin-bottom: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #425b83;
+  background: #1b2b44;
+  color: #d7e7ff;
+  font-size: 0.74rem;
+}
+
+.inspector-line-readiness__status {
+  font-weight: 600;
+  color: #dbe8ff;
+}

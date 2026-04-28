@@ -1,0 +1,50 @@
+.inspector-card {
+  padding: 8px;
+  border: 1px solid var(--cityops-color-border-subtle);
+  border-radius: var(--cityops-radius-md);
+  background: var(--cityops-color-surface-card);
+}
+
+.inspector-card h3 {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.inspector-compact-table {
+  width: 100%;
+  margin-top: 6px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.inspector-compact-table th,
+.inspector-compact-table td {
+  vertical-align: top;
+  padding: 4px 6px;
+  border-top: 1px solid var(--cityops-color-border-subtle);
+}
+
+.inspector-compact-table th {
+  text-align: left;
+  width: 46%;
+  color: var(--cityops-color-text-light);
+  font-weight: 600;
+}
+
+.inspector-compact-table td {
+  text-align: right;
+}
+
+.inspector-compact-table td.inspector-compact-table__value--left {
+  text-align: left;
+}
+
+.inspector-details {
+  margin-top: 8px;
+}
+
+.inspector-details summary {
+  cursor: pointer;
+  color: var(--cityops-color-text-light);
+  font-size: 0.78rem;
+}

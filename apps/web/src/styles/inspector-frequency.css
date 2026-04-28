@@ -1,0 +1,104 @@
+.inspector-frequency-editor {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.inspector-frequency-editor__note {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: #bfd0ec;
+}
+
+.inspector-frequency-editor__header {
+  display: grid;
+  grid-template-columns: minmax(102px, 0.56fr) minmax(124px, 0.78fr) minmax(0, 1.66fr);
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: #9eb4d7;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 8px;
+}
+
+.inspector-frequency-editor__row {
+  display: grid;
+  grid-template-columns: minmax(102px, 0.56fr) minmax(124px, 0.78fr) minmax(0, 1.66fr);
+  align-items: center;
+  gap: 8px;
+  font-size: 0.79rem;
+  color: #c8d6ee;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--cityops-color-border-subtle);
+  border-radius: var(--cityops-radius-md);
+}
+
+.inspector-frequency-editor__band-label,
+.inspector-frequency-editor__band-window {
+  margin: 0;
+}
+
+.inspector-frequency-editor__band-label {
+  color: #d9e7ff;
+  font-weight: 600;
+}
+
+.inspector-frequency-editor__band-window {
+  color: #adc2e2;
+  font-weight: 500;
+}
+
+.inspector-frequency-editor__controls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+}
+
+.inspector-frequency-editor__toggle {
+  border: 1px solid var(--cityops-color-border);
+  border-radius: var(--cityops-radius-sm);
+  background: var(--cityops-color-surface-soft);
+  color: var(--cityops-color-text-soft);
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.inspector-frequency-editor__toggle[data-active='true'] {
+  border-color: var(--cityops-color-accent-yellow);
+  background: var(--cityops-color-surface-active);
+  color: var(--cityops-color-text-brightest);
+}
+
+.inspector-frequency-editor__interval-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #c4d3ea;
+  font-size: 0.73rem;
+}
+
+.inspector-frequency-editor__interval-field input {
+  width: 48px;
+  padding: 3px 5px;
+  border: 1px solid var(--cityops-color-border);
+  border-radius: var(--cityops-radius-sm);
+  background: #182338;
+  color: var(--cityops-color-text);
+  text-align: center;
+}
+
+.inspector-frequency-editor__interval-field input:disabled {
+  border-color: #3a4a66;
+  color: #9aaece;
+  background: #162132;
+}
+
+.inspector-frequency-editor__error {
+  grid-column: 1 / -1;
+  color: #ff9f98;
+  font-size: 0.72rem;
+}

@@ -1,0 +1,159 @@
+.inspector-panel__content--osm-candidate {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inspector-panel__header {
+  margin-bottom: 4px;
+}
+
+.inspector-panel__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cityops-color-accent-yellow);
+}
+
+.inspector-panel__title-icon {
+  font-size: 1.5rem;
+}
+
+.inspector-panel__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.inspector-panel__subtitle {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--cityops-color-text-muted-alt);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.inspector-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inspector-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inspector-panel__section-title {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--cityops-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.inspector-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.inspector-panel__table th {
+  text-align: left;
+  color: var(--cityops-color-text-muted-alt);
+  font-weight: 500;
+  padding: 4px 0;
+  width: 40%;
+}
+
+.inspector-panel__table td {
+  text-align: right;
+  color: #e8eef9;
+  padding: 4px 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge--ready {
+  background: #2d4a35;
+  color: var(--cityops-color-success);
+  border: 1px solid #4a7a58;
+}
+
+.status-badge--review {
+  background: #4a452d;
+  color: var(--cityops-color-warning);
+  border: 1px solid #7a734a;
+}
+
+.status-badge--blocked {
+  background: #4a2d2d;
+  color: var(--cityops-color-danger);
+  border: 1px solid #7a4a4a;
+}
+
+.inspector-panel__adoption-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.inspector-panel__adoption-blocked-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  background: #2b1f1f;
+  border: 1px solid #634343;
+  border-radius: 8px;
+  color: var(--cityops-color-danger);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.inspector-panel__adoption-blocked-reason .app-material-icon {
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.inspector-panel__action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease;
+  border: 1px solid #425b83;
+}
+
+.inspector-panel__action-button--primary {
+  background: #3c73c0;
+  color: #ffffff;
+  border-color: #5a94e2;
+}
+
+.inspector-panel__action-button--primary:hover:not(:disabled) {
+  background: #4d88d8;
+  border-color: #72a5ee;
+}
+
+.inspector-panel__action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
