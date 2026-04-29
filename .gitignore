@@ -63,6 +63,7 @@ temp/
 # Optional map or import artifacts that should stay local unless explicitly curated
 *.mbtiles
 *.gpkg
+data/external/census/
 
 # Downloaded PBF files and checksums
 data/osm/*.pbf
