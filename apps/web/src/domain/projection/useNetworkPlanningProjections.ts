@@ -45,6 +45,9 @@ export const ROUTE_STATUS_LABELS: Readonly<Record<RouteStatus, string>> = {
   'routing-failed': 'Routing failed'
 };
 
+import type { StopId } from '../types/stop';
+import { projectDemandCapturePreview, type NetworkDemandCapturePreviewProjection } from './demandCapturePreviewProjection';
+
 /** Shared projection bundle consumed by shell inspector and workspace map boundaries. */
 export interface NetworkPlanningProjections {
   readonly staticNetworkSummaryKpis: StaticNetworkSummaryKpis;
@@ -59,7 +62,9 @@ export interface NetworkPlanningProjections {
   readonly selectedLineServiceInspectorProjection: ReturnType<typeof projectLineSelectedServiceInspector> | null;
   readonly selectedLineDemandProjection: LineBandDemandProjection | null;
   readonly networkDemandProjection: import('./demandCatchmentProjection').NetworkDemandProjection;
+  readonly demandCapturePreviewProjection: NetworkDemandCapturePreviewProjection;
 }
+
 
 const projectStaticNetworkSummaryKpis = (
   totalStopCount: number,
@@ -100,6 +105,7 @@ export const useNetworkPlanningProjections = (
   sessionLines: readonly Line[],
   sessionStops: readonly Stop[],
   selectedLine: Line | null,
+  selectedStopId: StopId | null,
   activeSimulationTimeBandId: TimeBandId,
   currentSimulationMinuteOfDay: SimulationMinuteOfDay,
   currentSimulationSecondOfDay: SimulationSecondOfDay,
@@ -180,6 +186,12 @@ export const useNetworkPlanningProjections = (
     ? projectLinePlanningVehicles(selectedLine, selectedLineRouteBaseline)
     : null;
 
+  const demandCapturePreviewProjection = projectDemandCapturePreview({
+    demandNodes: sessionDemandNodes,
+    stopCatchments: catchments,
+    selectedStopId
+  });
+
   return {
     staticNetworkSummaryKpis,
     selectedLineRouteBaseline,
@@ -192,6 +204,7 @@ export const useNetworkPlanningProjections = (
     networkServicePlanProjection,
     selectedLineServiceInspectorProjection,
     selectedLineDemandProjection,
-    networkDemandProjection
+    networkDemandProjection,
+    demandCapturePreviewProjection
   };
 };

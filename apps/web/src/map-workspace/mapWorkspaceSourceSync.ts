@@ -28,13 +28,19 @@ import {
   MAP_OSM_STOP_CANDIDATE_CIRCLE_LAYER_PAINT,
   MAP_SOURCE_ID_DEMAND_NODES,
   MAP_LAYER_ID_DEMAND_NODES_CIRCLE,
-  MAP_DEMAND_NODE_CIRCLE_LAYER_PAINT
+  MAP_DEMAND_NODE_CIRCLE_LAYER_PAINT,
+  MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING,
+  MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING,
+  MAP_DEMAND_NODE_CAPTURED_RING_PAINT,
+  MAP_DEMAND_NODE_SELECTED_STOP_CAPTURE_RING_PAINT
 } from './mapRenderConstants';
 import type { MapLibreMap } from './maplibreGlobal';
 import { buildStopFeatureCollection } from './stopGeoJson';
 import { buildVehicleFeatureCollection } from './vehicleGeoJson';
 import { buildOsmStopCandidateFeatureCollection } from './osmStopCandidateGeoJson';
 import { buildDemandNodeGeoJson } from './demandNodeGeoJson';
+import type { NetworkDemandCapturePreviewProjection } from '../domain/projection/demandCapturePreviewProjection';
+
 
 
 /**
@@ -78,6 +84,7 @@ export interface SyncAllMapWorkspaceSourcesInput {
     readonly demandNodes: readonly DemandNode[];
     readonly activeTimeBandId: TimeBandId;
     readonly visible: boolean;
+    readonly demandCapturePreviewProjection: NetworkDemandCapturePreviewProjection;
   };
 }
 
@@ -99,6 +106,8 @@ export interface MapWorkspaceSourceSyncDiagnostics {
 
 
 const CUSTOM_LAYER_ORDER = [
+  MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING,
+  MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING,
   MAP_LAYER_ID_DEMAND_NODES_CIRCLE,
   MAP_LAYER_ID_COMPLETED_LINES_CASING,
   MAP_LAYER_ID_COMPLETED_LINES,
@@ -290,6 +299,26 @@ const ensureAllMapWorkspaceRenderSourcesAndLayers = (map: MapLibreMap): void => 
     });
   }
 
+  if (!map.getLayer(MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING)) {
+    map.addLayer({
+      id: MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING,
+      type: 'circle',
+      source: MAP_SOURCE_ID_DEMAND_NODES,
+      paint: MAP_DEMAND_NODE_CAPTURED_RING_PAINT,
+      filter: ['==', ['get', 'captured'], true]
+    });
+  }
+
+  if (!map.getLayer(MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING)) {
+    map.addLayer({
+      id: MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING,
+      type: 'circle',
+      source: MAP_SOURCE_ID_DEMAND_NODES,
+      paint: MAP_DEMAND_NODE_SELECTED_STOP_CAPTURE_RING_PAINT,
+      filter: ['==', ['get', 'capturedBySelectedStop'], true]
+    });
+  }
+
   if (!map.getLayer(MAP_LAYER_ID_DEMAND_NODES_CIRCLE)) {
     map.addLayer({
       id: MAP_LAYER_ID_DEMAND_NODES_CIRCLE,
@@ -370,7 +399,7 @@ const syncMapWorkspaceSourceData = ({
   let demandNodeBuilderFeatureCount: number | undefined;
   if (demandNodeSync) {
     const demandFeatureCollection = demandNodeSync.visible
-      ? buildDemandNodeGeoJson(demandNodeSync.demandNodes, demandNodeSync.activeTimeBandId)
+      ? buildDemandNodeGeoJson(demandNodeSync.demandNodes, demandNodeSync.activeTimeBandId, demandNodeSync.demandCapturePreviewProjection)
       : { type: 'FeatureCollection' as const, features: [] };
 
 

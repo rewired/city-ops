@@ -8,6 +8,7 @@ import type { DemandNode } from '../domain/types/demandNode';
 import type { TimeBandId } from '../domain/types/timeBand';
 import type { WorkspaceToolMode } from '../session/sessionTypes';
 import type { MapLibreMap } from './maplibreGlobal';
+import type { NetworkDemandCapturePreviewProjection } from '../domain/projection/demandCapturePreviewProjection';
 
 import {
   MAP_LAYER_ID_COMPLETED_LINES,
@@ -49,6 +50,7 @@ export interface UseMapWorkspaceSourceSyncInput {
   readonly demandNodes: readonly DemandNode[];
   readonly activeTimeBandId: TimeBandId;
   readonly isDemandOverlayVisible: boolean;
+  readonly demandCapturePreviewProjection: NetworkDemandCapturePreviewProjection;
   readonly setFeatureDiagnostics: React.Dispatch<React.SetStateAction<MapWorkspaceFeatureDiagnostics>>;
 }
 
@@ -72,6 +74,7 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
     demandNodes,
     activeTimeBandId,
     isDemandOverlayVisible,
+    demandCapturePreviewProjection,
     setFeatureDiagnostics
   } = input;
 
@@ -254,7 +257,8 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       demandNodeSync: {
         demandNodes,
         activeTimeBandId,
-        visible: isDemandOverlayVisible
+        visible: isDemandOverlayVisible,
+        demandCapturePreviewProjection
       }
     });
 
@@ -269,11 +273,12 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
         demandNodeSync: {
           demandNodes,
           activeTimeBandId,
-          visible: isDemandOverlayVisible
+          visible: isDemandOverlayVisible,
+          demandCapturePreviewProjection
         }
       });
     });
-  }, [demandNodes, activeTimeBandId, isDemandOverlayVisible, mapRef.current]);
+  }, [demandNodes, activeTimeBandId, isDemandOverlayVisible, demandCapturePreviewProjection, mapRef.current]);
 
   // 5. Rendered feature diagnostics refresh
 

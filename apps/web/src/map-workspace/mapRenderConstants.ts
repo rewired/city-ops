@@ -231,6 +231,16 @@ export const MAP_OSM_STOP_CANDIDATE_CIRCLE_LAYER_PAINT = {
 export const MAP_SOURCE_ID_DEMAND_NODES = 'cityops-demand-nodes';
 
 /**
+ * Canonical circle layer id for demand nodes captured by at least one stop.
+ */
+export const MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING = 'cityops-demand-nodes-captured-ring';
+
+/**
+ * Canonical circle layer id for demand nodes captured by the currently selected stop.
+ */
+export const MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING = 'cityops-demand-nodes-selected-stop-capture-ring';
+
+/**
  * Canonical circle layer id for non-interactive demand node markers.
  */
 export const MAP_LAYER_ID_DEMAND_NODES_CIRCLE = 'cityops-demand-nodes-circle';
@@ -238,7 +248,50 @@ export const MAP_LAYER_ID_DEMAND_NODES_CIRCLE = 'cityops-demand-nodes-circle';
 /**
  * Canonical style layer ids for demand node rendering in deterministic order.
  */
-export const MAP_DEMAND_NODE_LAYER_IDS = [MAP_LAYER_ID_DEMAND_NODES_CIRCLE] as const;
+export const MAP_DEMAND_NODE_LAYER_IDS = [
+  MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING,
+  MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING,
+  MAP_LAYER_ID_DEMAND_NODES_CIRCLE
+] as const;
+
+/**
+ * Circle paint attributes for the captured demand node ring.
+ */
+export const MAP_DEMAND_NODE_CAPTURED_RING_PAINT = {
+  'circle-radius': [
+    'interpolate',
+    ['linear'],
+    ['get', 'activeWeight'],
+    0, 9,
+    300, 21
+  ],
+  'circle-color': 'rgba(0, 0, 0, 0)',
+  'circle-stroke-width': 2,
+  'circle-stroke-color': [
+    'case',
+    ['==', ['get', 'role'], 'origin'],
+    '#14b8a6',
+    '#ec4899'
+  ],
+  'circle-stroke-opacity': 0.8
+} as const;
+
+/**
+ * Circle paint attributes for the selected-stop demand node capture ring.
+ */
+export const MAP_DEMAND_NODE_SELECTED_STOP_CAPTURE_RING_PAINT = {
+  'circle-radius': [
+    'interpolate',
+    ['linear'],
+    ['get', 'activeWeight'],
+    0, 12,
+    300, 24
+  ],
+  'circle-color': 'rgba(0, 0, 0, 0)',
+  'circle-stroke-width': 3,
+  'circle-stroke-color': '#f59e0b',
+  'circle-stroke-opacity': 1
+} as const;
 
 /**
  * Circle paint attributes scaling node sizes by active weight logic.
@@ -261,4 +314,5 @@ export const MAP_DEMAND_NODE_CIRCLE_LAYER_PAINT = {
   'circle-stroke-width': 1.5,
   'circle-stroke-color': '#ffffff'
 } as const;
+
 

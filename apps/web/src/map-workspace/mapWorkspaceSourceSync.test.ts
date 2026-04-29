@@ -12,7 +12,9 @@ import {
   MAP_LAYER_ID_STOPS_LABEL,
   MAP_LAYER_ID_VEHICLES,
   MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
-  MAP_LAYER_ID_DEMAND_NODES_CIRCLE
+  MAP_LAYER_ID_DEMAND_NODES_CIRCLE,
+  MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING,
+  MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING
 } from './mapRenderConstants';
 import type { MapLibreLayerSpecification, MapLibreMap } from './maplibreGlobal';
 
@@ -53,6 +55,8 @@ const createMapWithPresentLayers = (presentLayerIds: readonly string[]): MapLibr
 describe('mapWorkspaceSourceSync custom-layer helpers', () => {
   it('returns the canonical deterministic custom-layer order list', () => {
     expect(getMapWorkspaceCustomLayerOrder()).toEqual([
+      MAP_LAYER_ID_DEMAND_NODES_CAPTURED_RING,
+      MAP_LAYER_ID_DEMAND_NODES_SELECTED_STOP_CAPTURE_RING,
       MAP_LAYER_ID_DEMAND_NODES_CIRCLE,
       MAP_LAYER_ID_COMPLETED_LINES_CASING,
       MAP_LAYER_ID_COMPLETED_LINES,

@@ -13,6 +13,7 @@ import { createStopId } from '../domain/types/stop';
 import type { OsmStopCandidateGroup, OsmStopCandidateGroupId } from '../domain/types/osmStopCandidate';
 import type { DemandNode } from '../domain/types/demandNode';
 import type { TimeBandId } from '../domain/types/timeBand';
+import type { NetworkDemandCapturePreviewProjection } from '../domain/projection/demandCapturePreviewProjection';
 
 
 import { createUniqueStopLabel } from '../domain/stop/stopLabeling';
@@ -79,6 +80,7 @@ interface MapWorkspaceSurfaceProps {
   readonly onOsmCandidateAnchorResolved: (resolution: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution | null) => void;
   readonly demandNodes: readonly DemandNode[];
   readonly activeTimeBandId: TimeBandId;
+  readonly demandCapturePreviewProjection: NetworkDemandCapturePreviewProjection;
 }
 
 
@@ -130,7 +132,8 @@ export function MapWorkspaceSurface({
   osmStopCandidateGroups,
   onOsmCandidateAnchorResolved,
   demandNodes,
-  activeTimeBandId
+  activeTimeBandId,
+  demandCapturePreviewProjection
 }: MapWorkspaceSurfaceProps): ReactElement {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<MapLibreMap | null>(null);
@@ -227,6 +230,7 @@ export function MapWorkspaceSurface({
   const demandNodesRef = useRef<readonly DemandNode[]>(demandNodes);
   const activeTimeBandIdRef = useRef<TimeBandId>(activeTimeBandId);
   const isDemandOverlayVisibleRef = useRef<boolean>(isDemandOverlayVisible);
+  const demandCapturePreviewProjectionRef = useRef<NetworkDemandCapturePreviewProjection>(demandCapturePreviewProjection);
 
   useEffect(() => {
     demandNodesRef.current = demandNodes;
@@ -239,6 +243,10 @@ export function MapWorkspaceSurface({
   useEffect(() => {
     isDemandOverlayVisibleRef.current = isDemandOverlayVisible;
   }, [isDemandOverlayVisible]);
+
+  useEffect(() => {
+    demandCapturePreviewProjectionRef.current = demandCapturePreviewProjection;
+  }, [demandCapturePreviewProjection]);
 
   useEffect(() => {
     const containerElement = mapContainerRef.current;
@@ -272,7 +280,8 @@ export function MapWorkspaceSurface({
         demandNodeSync: {
           demandNodes: demandNodesRef.current,
           activeTimeBandId: activeTimeBandIdRef.current,
-          visible: isDemandOverlayVisibleRef.current
+          visible: isDemandOverlayVisibleRef.current,
+          demandCapturePreviewProjection: demandCapturePreviewProjectionRef.current
         }
 
       });
@@ -354,6 +363,7 @@ export function MapWorkspaceSurface({
     demandNodes,
     activeTimeBandId,
     isDemandOverlayVisible,
+    demandCapturePreviewProjection,
     setFeatureDiagnostics
 
   });
@@ -484,7 +494,11 @@ export function MapWorkspaceSurface({
           <span>Demand overlay</span>
         </label>
         <span className="map-workspace__demand-toggle-status">
-          {demandNodes.length > 0 ? `${demandNodes.length} nodes` : 'No scenario demand data'}
+          {demandNodes.length === 0
+            ? 'No scenario demand data'
+            : demandCapturePreviewProjection.selectedStopCapturedNodeCount > 0
+            ? `${demandCapturePreviewProjection.capturedNodeCount} / ${demandCapturePreviewProjection.totalNodeCount} captured · selected stop: ${demandCapturePreviewProjection.selectedStopCapturedNodeCount}`
+            : `${demandCapturePreviewProjection.capturedNodeCount} / ${demandCapturePreviewProjection.totalNodeCount} captured`}
         </span>
       </div>
 

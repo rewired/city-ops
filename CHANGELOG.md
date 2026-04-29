@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 132: Demand Capture Preview Overlay
+- Implemented `demandCapturePreviewProjection.ts` deriving deterministic demand node capture statuses against existing placed stops and the active selected stop.
+- Configured spatial highlight ring overrides in `mapRenderConstants.ts` mapping catchment categories into direct style rules.
+- Registered visual capture filters safely through `mapWorkspaceSourceSync.ts` and `useMapWorkspaceSourceSync.ts`.
+- Enforced strong typing constraints across GeoJSON generators and diagnostic metrics tables.
+- Extended vitest criteria catching coordinate mapping errors cleanly.
+
 ### Slice 131c: Final Demand Loader Type-Safety Repair
 - Removed remaining avoidable type casts (`key as TimeBandId`, `{} as Record<TimeBandId, DemandWeight>`, and `weight as number`) from `loadScenarioDemandNodes.ts`.
 - Replaced generic `any` fixture logic and broad `as Response` mocks in loader tests using strict data types and proper `Response` objects.

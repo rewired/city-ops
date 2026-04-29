@@ -232,6 +232,7 @@ export default function App(): ReactElement {
     sessionController.sessionLines,
     sessionController.sessionStops,
     sessionController.selectedLine,
+    sessionController.selectedStopId,
     clockController.activeSimulationTimeBandId,
     clockController.currentSimulationMinuteOfDay,
     clockController.currentSimulationSecondOfDay,
@@ -479,6 +480,7 @@ const toolModeControlOptions: ReadonlyArray<{
           onOsmCandidateAnchorResolved={setSelectedOsmCandidateAnchor}
           demandNodes={scenarioDemandNodes}
           activeTimeBandId={clockController.activeSimulationTimeBandId}
+          demandCapturePreviewProjection={projections.demandCapturePreviewProjection}
         />
 
       </main>
