@@ -3,7 +3,7 @@ version: "3.8"
 services:
   osrm:
     image: osrm/osrm-backend
-    container_name: city-ops-osrm
+    container_name: open-vayra-cities-osrm
     restart: "no"
     ports:
       - "5000:5000"
