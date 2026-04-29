@@ -44,12 +44,13 @@ function main() {
   let outputPath = null;
   let manifestOutputPath = null;
   
-  let idColumn = 'grid_id';
-  let populationColumn = 'population';
-  let longitudeColumn = 'lng';
-  let latitudeColumn = 'lat';
-  let delimiter = ',';
-  let inputCrs = 'epsg:4326';
+  let cliIdColumn = null;
+  let cliPopulationColumn = null;
+  let cliLongitudeColumn = null;
+  let cliLatitudeColumn = null;
+  let cliDelimiter = null;
+  let cliInputCrs = null;
+  let sourcePreset = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--scenario') {
@@ -65,22 +66,25 @@ function main() {
       manifestOutputPath = args[i + 1];
       i++;
     } else if (args[i] === '--id-column') {
-      idColumn = args[i + 1];
+      cliIdColumn = args[i + 1];
       i++;
     } else if (args[i] === '--population-column') {
-      populationColumn = args[i + 1];
+      cliPopulationColumn = args[i + 1];
       i++;
-    } else if (args[i] === '--longitude-column') {
-      longitudeColumn = args[i + 1];
+    } else if (args[i] === '--longitude-column' || args[i] === '--x-column') {
+      cliLongitudeColumn = args[i + 1];
       i++;
-    } else if (args[i] === '--latitude-column') {
-      latitudeColumn = args[i + 1];
+    } else if (args[i] === '--latitude-column' || args[i] === '--y-column') {
+      cliLatitudeColumn = args[i + 1];
       i++;
     } else if (args[i] === '--delimiter') {
-      delimiter = args[i + 1];
+      cliDelimiter = args[i + 1];
       i++;
     } else if (args[i] === '--input-crs') {
-      inputCrs = args[i + 1].toLowerCase();
+      cliInputCrs = args[i + 1].toLowerCase();
+      i++;
+    } else if (args[i] === '--source-preset') {
+      sourcePreset = args[i + 1];
       i++;
     }
   }
@@ -108,6 +112,27 @@ function main() {
     fail('Scenario is missing playableBounds.');
   }
 
+  // Apply Presets
+  let presetDelimiter = null;
+  let presetIdColumn = null;
+  let presetPopulationColumn = null;
+  let presetLongitudeColumn = null;
+  let presetLatitudeColumn = null;
+  let presetInputCrs = null;
+
+  if (sourcePreset) {
+    if (sourcePreset === 'destatis-zensus-2022-1km-population') {
+      presetDelimiter = ';';
+      presetIdColumn = 'GITTER_ID_1km';
+      presetLongitudeColumn = 'x_mp_1km';
+      presetLatitudeColumn = 'y_mp_1km';
+      presetPopulationColumn = 'Einwohner';
+      presetInputCrs = 'epsg:3035';
+    } else {
+      fail(`Unknown source preset: ${sourcePreset}`);
+    }
+  }
+
   const csvContent = fs.readFileSync(inputPath, 'utf8');
   const lines = csvContent.split(/\r?\n/);
 
@@ -127,17 +152,83 @@ function main() {
     fail('CSV file is empty or missing header row');
   }
 
-  const headers = splitCsvLine(headerRow, delimiter).map(h => h.trim());
+  // Delimiter Detection
+  // Precedence: CLI > Preset > Auto-detect
+  let detectedDelimiter = null;
+  if (cliDelimiter) {
+    detectedDelimiter = cliDelimiter;
+  } else if (presetDelimiter) {
+    detectedDelimiter = presetDelimiter;
+  } else {
+    const commaCount = (headerRow.match(/,/g) || []).length;
+    const semicolonCount = (headerRow.match(/;/g) || []).length;
+    
+    if (semicolonCount > commaCount) {
+      detectedDelimiter = ';';
+    } else if (commaCount > 0) {
+      detectedDelimiter = ',';
+    } else {
+      detectedDelimiter = ',';
+    }
+  }
+
+  const headers = splitCsvLine(headerRow, detectedDelimiter).map(h => h.trim());
+
+  // Autodetection of columns and CRS
+  let detectedIdColumn = null;
+  let detectedPopulationColumn = null;
+  let detectedLongitudeColumn = null;
+  let detectedLatitudeColumn = null;
+  let detectedInputCrs = null;
+
+  if (headers.includes('GITTER_ID_1km')) {
+    if (!headers.includes('Einwohner')) {
+      fail(`Detected Destatis-style file (GITTER_ID_1km) but missing required population column "Einwohner".\nDetected columns: ${headers.join(', ')}`);
+    }
+    detectedIdColumn = 'GITTER_ID_1km';
+    detectedPopulationColumn = 'Einwohner';
+    detectedLongitudeColumn = headers.includes('x_mp_1km') ? 'x_mp_1km' : null;
+    detectedLatitudeColumn = headers.includes('y_mp_1km') ? 'y_mp_1km' : null;
+    detectedInputCrs = 'epsg:3035';
+  } else {
+    const idAliases = ['grid_id', 'id'];
+    const popAliases = ['population'];
+    const lonAliases = ['lng', 'longitude'];
+    const latAliases = ['lat', 'latitude'];
+
+    detectedIdColumn = idAliases.find(a => headers.includes(a));
+    detectedPopulationColumn = popAliases.find(a => headers.includes(a));
+    detectedLongitudeColumn = lonAliases.find(a => headers.includes(a));
+    detectedLatitudeColumn = latAliases.find(a => headers.includes(a));
+  }
+
+  // Precedence Order: explicit CLI flags > source preset > autodetection > generic defaults
+  const idColumn = cliIdColumn ?? presetIdColumn ?? detectedIdColumn ?? 'grid_id';
+  const populationColumn = cliPopulationColumn ?? presetPopulationColumn ?? detectedPopulationColumn ?? 'population';
+  const longitudeColumn = cliLongitudeColumn ?? presetLongitudeColumn ?? detectedLongitudeColumn ?? 'lng';
+  const latitudeColumn = cliLatitudeColumn ?? presetLatitudeColumn ?? detectedLatitudeColumn ?? 'lat';
+  const delimiter = detectedDelimiter;
+  const inputCrs = (cliInputCrs ?? presetInputCrs ?? detectedInputCrs ?? 'epsg:4326').toLowerCase();
 
   const idColIdx = headers.indexOf(idColumn);
   const popColIdx = headers.indexOf(populationColumn);
   const lonColIdx = headers.indexOf(longitudeColumn);
   const latColIdx = headers.indexOf(latitudeColumn);
 
-  if (idColIdx === -1) fail(`Missing configured ID column: ${idColumn}`);
-  if (popColIdx === -1) fail(`Missing configured population column: ${populationColumn}`);
-  if (lonColIdx === -1) fail(`Missing configured longitude/X column: ${longitudeColumn}`);
-  if (latColIdx === -1) fail(`Missing configured latitude/Y column: ${latitudeColumn}`);
+  const missing = [];
+  if (idColIdx === -1) missing.push(`ID column "${idColumn}"`);
+  if (popColIdx === -1) missing.push(`Population column "${populationColumn}"`);
+  if (lonColIdx === -1) missing.push(`Longitude/X column "${longitudeColumn}"`);
+  if (latColIdx === -1) missing.push(`Latitude/Y column "${latitudeColumn}"`);
+
+  if (missing.length > 0) {
+    let errorMsg = `Header validation failed. Missing: ${missing.join(', ')}.\n`;
+    errorMsg += `Detected columns: ${headers.join(', ')}\n`;
+    errorMsg += `Expected Normalized columns: grid_id (or id), lng (or longitude), lat (or latitude), population\n`;
+    errorMsg += `Expected Destatis Zensus columns: GITTER_ID_1km, x_mp_1km, y_mp_1km, Einwohner\n`;
+    errorMsg += `Use explicit flags (--id-column, --population-column, --longitude-column, --latitude-column) or --source-preset to override.`;
+    fail(errorMsg);
+  }
 
   const records = [];
   const knownIds = new Set();

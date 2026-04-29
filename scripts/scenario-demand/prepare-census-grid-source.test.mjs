@@ -127,7 +127,7 @@ g1,10.0,53.5`;
   ]);
 
   assert.strictEqual(result.status, 1);
-  assert.ok(result.stderr.includes('Missing configured population column'));
+  assert.ok(result.stderr.includes('Header validation failed') && result.stderr.includes('Population column "population"'));
 }
 
 function testInvalidCoordinates() {
@@ -298,6 +298,159 @@ g1,4321000,3380000,100`;
   assert.ok(lat >= 53.0 && lat <= 54.0, `Latitude ${lat} out of bounds`);
 }
 
+function testDestatisAutodetect() {
+  console.log('Testing Destatis Autodetect...');
+  const scenarioPath = path.join(tempDir, 'test.scenario.json');
+  const inputPath = path.join(tempDir, 'input.csv');
+  const outputPath = path.join(tempDir, 'output.csv');
+  const manifestPath = path.join(tempDir, 'manifest.json');
+
+  const scenario = {
+    scenarioId: 'test-scenario',
+    playableBounds: { west: 9.5, south: 53.0, east: 10.5, north: 54.0 }
+  };
+  fs.writeFileSync(scenarioPath, JSON.stringify(scenario, null, 2));
+
+  const csv = `GITTER_ID_1km;x_mp_1km;y_mp_1km;Einwohner
+CRS3035RES1000mN2689000E4337000;4321000;3380000;100`;
+
+  fs.writeFileSync(inputPath, csv);
+
+  const result = runScript([
+    '--scenario', scenarioPath,
+    '--input', inputPath,
+    '--output', outputPath,
+    '--manifest-output', manifestPath
+  ]);
+
+  assert.strictEqual(result.status, 0, `Script failed: ${result.stderr}`);
+  assert.ok(fs.existsSync(outputPath));
+  
+  const outCsv = fs.readFileSync(outputPath, 'utf8');
+  assert.ok(outCsv.includes('CRS3035RES1000mN2689000E4337000'));
+}
+
+function testDestatisPreset() {
+  console.log('Testing Destatis Preset...');
+  const scenarioPath = path.join(tempDir, 'test.scenario.json');
+  const inputPath = path.join(tempDir, 'input.csv');
+  const outputPath = path.join(tempDir, 'output.csv');
+  const manifestPath = path.join(tempDir, 'manifest.json');
+
+  const scenario = {
+    scenarioId: 'test-scenario',
+    playableBounds: { west: 9.5, south: 53.0, east: 10.5, north: 54.0 }
+  };
+  fs.writeFileSync(scenarioPath, JSON.stringify(scenario, null, 2));
+
+  const csv = `GITTER_ID_1km;x_mp_1km;y_mp_1km;Einwohner
+CRS3035RES1000mN2689000E4337000;4321000;3380000;100`;
+
+  fs.writeFileSync(inputPath, csv);
+
+  const result = runScript([
+    '--scenario', scenarioPath,
+    '--input', inputPath,
+    '--output', outputPath,
+    '--manifest-output', manifestPath,
+    '--source-preset', 'destatis-zensus-2022-1km-population'
+  ]);
+
+  assert.strictEqual(result.status, 0, `Script failed: ${result.stderr}`);
+}
+
+function testPrecedence() {
+  console.log('Testing Precedence (CLI > Preset > Autodetect)...');
+  const scenarioPath = path.join(tempDir, 'test.scenario.json');
+  const inputPath = path.join(tempDir, 'input.csv');
+  const outputPath = path.join(tempDir, 'output.csv');
+  const manifestPath = path.join(tempDir, 'manifest.json');
+
+  const scenario = {
+    scenarioId: 'test-scenario',
+    playableBounds: { west: 9.5, south: 53.0, east: 10.5, north: 54.0 }
+  };
+  fs.writeFileSync(scenarioPath, JSON.stringify(scenario, null, 2));
+
+  const csv = `GITTER_ID_1km;x_mp_1km;y_mp_1km;Einwohner
+CRS3035RES1000mN2689000E4337000;4321000;3380000;100`;
+
+  fs.writeFileSync(inputPath, csv);
+
+  const result = runScript([
+    '--scenario', scenarioPath,
+    '--input', inputPath,
+    '--output', outputPath,
+    '--manifest-output', manifestPath,
+    '--delimiter', ',',
+    '--id-column', 'wrong_id'
+  ]);
+
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('Missing: ID column "wrong_id"'));
+}
+
+function testActionableErrors() {
+  console.log('Testing Actionable Errors...');
+  const scenarioPath = path.join(tempDir, 'test.scenario.json');
+  const inputPath = path.join(tempDir, 'input.csv');
+  const outputPath = path.join(tempDir, 'output.csv');
+  const manifestPath = path.join(tempDir, 'manifest.json');
+
+  const scenario = {
+    scenarioId: 'test-scenario',
+    playableBounds: { west: 9.5, south: 53.0, east: 10.5, north: 54.0 }
+  };
+  fs.writeFileSync(scenarioPath, JSON.stringify(scenario, null, 2));
+
+  const csv = `unknown_id,unknown_x,unknown_y,unknown_pop
+g1,10.0,53.5,100`;
+
+  fs.writeFileSync(inputPath, csv);
+
+  const result = runScript([
+    '--scenario', scenarioPath,
+    '--input', inputPath,
+    '--output', outputPath,
+    '--manifest-output', manifestPath
+  ]);
+
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('Header validation failed'));
+  assert.ok(result.stderr.includes('Detected columns: unknown_id, unknown_x, unknown_y, unknown_pop'));
+  assert.ok(result.stderr.includes('Expected Normalized columns'));
+  assert.ok(result.stderr.includes('Expected Destatis Zensus columns'));
+}
+
+function testMissingEinwohner() {
+  console.log('Testing Missing Einwohner...');
+  const scenarioPath = path.join(tempDir, 'test.scenario.json');
+  const inputPath = path.join(tempDir, 'input.csv');
+  const outputPath = path.join(tempDir, 'output.csv');
+  const manifestPath = path.join(tempDir, 'manifest.json');
+
+  const scenario = {
+    scenarioId: 'test-scenario',
+    playableBounds: { west: 9.5, south: 53.0, east: 10.5, north: 54.0 }
+  };
+  fs.writeFileSync(scenarioPath, JSON.stringify(scenario, null, 2));
+
+  const csv = `GITTER_ID_1km;x_mp_1km;y_mp_1km;MissingPop
+g1;4321000;3380000;100`;
+
+  fs.writeFileSync(inputPath, csv);
+
+  const result = runScript([
+    '--scenario', scenarioPath,
+    '--input', inputPath,
+    '--output', outputPath,
+    '--manifest-output', manifestPath
+  ]);
+
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('missing required population column "Einwohner"'));
+}
+
 function runAll() {
   try {
     setup();
@@ -309,6 +462,11 @@ function runAll() {
     testSemicolonDelimiter();
     testManifestGeneration();
     testEpsg3035Projection();
+    testDestatisAutodetect();
+    testDestatisPreset();
+    testPrecedence();
+    testActionableErrors();
+    testMissingEinwohner();
     console.log('--- All Prepare Census Script Tests Passed ---');
   } finally {
     cleanup();

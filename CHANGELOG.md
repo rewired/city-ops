@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 157b: Destatis Census Grid Column Autodetect and CRS Defaults
+- Added `--source-preset` support for `destatis-zensus-2022-1km-population`.
+- Implemented header and delimiter autodetection for Destatis Zensus 2022 CSV files.
+- Applied strict precedence rules: CLI overrides > Preset defaults > Autodetect > Generic Fallbacks.
+- Configured automatic EPSG:3035 to WGS84 coordinate conversion when Zensus presets apply.
+
 ### Slice 153: Repair Map Layer Registry and Visibility Contract
 - Registered the `osm-stop-candidates` overlay in the map layer flyout.
 - Set default visibility for OSM stop candidates to `true`.
