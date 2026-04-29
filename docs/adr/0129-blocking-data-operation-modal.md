@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-CityOps increasingly processes larger local data artifacts during the application runtime, specifically OpenStreetMap (OSM) stop candidates. These operations—loading, validating, and consolidating raw data—can take noticeable time.
+OpenVayra - Cities increasingly processes larger local data artifacts during the application runtime, specifically OpenStreetMap (OSM) stop candidates. These operations—loading, validating, and consolidating raw data—can take noticeable time.
 
 Without visual feedback, the player may perceive the app as frozen. Furthermore, allowing interaction with the map or panels during these phases could lead to race conditions, accidental edits, or inconsistent UI states before the data is fully ready.
 

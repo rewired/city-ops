@@ -2,7 +2,7 @@
 
 ## Context
 
-The CityOps MVP requires a spatial demand layer to evaluate the effectiveness of the player's transit network. While future versions may import real-world population data (e.g., from OpenStreetMap or demographic datasets), the current focus is on a stable, implementation-friendly foundation.
+The OpenVayra - Cities MVP requires a spatial demand layer to evaluate the effectiveness of the player's transit network. While future versions may import real-world population data (e.g., from OpenStreetMap or demographic datasets), the current focus is on a stable, implementation-friendly foundation.
 
 ## Decision
 

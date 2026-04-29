@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the domain and architecture boundaries for CityOps.
+This document defines the domain and architecture boundaries for OpenVayra - Cities.
 
 The goal is to preserve a clean separation between city/map representation, demand generation, transit network logic, simulation behavior, routing support, economy, and UI projection.
 

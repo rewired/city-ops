@@ -12,7 +12,7 @@ The desktop shell currently stacks an `app-header` row above a separate simulati
 
 1. Replace split `header` + `controls` rows with one `top-bar` row in the app grid.
 2. Use one integrated top-bar composition that renders, in one horizontal bar:
-   - brand/title (`CityOps`)
+   - brand/title (`OpenVayra - Cities`)
    - day/time readout
    - active time-band label
    - play/pause and reset icon controls

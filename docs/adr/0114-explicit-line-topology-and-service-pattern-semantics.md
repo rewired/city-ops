@@ -2,7 +2,7 @@
 
 ## Context
 
-Bus lines in the CityOps MVP were previously assumed to be simple linear paths with one-way service. To support more diverse transit networks, players need to be able to define closed loop lines and bidirectional service.
+Bus lines in the OpenVayra - Cities MVP were previously assumed to be simple linear paths with one-way service. To support more diverse transit networks, players need to be able to define closed loop lines and bidirectional service.
 
 ## Decision
 

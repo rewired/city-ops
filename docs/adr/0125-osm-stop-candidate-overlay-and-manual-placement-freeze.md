@@ -6,7 +6,7 @@ Superseded by ADR 0126
 
 ## Context
 
-CityOps is transitioning from free manual stop placement toward OSM stop adoption. The MVP requires players to see OSM-sourced stop candidates as a visual overlay while keeping existing manual placement code intact for later reactivation. Manual placement must be hidden from the player-facing UI but not deleted. OSM candidates must be visually distinct from canonical CityOS stops and must not enter network truth.
+OpenVayra - Cities is transitioning from free manual stop placement toward OSM stop adoption. The MVP requires players to see OSM-sourced stop candidates as a visual overlay while keeping existing manual placement code intact for later reactivation. Manual placement must be hidden from the player-facing UI but not deleted. OSM candidates must be visually distinct from canonical CityOS stops and must not enter network truth.
 
 ## Decision
 

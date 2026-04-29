@@ -3,7 +3,7 @@
 ## Context
 
 Previous slices introduced OSM stop candidates and grouped them into stop-facility candidates. We also implemented street-anchor resolution to find safe routing points for these candidates.
-The player now needs a way to "adopt" these candidates into the canonical CityOps network as playable stops.
+The player now needs a way to "adopt" these candidates into the canonical OpenVayra - Cities network as playable stops.
 
 ## Decision
 
@@ -12,7 +12,7 @@ When selected, the inspector will show details about the candidate group and its
 If the street anchor is in the `ready` status and not too close to an existing stop (threshold: 15m), the player can "Adopt" the stop.
 
 Adoption performs the following:
-1. Converts the candidate group into a canonical CityOps `Stop`.
+1. Converts the candidate group into a canonical OpenVayra - Cities `Stop`.
 2. Uses the `streetAnchorPosition` as the stop's location (not the original OSM display position).
 3. Adds the stop to the session's stop collection.
 4. Tracks the adoption in a session-only set of `adoptedOsmCandidateGroupIds`.

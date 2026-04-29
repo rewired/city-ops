@@ -18,7 +18,7 @@ Route-segment fields in export payloads must remain directly aligned to canonica
 
 - Add `apps/web/src/domain/types/selectedLineExport.ts` as the canonical selected-line export type module.
 - Define one canonical schema version constant:
-  - `SELECTED_LINE_EXPORT_SCHEMA_VERSION = "cityops-selected-line-export-v1"`
+  - `SELECTED_LINE_EXPORT_SCHEMA_VERSION = "OpenVayra - Cities-selected-line-export-v1"`
 - Define one payload discriminator literal type:
   - `SelectedLineExportKind = "selected-line"`
 - Define typed interfaces for:

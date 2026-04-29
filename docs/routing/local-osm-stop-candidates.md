@@ -1,10 +1,10 @@
 # Local OSM Stop Candidate Generation
 
-This document describes how to generate external stop candidates from OpenStreetMap (OSM) data for use in CityOps.
+This document describes how to generate external stop candidates from OpenStreetMap (OSM) data for use in OpenVayra - Cities.
 
 ## Purpose
 
-OSM stop candidates provide a set of suggested locations for stops based on real-world transit data. They are **external suggestions** and are not automatically adopted as CityOps stops. They serve as a guide for manual stop placement or future automated planning features.
+OSM stop candidates provide a set of suggested locations for stops based on real-world transit data. They are **external suggestions** and are not automatically adopted as OpenVayra - Cities stops. They serve as a guide for manual stop placement or future automated planning features.
 
 ## Prerequisites
 
@@ -68,14 +68,14 @@ Visible markers may appear off-street if their display position is away from the
 
 ### Adoption Workflow
 
-Adoption is the process of converting an external OSM candidate group into a canonical CityOps stop.
+Adoption is the process of converting an external OSM candidate group into a canonical OpenVayra - Cities stop.
 
 1. **Selection**: Click on a candidate group circle in **Inspect** mode.
 2. **Review**: The inspector panel shows the resolved street anchor and distance.
 3. **Adopt**: Click **Adopt stop** if the candidate is "ready" (has a valid street anchor).
 
 Once adopted:
-- The stop becomes a standard CityOps stop.
+- The stop becomes a standard OpenVayra - Cities stop.
 - The original OSM candidate is hidden from the overlay in the current session.
 - The stop's position is set to the **resolved street anchor**, ensuring it is safe for routing.
 - The stop name is inherited from the candidate group label.

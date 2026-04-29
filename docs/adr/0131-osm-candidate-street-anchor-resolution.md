@@ -8,7 +8,7 @@ Accepted
 
 OSM stop candidates (loaded from `/generated/osm-stop-candidates.geojson` and grouped into stop facilities) often represent physical objects like platforms, signs, or shelters. These are excellent for display position (`displayPosition`), but they are often physically away from the drivable street.
 
-For future adoption of these candidates into the CityOps network, the simulation needs a routing anchor (`routingAnchorPosition` or `streetAnchorPosition`) that is snapped to a valid street line. Without this separation, adopting an off-street candidate would result in vehicles trying to route to positions they cannot reach or stopping in invalid locations.
+For future adoption of these candidates into the OpenVayra - Cities network, the simulation needs a routing anchor (`routingAnchorPosition` or `streetAnchorPosition`) that is snapped to a valid street line. Without this separation, adopting an off-street candidate would result in vehicles trying to route to positions they cannot reach or stopping in invalid locations.
 
 ## Decision
 
@@ -26,7 +26,7 @@ We will implement a reusable street-anchor resolution model for grouped OSM cand
 
 ## Consequences
 
-*   **Improved Adoption Readiness**: We now know which OSM candidates can be safely turned into CityOps stops.
+*   **Improved Adoption Readiness**: We now know which OSM candidates can be safely turned into OpenVayra - Cities stops.
 *   **Decoupled UI/Domain**: The display marker stays where it belongs (e.g., on a platform), while the vehicle stopping point is correctly placed on the street.
 *   **Performance**: On-hover resolution avoids heavy batch processing of hundreds of candidates.
 *   **Consistency**: Manual placement and OSM adoption use the same underlying snapping algorithms and thresholds.

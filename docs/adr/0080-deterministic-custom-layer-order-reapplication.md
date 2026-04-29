@@ -6,7 +6,7 @@ Accepted (2026-04-24)
 
 ## Context
 
-CityOps map workspace custom layers must stay in a stable stack order for correct visual hierarchy:
+OpenVayra - Cities map workspace custom layers must stay in a stable stack order for correct visual hierarchy:
 
 1. completed-line casing
 2. completed lines
@@ -21,7 +21,7 @@ When style readiness or layer availability changes caused data-only synchronizat
 
 ## Decision
 
-Introduce one dedicated deterministic map workspace layer-order helper that reapplies the canonical CityOps custom layer stack via typed `moveLayer(layerId, beforeId?)` calls.
+Introduce one dedicated deterministic map workspace layer-order helper that reapplies the canonical OpenVayra - Cities custom layer stack via typed `moveLayer(layerId, beforeId?)` calls.
 
 Invoke this helper from the centralized source synchronization path so layer ordering is reapplied consistently on every sync pass, including data-only sync runs and style-ready recovery runs.
 

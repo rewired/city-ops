@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-CityOps needs a strict TypeScript workspace baseline and a minimal desktop web app scaffold that preserves architecture boundaries without introducing gameplay logic.
+OpenVayra - Cities needs a strict TypeScript workspace baseline and a minimal desktop web app scaffold that preserves architecture boundaries without introducing gameplay logic.
 
 ## Decision
 

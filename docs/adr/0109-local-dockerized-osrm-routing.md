@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The CityOps MVP requires a believable street-routed path fallback for bus lines rather than naive straight lines. We need a deterministic, local routing implementation that does not depend on an external, rate-limited public API (e.g., the OSRM demo server), ensuring the simulator can function autonomously without internet dependency during standard gameplay/testing.
+The OpenVayra - Cities MVP requires a believable street-routed path fallback for bus lines rather than naive straight lines. We need a deterministic, local routing implementation that does not depend on an external, rate-limited public API (e.g., the OSRM demo server), ensuring the simulator can function autonomously without internet dependency during standard gameplay/testing.
 
 ## Decision
 We will use a local, Dockerized instance of the Open Source Routing Machine (OSRM) as the first street-routed segment adapter.

@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document defines the technical implementation rules for CityOps.
+This document defines the technical implementation rules for OpenVayra - Cities.
 
-CityOps targets a desktop-only browser-based game using TypeScript and a React/Vite frontend, with strong emphasis on type safety, centralized constants, clear package boundaries, and realistic-enough street-based stop-to-stop travel times.
+OpenVayra - Cities targets a desktop-only browser-based game using TypeScript and a React/Vite frontend, with strong emphasis on type safety, centralized constants, clear package boundaries, and realistic-enough street-based stop-to-stop travel times.
 
 ---
 

@@ -6,7 +6,7 @@ Accepted (2026-04-24)
 
 ## Context
 
-CityOps now has a selected-line export schema (`cityops-selected-line-export-v2`) and a committed fixture at `data/fixtures/selected-line-exports/hamburg-line-1.v2.json`, plus a typed payload validator.
+OpenVayra - Cities now has a selected-line export schema (`OpenVayra - Cities-selected-line-export-v2`) and a committed fixture at `data/fixtures/selected-line-exports/hamburg-line-1.v2.json`, plus a typed payload validator.
 
 Before this slice, repeating line route/testing workflows required rebuilding stops and one completed line manually inside each browser session.
 

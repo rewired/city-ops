@@ -1,6 +1,6 @@
 # Local OSRM Routing Baseline
 
-CityOps uses a local Dockerized instance of the Open Source Routing Machine (OSRM) to provide realistic street routing between stops. This avoids relying on external rate-limited APIs and ensures deterministic behavior for the simulation MVP.
+OpenVayra - Cities uses a local Dockerized instance of the Open Source Routing Machine (OSRM) to provide realistic street routing between stops. This avoids relying on external rate-limited APIs and ensures deterministic behavior for the simulation MVP.
 
 ## Why Local Dockerized OSRM?
 - **Deterministic**: Provides consistent results locally and in test environments.

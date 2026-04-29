@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-CityOps needs a first usable UI composition that establishes where planning workflows will live, while keeping the implementation intentionally lightweight and free of map, routing, simulation, and persistence behavior.
+OpenVayra - Cities needs a first usable UI composition that establishes where planning workflows will live, while keeping the implementation intentionally lightweight and free of map, routing, simulation, and persistence behavior.
 
 ## Decision
 

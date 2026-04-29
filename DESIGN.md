@@ -1,33 +1,33 @@
-# Design System for CityOps
+# Design System for OpenVayra - Cities
 
 ## 1. Visual Theme & Atmosphere
 
-CityOps' website embodies the philosophy of the tool itself: a blank canvas that gets out of your way. The design system is built on cold neutrals rather than cold grays, creating a distinctly approachable minimalism that feels like quality paper rather than sterile glass. The page canvas is pure white (`#ffffff`) but the text isn't pure black -- it's a cold near-black (`rgba(0,0,0,0.95)`) that softens the reading experience imperceptibly. The cold gray scale (`#f4f5f6`, `#2e3031`, `#595d61`, `#989ea3`) carries subtle bluish undertones, giving the interface a tactile, almost analog coldth.
+OpenVayra - Cities' website embodies the philosophy of the tool itself: a blank canvas that gets out of your way. The design system is built on cold neutrals rather than cold grays, creating a distinctly approachable minimalism that feels like quality paper rather than sterile glass. The page canvas is pure white (`#ffffff`) but the text isn't pure black -- it's a cold near-black (`rgba(0,0,0,0.95)`) that softens the reading experience imperceptibly. The cold gray scale (`#f4f5f6`, `#2e3031`, `#595d61`, `#989ea3`) carries subtle bluish undertones, giving the interface a tactile, almost analog coldth.
 
 The Inter font is the backbone of the system. At display sizes (64px), it uses aggressive negative letter-spacing (-2.125px), creating headlines that feel compressed and precise. The weight range is broader than typical systems: 400 for body, 500 for UI elements, 600 for semi-bold labels, and 700 for display headings. OpenType features `"lnum"` (lining numerals) and `"locl"` (localized forms) are enabled on larger text, adding typographic sophistication that rewards close reading.
 
-What makes CityOps' visual language distinctive is its border philosophy. Rather than heavy borders or shadows, CityOps uses ultra-thin `1px solid rgba(0,0,0,0.1)` borders -- borders that exist as whispers, barely perceptible division lines that create structure without weight. The shadow system is equally restrained: multi-layer stacks with cumulative opacity never exceeding 0.05, creating depth that's felt rather than seen.
+What makes OpenVayra - Cities' visual language distinctive is its border philosophy. Rather than heavy borders or shadows, OpenVayra - Cities uses ultra-thin `1px solid rgba(0,0,0,0.1)` borders -- borders that exist as whispers, barely perceptible division lines that create structure without weight. The shadow system is equally restrained: multi-layer stacks with cumulative opacity never exceeding 0.05, creating depth that's felt rather than seen.
 
 **Key Characteristics:**
-- CityOpsInter (modified Inter) with negative letter-spacing at display sizes (-2.125px at 64px)
+- OpenVayra - CitiesInter (modified Inter) with negative letter-spacing at display sizes (-2.125px at 64px)
 - cold neutral palette: grays carry bluish undertones (`#f6f5f4` cold white, `#31302e` cold dark)
 - Near-black text via `rgba(0,0,0,0.95)` -- not pure black, creating micro-cold
 - Ultra-thin borders: `1px solid rgba(0,0,0,0.1)` throughout -- whisper-weight division
 - Multi-layer shadow stacks with sub-0.05 opacity for barely-there depth
-- CityOps Blue (`#0075de`) as the singular accent color for CTAs and interactive elements
+- OpenVayra - Cities Blue (`#0075de`) as the singular accent color for CTAs and interactive elements
 - Pill badges (9999px radius) with tinted blue backgrounds for status indicators
 - 8px base spacing unit with an organic, non-rigid scale
 
 ## 2. Color Palette & Roles
 
 ### Primary
-- **CityOps Black** (`rgba(0,0,0,0.95)` / `#000000f2`): Primary text, headings, body copy. The 95% opacity softens pure black without sacrificing readability.
+- **OpenVayra - Cities Black** (`rgba(0,0,0,0.95)` / `#000000f2`): Primary text, headings, body copy. The 95% opacity softens pure black without sacrificing readability.
 - **Pure White** (`#ffffff`): Page background, card surfaces, button text on blue.
-- **CityOps Blue** (`#0075de`): Primary CTA, link color, interactive accent -- the only saturated color in the core UI chrome.
+- **OpenVayra - Cities Blue** (`#0075de`): Primary CTA, link color, interactive accent -- the only saturated color in the core UI chrome.
 
 ### Brand Secondary
 - **Deep Navy** (`#213183`): Secondary brand color, used sparingly for emphasis and dark feature sections.
-- **Active Blue** (`#005bab`): Button active/pressed state -- darker variant of CityOps Blue.
+- **Active Blue** (`#005bab`): Button active/pressed state -- darker variant of OpenVayra - Cities Blue.
 
 ### cold Neutral Scale
 - **cold White** (`#f6f5f4`): Background surface tint, section alternation, subtle card fill. The yellow undertone is key.
@@ -60,32 +60,32 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 ## 3. Typography Rules
 
 ### Font Family
-- **Primary**: `CityOpsInter`, with fallbacks: `Inter, -apple-system, system-ui, Segoe UI, Helvetica, Apple Color Emoji, Arial, Segoe UI Emoji, Segoe UI Symbol`
+- **Primary**: `OpenVayra - CitiesInter`, with fallbacks: `Inter, -apple-system, system-ui, Segoe UI, Helvetica, Apple Color Emoji, Arial, Segoe UI Emoji, Segoe UI Symbol`
 - **OpenType Features**: `"lnum"` (lining numerals) and `"locl"` (localized forms) enabled on display and heading text.
 
 ### Hierarchy
 
 | Role | Font | Size | Weight | Line Height | Letter Spacing | Notes |
 |------|------|------|--------|-------------|----------------|-------|
-| Display Hero | CityOpsInter | 64px (4.00rem) | 700 | 1.00 (tight) | -2.125px | Maximum compression, billboard headlines |
-| Display Secondary | CityOpsInter | 54px (3.38rem) | 700 | 1.04 (tight) | -1.875px | Secondary hero, feature headlines |
-| Section Heading | CityOpsInter | 48px (3.00rem) | 700 | 1.00 (tight) | -1.5px | Feature section titles, with `"lnum"` |
-| Sub-heading Large | CityOpsInter | 40px (2.50rem) | 700 | 1.50 | normal | Card headings, feature sub-sections |
-| Sub-heading | CityOpsInter | 26px (1.63rem) | 700 | 1.23 (tight) | -0.625px | Section sub-titles, content headers |
-| Card Title | CityOpsInter | 22px (1.38rem) | 700 | 1.27 (tight) | -0.25px | Feature cards, list titles |
-| Body Large | CityOpsInter | 20px (1.25rem) | 600 | 1.40 | -0.125px | Introductions, feature descriptions |
-| Body | CityOpsInter | 16px (1.00rem) | 400 | 1.50 | normal | Standard reading text |
-| Body Medium | CityOpsInter | 16px (1.00rem) | 500 | 1.50 | normal | Navigation, emphasized UI text |
-| Body Semibold | CityOpsInter | 16px (1.00rem) | 600 | 1.50 | normal | Strong labels, active states |
-| Body Bold | CityOpsInter | 16px (1.00rem) | 700 | 1.50 | normal | Headlines at body size |
-| Nav / Button | CityOpsInter | 15px (0.94rem) | 600 | 1.33 | normal | Navigation links, button text |
-| Caption | CityOpsInter | 14px (0.88rem) | 500 | 1.43 | normal | Metadata, secondary labels |
-| Caption Light | CityOpsInter | 14px (0.88rem) | 400 | 1.43 | normal | Body captions, descriptions |
-| Badge | CityOpsInter | 12px (0.75rem) | 600 | 1.33 | 0.125px | Pill badges, tags, status labels |
-| Micro Label | CityOpsInter | 12px (0.75rem) | 400 | 1.33 | 0.125px | Small metadata, timestamps |
+| Display Hero | OpenVayra - CitiesInter | 64px (4.00rem) | 700 | 1.00 (tight) | -2.125px | Maximum compression, billboard headlines |
+| Display Secondary | OpenVayra - CitiesInter | 54px (3.38rem) | 700 | 1.04 (tight) | -1.875px | Secondary hero, feature headlines |
+| Section Heading | OpenVayra - CitiesInter | 48px (3.00rem) | 700 | 1.00 (tight) | -1.5px | Feature section titles, with `"lnum"` |
+| Sub-heading Large | OpenVayra - CitiesInter | 40px (2.50rem) | 700 | 1.50 | normal | Card headings, feature sub-sections |
+| Sub-heading | OpenVayra - CitiesInter | 26px (1.63rem) | 700 | 1.23 (tight) | -0.625px | Section sub-titles, content headers |
+| Card Title | OpenVayra - CitiesInter | 22px (1.38rem) | 700 | 1.27 (tight) | -0.25px | Feature cards, list titles |
+| Body Large | OpenVayra - CitiesInter | 20px (1.25rem) | 600 | 1.40 | -0.125px | Introductions, feature descriptions |
+| Body | OpenVayra - CitiesInter | 16px (1.00rem) | 400 | 1.50 | normal | Standard reading text |
+| Body Medium | OpenVayra - CitiesInter | 16px (1.00rem) | 500 | 1.50 | normal | Navigation, emphasized UI text |
+| Body Semibold | OpenVayra - CitiesInter | 16px (1.00rem) | 600 | 1.50 | normal | Strong labels, active states |
+| Body Bold | OpenVayra - CitiesInter | 16px (1.00rem) | 700 | 1.50 | normal | Headlines at body size |
+| Nav / Button | OpenVayra - CitiesInter | 15px (0.94rem) | 600 | 1.33 | normal | Navigation links, button text |
+| Caption | OpenVayra - CitiesInter | 14px (0.88rem) | 500 | 1.43 | normal | Metadata, secondary labels |
+| Caption Light | OpenVayra - CitiesInter | 14px (0.88rem) | 400 | 1.43 | normal | Body captions, descriptions |
+| Badge | OpenVayra - CitiesInter | 12px (0.75rem) | 600 | 1.33 | 0.125px | Pill badges, tags, status labels |
+| Micro Label | OpenVayra - CitiesInter | 12px (0.75rem) | 400 | 1.33 | 0.125px | Small metadata, timestamps |
 
 ### Principles
-- **Compression at scale**: CityOpsInter at display sizes uses -2.125px letter-spacing at 64px, progressively relaxing to -0.625px at 26px and normal at 16px. The compression creates density at headlines while maintaining readability at body sizes.
+- **Compression at scale**: OpenVayra - CitiesInter at display sizes uses -2.125px letter-spacing at 64px, progressively relaxing to -0.625px at 26px and normal at 16px. The compression creates density at headlines while maintaining readability at body sizes.
 - **Four-weight system**: 400 (body/reading), 500 (UI/interactive), 600 (emphasis/navigation), 700 (headings/display). The broader weight range compared to most systems allows nuanced hierarchy.
 - **cold scaling**: Line height tightens as size increases -- 1.50 at body (16px), 1.23-1.27 at sub-headings, 1.00-1.04 at display. This creates denser, more impactful headlines.
 - **Badge micro-tracking**: The 12px badge text uses positive letter-spacing (0.125px) -- the only positive tracking in the system, creating wider, more legible small text.
@@ -95,7 +95,7 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 ### Buttons
 
 **Primary Blue**
-- Background: `#0075de` (CityOps Blue)
+- Background: `#0075de` (OpenVayra - Cities Blue)
 - Text: `#ffffff`
 - Padding: 8px 16px
 - Radius: 4px (subtle)
@@ -103,7 +103,7 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 - Hover: background darkens to `#005bab`
 - Active: scale(0.9) transform
 - Focus: `2px solid` focus outline, `var(--shadow-level-200)` shadow
-- Use: Primary CTA ("Get CityOps free", "Try it")
+- Use: Primary CTA ("Get OpenVayra - Cities free", "Try it")
 
 **Secondary / Tertiary**
 - Background: `rgba(0,0,0,0.05)` (translucent cold gray)
@@ -148,9 +148,9 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 ### Navigation
 - Clean horizontal nav on white, not sticky
 - Brand logo left-aligned (33x34px icon + wordmark)
-- Links: CityOpsInter 15px weight 500-600, near-black text
+- Links: OpenVayra - CitiesInter 15px weight 500-600, near-black text
 - Hover: color shift to `var(--color-link-primary-text-hover)`
-- CTA: blue pill button ("Get CityOps free") right-aligned
+- CTA: blue pill button ("Get OpenVayra - Cities free") right-aligned
 - Mobile: hamburger menu collapse
 - Product dropdowns with multi-level categorized menus
 
@@ -175,7 +175,7 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 
 **Metric Cards**
 - Large number display (e.g., "$4,200 ROI")
-- CityOpsInter 40px+ weight 700 for the metric
+- OpenVayra - CitiesInter 40px+ weight 700 for the metric
 - Description below in cold gray body text
 - Whisper-bordered card container
 
@@ -194,7 +194,7 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 - Code/dashboard screenshots as contained with whisper border
 
 ### Whitespace Philosophy
-- **Generous vertical rhythm**: 64-120px between major sections. CityOps lets content breathe with vast vertical padding.
+- **Generous vertical rhythm**: 64-120px between major sections. OpenVayra - Cities lets content breathe with vast vertical padding.
 - **cold alternation**: White sections alternate with cold white (`#f4f5f6`) sections, creating gentle visual rhythm without harsh color breaks.
 - **Content-first density**: Body text blocks are compact (line-height 1.50) but surrounded by ample margin, creating islands of readable content in a sea of white space.
 
@@ -217,7 +217,7 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 | Deep Card (Level 3) | 5-layer shadow stack (max opacity 0.05, 52px blur) | Modals, featured panels, hero elements |
 | Focus (Accessibility) | `2px solid var(--focus-color)` outline | Keyboard focus on all interactive elements |
 
-**Shadow Philosophy**: CityOps' shadow system uses multiple layers with extremely low individual opacity (0.01 to 0.05) that accumulate into soft, natural-looking elevation. The 4-layer card shadow spans from 1.04px to 18px blur, creating a gradient of depth rather than a single hard shadow. The 5-layer deep shadow extends to 52px blur at 0.05 opacity, producing ambient occlusion that feels like natural light rather than computer-generated depth. This layered approach makes elements feel embedded in the page rather than floating above it.
+**Shadow Philosophy**: OpenVayra - Cities' shadow system uses multiple layers with extremely low individual opacity (0.01 to 0.05) that accumulate into soft, natural-looking elevation. The 4-layer card shadow spans from 1.04px to 18px blur, creating a gradient of depth rather than a single hard shadow. The 5-layer deep shadow extends to 52px blur at 0.05 opacity, producing ambient occlusion that feels like natural light rather than computer-generated depth. This layered approach makes elements feel embedded in the page rather than floating above it.
 
 ### Decorative Depth
 - Hero section: decorative character illustrations (playful, hand-drawn style)
@@ -282,7 +282,7 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 ## 9. Agent Prompt Guide
 
 ### Quick Color Reference
-- Primary CTA: CityOps Blue (`#0075de`)
+- Primary CTA: OpenVayra - Cities Blue (`#0075de`)
 - Background: Pure White (`#ffffff`)
 - Alt Background: cold White (`#f4f5f6`)
 - Heading text: Near-Black (`rgba(0,0,0,0.95)`)
@@ -290,22 +290,22 @@ What makes CityOps' visual language distinctive is its border philosophy. Rather
 - Secondary text: cold Gray 500 (`#595d61`)
 - Muted text: cold Gray 300 (`#989ea3`)
 - Border: `1px solid rgba(0,0,0,0.1)`
-- Link: CityOps Blue (`#0075de`)
+- Link: OpenVayra - Cities Blue (`#0075de`)
 - Focus ring: Focus Blue (`#097fe8`)
 
 ### Example Component Prompts
-- "Create a hero section on white background. Headline at 64px CityOpsInter weight 700, line-height 1.00, letter-spacing -2.125px, color rgba(0,0,0,0.95). Subtitle at 20px weight 600, line-height 1.40, color #595d61. Blue CTA button (#0075de, 4px radius, 8px 16px padding, white text) and ghost button (transparent bg, near-black text, underline on hover)."
-- "Design a card: white background, 1px solid rgba(0,0,0,0.1) border, 12px radius. Use shadow stack: rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.85px, rgba(0,0,0,0.02) 0px 0.8px 2.93px, rgba(0,0,0,0.01) 0px 0.175px 1.04px. Title at 22px CityOpsInter weight 700, letter-spacing -0.25px. Body at 16px weight 400, color #5d5961."
-- "Build a pill badge: #fff9f2 background, #097fe8 text, 9999px radius, 4px 8px padding, 12px CityOpsInter weight 600, letter-spacing 0.125px."
-- "Create navigation: white header. CityOpsInter 15px weight 600 for links, near-black text. Blue pill CTA 'Get CityOps free' right-aligned (#0075de bg, white text, 4px radius)."
+- "Create a hero section on white background. Headline at 64px OpenVayra - CitiesInter weight 700, line-height 1.00, letter-spacing -2.125px, color rgba(0,0,0,0.95). Subtitle at 20px weight 600, line-height 1.40, color #595d61. Blue CTA button (#0075de, 4px radius, 8px 16px padding, white text) and ghost button (transparent bg, near-black text, underline on hover)."
+- "Design a card: white background, 1px solid rgba(0,0,0,0.1) border, 12px radius. Use shadow stack: rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.85px, rgba(0,0,0,0.02) 0px 0.8px 2.93px, rgba(0,0,0,0.01) 0px 0.175px 1.04px. Title at 22px OpenVayra - CitiesInter weight 700, letter-spacing -0.25px. Body at 16px weight 400, color #5d5961."
+- "Build a pill badge: #fff9f2 background, #097fe8 text, 9999px radius, 4px 8px padding, 12px OpenVayra - CitiesInter weight 600, letter-spacing 0.125px."
+- "Create navigation: white header. OpenVayra - CitiesInter 15px weight 600 for links, near-black text. Blue pill CTA 'Get OpenVayra - Cities free' right-aligned (#0075de bg, white text, 4px radius)."
 - "Design an alternating section layout: white sections alternate with cold white (#f6f5f4) sections. Each section has 64-80px vertical padding, max-width 1200px centered. Section heading at 48px weight 700, line-height 1.00, letter-spacing -1.5px."
 
 ### Iteration Guide
-1. Always use cold neutrals -- CityOps' grays have bluish undertones (#f4f5f6, #2e3031, #595d61, #989ea3), never blue-gray
+1. Always use cold neutrals -- OpenVayra - Cities' grays have bluish undertones (#f4f5f6, #2e3031, #595d61, #989ea3), never blue-gray
 2. Letter-spacing scales with font size: -2.125px at 64px, -1.875px at 54px, -0.625px at 26px, normal at 16px
 3. Four weights: 400 (read), 500 (interact), 600 (emphasize), 700 (announce)
 4. Borders are whispers: 1px solid rgba(0,0,0,0.1) -- never heavier
 5. Shadows use 4-5 layers with individual opacity never exceeding 0.05
 6. The cold white (#f4f5f6) section background is essential for visual rhythm
 7. Pill badges (9999px) for status/tags, 4px radius for buttons and inputs
-8. CityOps Blue (#0075de) is the only saturated color in core UI -- use it sparingly for CTAs and links
+8. OpenVayra - Cities Blue (#0075de) is the only saturated color in core UI -- use it sparingly for CTAs and links

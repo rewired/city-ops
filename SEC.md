@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document defines practical security, safety, and operational integrity rules for CityOps.
+This document defines practical security, safety, and operational integrity rules for OpenVayra - Cities.
 
-CityOps is a desktop-only browser-based simulation game, but it still requires disciplined handling of dependencies, data ingestion, configuration, and deterministic simulation behavior.
+OpenVayra - Cities is a desktop-only browser-based simulation game, but it still requires disciplined handling of dependencies, data ingestion, configuration, and deterministic simulation behavior.
 
 ---
 
@@ -12,7 +12,7 @@ CityOps is a desktop-only browser-based simulation game, but it still requires d
 
 This is not a high-trust enterprise backend system, but security and integrity still matter.
 
-CityOps must avoid:
+OpenVayra - Cities must avoid:
 
 * careless dependency sprawl
 * unsafe data ingestion assumptions
@@ -40,7 +40,7 @@ Validation should occur at boundary layers, not deep inside arbitrary feature co
 
 ## Type safety as safety control
 
-Strong type safety is part of CityOps’s safety posture.
+Strong type safety is part of OpenVayra - Cities’s safety posture.
 
 Why:
 

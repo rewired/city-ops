@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-CityOps initially used straight-line "fallback" route segments for completed bus lines.
+OpenVayra - Cities initially used straight-line "fallback" route segments for completed bus lines.
 With the introduction of Slice 051 (OSRM Adapter) and Slice 052 (Routing Helper), the infrastructure exists to use real-world street-routed geometry.
 The goal is to integrate these tools into the line completion flow while ensuring the UI remains responsive and the system is robust against routing failures.
 

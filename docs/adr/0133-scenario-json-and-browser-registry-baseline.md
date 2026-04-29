@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-CityOps needs to distinguish between curated playable scenarios and generated or local asset readiness. We need a way to commit scenario definitions (game truth) while allowing the web application to know whether the necessary large assets (OSRM routing data, OSM stop candidates) are available locally without failing the build if they are missing.
+OpenVayra - Cities needs to distinguish between curated playable scenarios and generated or local asset readiness. We need a way to commit scenario definitions (game truth) while allowing the web application to know whether the necessary large assets (OSRM routing data, OSM stop candidates) are available locally without failing the build if they are missing.
 
 ## Decision
 

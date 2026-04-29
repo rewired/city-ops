@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document provides the compact, project-level foundation for the initial phase of CityOps.
+This document provides the compact, project-level foundation for the initial phase of OpenVayra - Cities.
 
 It complements the more specialized governance documents by summarizing the essential truth of the product, architecture posture, delivery philosophy, and implementation boundaries.
 
@@ -16,7 +16,7 @@ This project is a desktop-only, browser-based transit network simulation game.
 
 The first playable scope is a bus-first MVP in which the player builds a custom network inside a believable urban environment and improves it through iterative planning.
 
-CityOps is not a full real-world transit reconstruction tool and not a full multimodal transport engineering suite.
+OpenVayra - Cities is not a full real-world transit reconstruction tool and not a full multimodal transport engineering suite.
 
 ---
 
@@ -39,7 +39,7 @@ The game must produce a real planning-improvement loop, not merely a static map 
 
 ## Delivery philosophy
 
-CityOps must be developed as a sharply scoped, playable game slice.
+OpenVayra - Cities must be developed as a sharply scoped, playable game slice.
 
 The initial phase must favor:
 
@@ -50,7 +50,7 @@ The initial phase must favor:
 * strict type safety over weakly typed speed hacks
 * aggregate-first simulation over premature micro-simulation
 
-CityOps should remain compatible with disciplined coding-agent-assisted implementation.
+OpenVayra - Cities should remain compatible with disciplined coding-agent-assisted implementation.
 
 ---
 
@@ -76,7 +76,7 @@ The first phase is intentionally smaller than the long-term vision.
 
 ## Architecture posture
 
-CityOps should be organized around a strongly typed core with clear separation between:
+OpenVayra - Cities should be organized around a strongly typed core with clear separation between:
 
 * world/map representation
 * demand model
@@ -105,7 +105,7 @@ This means:
 * visible buses as player feedback
 * no requirement for full vehicle micro-ops truth
 
-CityOps should only increase realism where it materially improves the planning game loop.
+OpenVayra - Cities should only increase realism where it materially improves the planning game loop.
 
 ---
 
@@ -115,7 +115,7 @@ Realistic stop-to-stop travel time is a core requirement.
 
 This must be grounded in believable street-linked routing or equivalent street-based path truth.
 
-CityOps must not use straight-line timing as the main operational truth.
+OpenVayra - Cities must not use straight-line timing as the main operational truth.
 
 However, the MVP does not require full traffic micro-simulation, signal simulation, or minute-perfect operations modeling.
 
@@ -177,7 +177,7 @@ Every exported public surface should make its purpose and constraints obvious en
 
 Strong type safety is a foundational project rule.
 
-CityOps must avoid:
+OpenVayra - Cities must avoid:
 
 * informal string truth for important domain concepts
 * weakly typed public contracts
@@ -192,7 +192,7 @@ Important concepts such as IDs, time bands, directions, demand classes, and simu
 
 Domain and simulation constants must be centralized.
 
-CityOps must avoid:
+OpenVayra - Cities must avoid:
 
 * scattered magic numbers
 * duplicated thresholds
@@ -228,13 +228,13 @@ Preferred behavior:
 * avoid silent realism escalation
 * avoid silent scope expansion
 
-CityOps should remain easy to reason about for both humans and coding agents.
+OpenVayra - Cities should remain easy to reason about for both humans and coding agents.
 
 ---
 
 ## Practical definition of success for phase one
 
-Phase one is successful if CityOps reaches a clearly playable desktop bus-network MVP with:
+Phase one is successful if OpenVayra - Cities reaches a clearly playable desktop bus-network MVP with:
 
 * a detailed map view
 * stop placement on streets
@@ -246,4 +246,4 @@ Phase one is successful if CityOps reaches a clearly playable desktop bus-networ
 * financial and passenger-facing performance metrics
 * an iterative improvement loop that is understandable and satisfying
 
-If CityOps instead becomes a broad technical framework without a playable loop, phase one has failed.
+If OpenVayra - Cities instead becomes a broad technical framework without a playable loop, phase one has failed.

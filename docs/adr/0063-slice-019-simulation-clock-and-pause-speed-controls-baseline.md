@@ -6,7 +6,7 @@ Accepted (2026-04-24)
 
 ## Context
 
-CityOps now has completed lines, canonical MVP time-band frequency configuration, route segments, selected-line export payload support, and line readiness diagnostics.
+OpenVayra - Cities now has completed lines, canonical MVP time-band frequency configuration, route segments, selected-line export payload support, and line readiness diagnostics.
 
 The project still intentionally does **not** execute demand, economy, passengers, vehicles, or service outcomes. However, later simulation slices require a deterministic shared notion of simulation time.
 

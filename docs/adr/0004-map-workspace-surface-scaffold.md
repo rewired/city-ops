@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-The initial shell established a central workspace placeholder, but the map-facing area still reads as generic content. CityOps needs a clearer workspace structure that reserves extension points for future map integration without introducing any real map technology, gameplay semantics, routing, or simulation behavior.
+The initial shell established a central workspace placeholder, but the map-facing area still reads as generic content. OpenVayra - Cities needs a clearer workspace structure that reserves extension points for future map integration without introducing any real map technology, gameplay semantics, routing, or simulation behavior.
 
 ## Decision
 

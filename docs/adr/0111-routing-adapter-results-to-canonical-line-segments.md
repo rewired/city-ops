@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-We have established a `RoutingAdapter` interface for external routing providers (like OSRM) and a canonical `LineRouteSegment` domain type for line routes. These two type worlds are separate by design: the adapter world is focused on external provider responses, while the domain world is focused on CityOps transit simulation and display requirements.
+We have established a `RoutingAdapter` interface for external routing providers (like OSRM) and a canonical `LineRouteSegment` domain type for line routes. These two type worlds are separate by design: the adapter world is focused on external provider responses, while the domain world is focused on OpenVayra - Cities transit simulation and display requirements.
 
 We need a deterministic way to bridge these two worlds when a line is completed, ensuring that street-routed geometry and metrics are mapped into the domain while providing reliable fallbacks if routing fails.
 

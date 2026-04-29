@@ -1,6 +1,6 @@
-# CityOps
+# OpenVayra - Cities
 
-CityOps is a desktop-only, browser-based transit network simulation game focused on a bus-first MVP scope.
+OpenVayra - Cities is a desktop-only, browser-based transit network simulation game focused on a bus-first MVP scope.
 
 ## Prerequisites
 

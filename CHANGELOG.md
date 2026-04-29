@@ -97,7 +97,7 @@ All notable changes to this project will be documented in this file.
 - Added ADR 0119 to document rename interaction boundaries and scoped normalization behavior.
 
 ### Slice 068b: Network Save Envelope Repair and Test Alignment
-- Hardened `validateSelectedLineExportPayload` to strictly require the `cityops.network-save` envelope at the root, rejecting raw v4 or v3 payloads with specific error messages.
+- Hardened `validateSelectedLineExportPayload` to strictly require the `OpenVayra - Cities.network-save` envelope at the root, rejecting raw v4 or v3 payloads with specific error messages.
 - Cleaned up `selectedLineExportValidation.ts` by removing unused `validateSegments` and obsolete v3-only validation codes.
 - Updated `hamburg-line-1.v4.json` fixture to be a valid enveloped file and created `hamburg-line-1.v4.raw-legacy.json` for rejection testing.
 - Aligned `selectedLineExport.test.ts`, `selectedLineExportValidation.test.ts`, and `selectedLineExportSessionLoader.test.ts` with the strict envelope requirement and verified all tests pass.
@@ -107,7 +107,7 @@ All notable changes to this project will be documented in this file.
 - Introduced the `NetworkSaveEnvelope` canonical wrapper for all network-level exports, including schema metadata (`schema`, `schemaVersion`, `timestamp`, `sourceMetadata`).
 - Formalized the transition to slim network saves where route geometry is omitted and reconstructed on import; removed all legacy `v3` import support and reconstruction logic.
 - Hardened `validateSelectedLineExportPayload` to support both raw `v4` and enveloped payloads while explicitly rejecting legacy `v3` files with a specific error code.
-- Updated `useNetworkSessionState` to provide specific user feedback ("This CityOps save format is no longer supported.") when legacy `v3` files are rejected.
+- Updated `useNetworkSessionState` to provide specific user feedback ("This OpenVayra - Cities save format is no longer supported.") when legacy `v3` files are rejected.
 - Simplified `convertSelectedLineExportPayloadToSession` to always produce empty route segments, enforcing a single truthful path for geometry reconstruction.
 - Cleaned up all legacy `v3` fixtures and updated 5+ test suites (`selectedLineExportValidation`, `selectedLineExportSessionLoader`, `lineDepartureScheduleProjection`, `lineServiceReadiness`, `lineGeoJson`, `vehicleGeoJson`) to use the `v4` baseline.
 - verified that modern `v4` exports are correctly wrapped and remain importable.
@@ -144,7 +144,7 @@ All notable changes to this project will be documented in this file.
 ### Slice 065b: Selected-Line Export v4 Type Hygiene and Test Cleanup
 - Refactored `SelectedLineExportPayload` into a discriminated union of `SelectedLineExportPayloadV3` (legacy with geometry) and `SelectedLineExportPayloadV4` (slim without geometry), ensuring strict type safety for version-specific fields.
 - Updated `buildSelectedLineExportPayload` to return a strongly typed `SelectedLineExportPayloadV4` and omit cached route geometry at the type level.
-- Hardened `buildSelectedLineExportPayload` default `sourceMetadata` to include `{ source: 'cityops-web' }`, ensuring new exports are valid by default.
+- Hardened `buildSelectedLineExportPayload` default `sourceMetadata` to include `{ source: 'OpenVayra - Cities-web' }`, ensuring new exports are valid by default.
 - Improved `validateSelectedLineExportPayload` return type by replacing the broad `as unknown as SelectedLineExportPayload` cast with narrowed, runtime-guarded version-specific casts.
 - Removed all `as any` usage from `selectedLineExport.test.ts` and added JSON-level assertions to verify that `v4` exports are strictly geometry-free in their serialized form.
 - Fixed version-specific geometry access in `selectedLineExportSessionLoader.ts`, `lineDepartureScheduleProjection.test.ts`, and `lineServiceReadiness.test.ts` using type narrowing.
@@ -152,7 +152,7 @@ All notable changes to this project will be documented in this file.
 
 ### Slice 065: Slim Selected-Line Export and Re-route on Import
 - Implemented slim selected-line export/import format (`v4`) that stores only the line definition (topology, stops, service plan) and omits routed geometry coordinates.
-- Added `cityops-selected-line-export-v4` schema version and ensured backward compatibility with `v3` (geometry-cached) payloads.
+- Added `OpenVayra - Cities-selected-line-export-v4` schema version and ensured backward compatibility with `v3` (geometry-cached) payloads.
 - Automated geometry reconstruction on import via the routing layer, ensuring fresh geometry consistent with the current routing environment.
 - Updated the import workflow to distinguish between rebuilt v4 geometry and loaded v3 geometry in toast notifications, including feedback on whether street routing or fallback routing was used.
 - Added `hamburg-line-1.v4.json` fixture for slim-export testing and verification.
@@ -370,7 +370,7 @@ All notable changes to this project will be documented in this file.
 - Slice 036 non-goals preserved: no map interaction/lifecycle behavior changes and no style URL duplication outside bootstrap config.
 - Add ADR 0090 documenting dark basemap bootstrap decision, no-key provider constraint, and explicit non-goals.
 
-- Slice 035: replace the split app header + simulation controls stack with one integrated top bar containing CityOps brand, day/time + active time-band readout, play/pause/reset controls, discrete `1x`/`5x`/`10x`/`20x` speed buttons, and compact session load/export actions.
+- Slice 035: replace the split app header + simulation controls stack with one integrated top bar containing OpenVayra - Cities brand, day/time + active time-band readout, play/pause/reset controls, discrete `1x`/`5x`/`10x`/`20x` speed buttons, and compact session load/export actions.
 - Slice 035: update the desktop shell grid to a single `top-bar` structural row and remove separate `header`/`controls` layout rows.
 - Slice 035 non-goals preserved: no simulation-clock semantic changes, no new speed ids, no session import/export contract changes, and no mobile or multimodal scope expansion.
 - Add ADR 0089 documenting unified top-bar composition boundaries and explicit non-goals.
@@ -416,7 +416,7 @@ All notable changes to this project will be documented in this file.
 - Slice 023b: add focused deterministic tests for completed-line and vehicle GeoJSON builder counts/filtering, custom-layer order/id-list helpers, and fixture-backed Hamburg line behavior for completed lines and projected/degraded vs unavailable vehicle rendering.
 - Add ADR 0081 documenting Slice 023b diagnostics boundaries, lifecycle separation, deterministic layer-order enforcement, and explicit non-goals.
 
-- Slice 030: add a dedicated deterministic map workspace custom-layer ordering helper that reapplies the canonical CityOps stack through typed `moveLayer(...)` calls.
+- Slice 030: add a dedicated deterministic map workspace custom-layer ordering helper that reapplies the canonical OpenVayra - Cities stack through typed `moveLayer(...)` calls.
 - Slice 030: invoke custom-layer order reapplication from the centralized source synchronization path so ordering is restored consistently after style/layer readiness transitions.
 - Slice 030: tighten local MapLibre typing with a narrow `moveLayer(layerId, beforeId?)` contract and generic typed GeoJSON source lookup to remove source-sync type casts.
 - Add ADR 0080 documenting deterministic custom-layer ordering reapplication in centralized sync flow and typed `moveLayer` boundary.

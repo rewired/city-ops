@@ -4,7 +4,7 @@
 
 This document defines mandatory working rules for coding agents contributing to this project.
 
-CityOps is a desktop-only, browser-based transit network simulation game focused on a bus-first MVP. The goal is to preserve a sharply scoped, implementation-friendly foundation and prevent scope drift, accidental architecture sprawl, and weakly typed shortcuts.
+OpenVayra - Cities is a desktop-only, browser-based transit network simulation game focused on a bus-first MVP. The goal is to preserve a sharply scoped, implementation-friendly foundation and prevent scope drift, accidental architecture sprawl, and weakly typed shortcuts.
 
 ---
 
@@ -74,7 +74,7 @@ Examples include:
 
 It should explain:
 
-* what CityOps is
+* what OpenVayra - Cities is
 * how to run it
 * where canonical documentation lives
 * where to find design authority once available
@@ -272,7 +272,7 @@ Agents must adhere to the CSS architecture when modifying styles.
 * Avoid adding unrelated selectors to existing large CSS files.
 * Do not rename selectors or alter visual values during source-organization slices.
 * Do not introduce CSS Modules, preprocessors, styling libraries, or theme systems without explicit approval.
-* Do not add mobile/touch-first CSS behavior because CityOps is desktop-only.
+* Do not add mobile/touch-first CSS behavior because OpenVayra - Cities is desktop-only.
 
 ---
 

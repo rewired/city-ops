@@ -8,10 +8,10 @@ Accepted
 
 The OSM candidate generation pipeline produces raw geographic objects corresponding to real-world transit features (e.g., `highway=bus_stop`, `public_transport=platform`, `public_transport=stop_position`). In real-world OpenStreetMap data, a single logical bus stop facility is often modeled using multiple such objects.
 
-Directly rendering every raw OSM object in the CityOps map overlay results in:
+Directly rendering every raw OSM object in the OpenVayra - Cities map overlay results in:
 1.  **Visual Clutter**: Multiple overlapping or nearby markers for the same stop.
 2.  **Unsafe Adoption**: Clicks to "adopt" a candidate would be ambiguous if multiple physical objects represent the same logical stop.
-3.  **Modeling Mismatch**: CityOps uses a single `Stop` entity for a facility, while OSM fragments it.
+3.  **Modeling Mismatch**: OpenVayra - Cities uses a single `Stop` entity for a facility, while OSM fragments it.
 
 ## Decision
 
@@ -42,6 +42,6 @@ Grouping happens as a pure domain transformation in the UI layer:
 ## Consequences
 
 *   **Better UX**: Map overlay is cleaner and represents logical stop facilities.
-*   **Adoption Readiness**: Future adoption behavior will target groups, resulting in a single clean CityOps `Stop`.
+*   **Adoption Readiness**: Future adoption behavior will target groups, resulting in a single clean OpenVayra - Cities `Stop`.
 *   **Non-Canonical**: Groups remain external suggestions and are not saved to the network state until adopted.
 *   **Diagnostic Transparency**: Debug tools track both raw and grouped counts to monitor consolidation efficiency.

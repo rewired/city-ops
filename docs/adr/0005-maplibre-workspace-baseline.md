@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-The map workspace scaffold currently reserves structure for future map integration but still renders a non-functional placeholder. CityOps needs a real interactive map runtime inside the existing desktop shell so future map-centric slices can build on a concrete baseline without introducing gameplay semantics.
+The map workspace scaffold currently reserves structure for future map integration but still renders a non-functional placeholder. OpenVayra - Cities needs a real interactive map runtime inside the existing desktop shell so future map-centric slices can build on a concrete baseline without introducing gameplay semantics.
 
 ## Decision
 
