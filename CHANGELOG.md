@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 147: Census Grid Adapter to Generator Integration
+- Integrated the generic `census-grid` CSV source adapter into the scenario demand generator (`build-scenario-demand.mjs`).
+- Converted normalized population datasets into residential demand nodes with standard time-band distributions.
+- Enforced deterministic identifier alignment and multi-source collision verification criteria.
+- Added ADR 0149 documenting manifest-to-adapter implementation scopes.
+
 ### Slice 146: Generic Census Grid Source Adapter Skeleton
 - Introduced a generic population-grid CSV source-material adapter skeleton (`census-grid-csv.mjs`).
 - Configured flexible column mappings allowing custom external formats without local hardcoding.

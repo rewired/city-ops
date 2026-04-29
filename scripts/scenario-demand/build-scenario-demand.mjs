@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { parseCensusGridCsv } from './source-adapters/census-grid-csv.mjs';
 
 const CANONICAL_TIME_BANDS = [
   'morning-rush',
@@ -10,6 +11,16 @@ const CANONICAL_TIME_BANDS = [
   'evening',
   'night'
 ];
+
+const CENSUS_GRID_RESIDENTIAL_TIME_BANDS = {
+  'morning-rush': 1.5,
+  'late-morning': 0.7,
+  'midday': 0.4,
+  'afternoon': 1.0,
+  'evening-rush': 0.8,
+  'evening': 0.5,
+  'night': 0.1
+};
 
 function fail(msg) {
   console.error(`Error: ${msg}`);
@@ -33,8 +44,6 @@ function main() {
   let inputPath = null;
   let outputPath = null;
   let manifestPath = null;
-  let manifestScenarioId = null;
-  let manifestSourceEntry = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--input') {
@@ -53,6 +62,14 @@ function main() {
     fail('Missing required arguments: --manifest <path> OR (--input <path> --output <path>)');
   }
 
+  let finalScenarioId = null;
+  let finalGeneratorName = 'open-vayra-cities-scenario-demand-generator';
+  let finalNodes = [];
+  let finalAttractors = [];
+  let finalGateways = [];
+  let finalGeneratedFrom = [];
+  let finalNotes = '';
+
   if (manifestPath) {
     if (!fs.existsSync(manifestPath)) {
       fail(`Manifest file not found: ${manifestPath}`);
@@ -69,9 +86,17 @@ function main() {
     if (typeof manifest.scenarioId !== 'string') fail('Manifest missing valid scenarioId.');
     if (!Array.isArray(manifest.sources)) fail('Manifest missing sources array.');
 
-    manifestScenarioId = manifest.scenarioId;
+    finalScenarioId = manifest.scenarioId;
+    if (!manifest.output || typeof manifest.output !== 'object') {
+      fail('Manifest missing output object.');
+    }
+    if (typeof manifest.output.demandArtifactPath !== 'string') {
+      fail('Manifest output missing demandArtifactPath.');
+    }
+    outputPath = manifest.output.demandArtifactPath;
+
     const enabledSources = manifest.sources.filter(s => s.enabled !== false);
-    const supportedKinds = ['manual-seed'];
+    const supportedKinds = ['manual-seed', 'census-grid'];
 
     for (const src of enabledSources) {
       if (!src.kind || typeof src.kind !== 'string') fail(`Source ${src.id || 'unknown'} missing kind.`);
@@ -85,66 +110,137 @@ function main() {
       fail('Only one enabled manual seed is supported for now.');
     }
 
-    const seedSource = manualSeeds[0];
-    if (!seedSource) {
-      fail('No enabled manual-seed source found in manifest.');
+    for (const src of enabledSources) {
+      if (src.kind === 'manual-seed') {
+        if (!src.path || typeof src.path !== 'string') fail(`Source ${src.id} missing path.`);
+        if (!fs.existsSync(src.path)) fail(`Input file not found: ${src.path}`);
+
+        let seed;
+        try {
+          seed = JSON.parse(fs.readFileSync(src.path, 'utf8'));
+        } catch (e) {
+          fail(`Failed to parse input JSON: ${e.message}`);
+        }
+
+        if (!seed || typeof seed !== 'object' || Array.isArray(seed)) {
+          fail(`Seed from source ${src.id} must be a JSON object.`);
+        }
+        if (seed.scenarioId !== finalScenarioId) {
+          fail(`Seed scenarioId (${seed.scenarioId}) does not match manifest scenarioId (${finalScenarioId}).`);
+        }
+
+        if (seed.generatorName) finalGeneratorName = seed.generatorName;
+
+        if (seed.sourceMetadata && Array.isArray(seed.sourceMetadata.generatedFrom)) {
+          finalGeneratedFrom.push(...seed.sourceMetadata.generatedFrom);
+        }
+        finalGeneratedFrom.push({
+          sourceKind: 'manual',
+          label: src.label || 'Manual Seed',
+          ...(src.attribution ? { attributionHint: src.attribution } : {}),
+          ...(src.datasetYear ? { datasetYear: src.datasetYear } : {})
+        });
+
+        if (seed.sourceMetadata && seed.sourceMetadata.notes) {
+          finalNotes = finalNotes ? `${finalNotes}\n${seed.sourceMetadata.notes}` : seed.sourceMetadata.notes;
+        }
+
+        if (Array.isArray(seed.nodes)) finalNodes.push(...seed.nodes);
+        if (Array.isArray(seed.attractors)) finalAttractors.push(...seed.attractors);
+        if (Array.isArray(seed.gateways)) finalGateways.push(...seed.gateways);
+
+      } else if (src.kind === 'census-grid') {
+        if (src.adapter !== 'census-grid-csv') {
+          fail(`Unsupported adapter ${src.adapter || 'missing'} for kind census-grid.`);
+        }
+        if (!src.options || typeof src.options !== 'object') {
+          fail(`census-grid source ${src.id} missing valid options object.`);
+        }
+        const opt = src.options;
+        if (typeof opt.idColumn !== 'string' || !opt.idColumn) fail(`census-grid source ${src.id} missing idColumn option.`);
+        if (typeof opt.longitudeColumn !== 'string' || !opt.longitudeColumn) fail(`census-grid source ${src.id} missing longitudeColumn option.`);
+        if (typeof opt.latitudeColumn !== 'string' || !opt.latitudeColumn) fail(`census-grid source ${src.id} missing latitudeColumn option.`);
+        if (typeof opt.populationColumn !== 'string' || !opt.populationColumn) fail(`census-grid source ${src.id} missing populationColumn option.`);
+
+        if (!src.path || typeof src.path !== 'string') fail(`census-grid source ${src.id} missing path.`);
+        if (!fs.existsSync(src.path)) fail(`CSV file not found: ${src.path}`);
+
+        let records;
+        try {
+          records = parseCensusGridCsv(src.path, opt);
+        } catch (err) {
+          fail(`Adapter failure for source ${src.id}: ${err.message}`);
+        }
+
+        for (const record of records) {
+          finalNodes.push({
+            id: `${src.id}-${record.id}`,
+            position: { lng: record.longitude, lat: record.latitude },
+            role: 'origin',
+            class: 'residential',
+            baseWeight: record.population,
+            timeBandWeights: CENSUS_GRID_RESIDENTIAL_TIME_BANDS,
+            sourceTrace: {
+              sourceId: src.id,
+              gridId: record.id
+            }
+          });
+        }
+
+        finalGeneratedFrom.push({
+          sourceKind: 'census',
+          label: src.label || 'Census Grid',
+          ...(src.attribution ? { attributionHint: src.attribution } : {}),
+          ...(src.datasetYear ? { datasetYear: src.datasetYear } : {})
+        });
+      }
     }
 
-    if (!seedSource.path || typeof seedSource.path !== 'string') {
-      fail(`Source ${seedSource.id} missing path.`);
+  } else {
+    // Direct fallback
+    if (!fs.existsSync(inputPath)) fail(`Input file not found: ${inputPath}`);
+
+    let seed;
+    try {
+      seed = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
+    } catch (e) {
+      fail(`Failed to parse input JSON: ${e.message}`);
     }
 
-    manifestSourceEntry = seedSource;
-    inputPath = seedSource.path;
-
-    if (!manifest.output || typeof manifest.output !== 'object') {
-      fail('Manifest missing output object.');
+    if (!seed || typeof seed !== 'object' || Array.isArray(seed)) {
+      fail('Seed must be a JSON object.');
     }
-    if (typeof manifest.output.demandArtifactPath !== 'string') {
-      fail('Manifest output missing demandArtifactPath.');
+    if (typeof seed.scenarioId !== 'string' || !seed.scenarioId) {
+      fail('Seed missing valid scenarioId.');
     }
-    outputPath = manifest.output.demandArtifactPath;
-  }
 
-  if (!fs.existsSync(inputPath)) {
-    fail(`Input file not found: ${inputPath}`);
-  }
-
-  let seed;
-  try {
-    seed = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
-  } catch (e) {
-    fail(`Failed to parse input JSON: ${e.message}`);
-  }
-
-  // Validation
-  if (!seed || typeof seed !== 'object' || Array.isArray(seed)) {
-    fail('Seed must be a JSON object.');
-  }
-
-  if (typeof seed.scenarioId !== 'string' || !seed.scenarioId) {
-    fail('Seed missing valid scenarioId.');
-  }
-
-  if (manifestScenarioId && seed.scenarioId !== manifestScenarioId) {
-    fail(`Seed scenarioId (${seed.scenarioId}) does not match manifest scenarioId (${manifestScenarioId}).`);
-  }
-
-  if (!seed.sourceMetadata || typeof seed.sourceMetadata !== 'object') {
-    fail('Seed missing valid sourceMetadata.');
-  }
-
-  if (!Array.isArray(seed.sourceMetadata.generatedFrom)) {
-    fail('sourceMetadata missing generatedFrom array.');
-  }
-
-  const arrays = ['nodes', 'attractors', 'gateways'];
-  for (const key of arrays) {
-    if (!Array.isArray(seed[key])) {
-      fail(`Seed missing valid ${key} array.`);
+    if (!seed.sourceMetadata || typeof seed.sourceMetadata !== 'object') {
+      fail('Seed missing valid sourceMetadata.');
     }
+    if (!Array.isArray(seed.sourceMetadata.generatedFrom)) {
+      fail('sourceMetadata missing generatedFrom array.');
+    }
+
+    const arrays = ['nodes', 'attractors', 'gateways'];
+    for (const key of arrays) {
+      if (!Array.isArray(seed[key])) {
+        fail(`Seed missing valid ${key} array.`);
+      }
+    }
+
+    finalScenarioId = seed.scenarioId;
+    if (seed.generatorName) finalGeneratorName = seed.generatorName;
+    finalGeneratedFrom = [...seed.sourceMetadata.generatedFrom];
+    if (seed.sourceMetadata.notes) {
+      finalNotes = seed.sourceMetadata.notes;
+    }
+
+    finalNodes = seed.nodes;
+    finalAttractors = seed.attractors;
+    finalGateways = seed.gateways;
   }
 
+  // Enforce unique IDs
   const knownIds = new Set();
 
   const validateEntity = (entity, type) => {
@@ -168,8 +264,8 @@ function main() {
     }
   };
 
-  // Process Nodes
-  const nodes = seed.nodes.map(n => {
+  // Process and validate Nodes
+  const nodes = finalNodes.map(n => {
     validateEntity(n, 'Node');
     if (typeof n.baseWeight !== 'number' || !Number.isFinite(n.baseWeight) || n.baseWeight < 0) {
       fail(`Node ${n.id} has invalid baseWeight.`);
@@ -181,12 +277,13 @@ function main() {
       role: n.role,
       class: n.class,
       baseWeight: n.baseWeight,
-      timeBandWeights: { ...n.timeBandWeights }
+      timeBandWeights: { ...n.timeBandWeights },
+      ...(n.sourceTrace ? { sourceTrace: { ...n.sourceTrace } } : {})
     };
   });
 
-  // Process Attractors
-  const attractors = seed.attractors.map(a => {
+  // Process and validate Attractors
+  const attractors = finalAttractors.map(a => {
     validateEntity(a, 'Attractor');
     if (typeof a.sourceWeight !== 'number' || !Number.isFinite(a.sourceWeight) || a.sourceWeight < 0) {
       fail(`Attractor ${a.id} has invalid sourceWeight.`);
@@ -204,12 +301,13 @@ function main() {
       scale: a.scale,
       sourceWeight: a.sourceWeight,
       sinkWeight: a.sinkWeight,
-      ...(a.timeBandWeights ? { timeBandWeights: { ...a.timeBandWeights } } : {})
+      ...(a.timeBandWeights ? { timeBandWeights: { ...a.timeBandWeights } } : {}),
+      ...(a.sourceTrace ? { sourceTrace: { ...a.sourceTrace } } : {})
     };
   });
 
-  // Process Gateways
-  const gateways = seed.gateways.map(g => {
+  // Process and validate Gateways
+  const gateways = finalGateways.map(g => {
     validateEntity(g, 'Gateway');
     if (typeof g.sourceWeight !== 'number' || !Number.isFinite(g.sourceWeight) || g.sourceWeight < 0) {
       fail(`Gateway ${g.id} has invalid sourceWeight.`);
@@ -229,27 +327,20 @@ function main() {
       sourceWeight: g.sourceWeight,
       sinkWeight: g.sinkWeight,
       transferWeight: g.transferWeight,
-      timeBandWeights: { ...g.timeBandWeights }
+      timeBandWeights: { ...g.timeBandWeights },
+      ...(g.sourceTrace ? { sourceTrace: { ...g.sourceTrace } } : {})
     };
   });
 
   const artifact = {
     schemaVersion: 1,
-    scenarioId: seed.scenarioId,
+    scenarioId: finalScenarioId,
     generatedAt: new Date().toISOString(),
     sourceMetadata: {
-      generatedFrom: manifestSourceEntry ? [
-        ...seed.sourceMetadata.generatedFrom,
-        {
-          sourceKind: 'manual',
-          label: manifestSourceEntry.label || 'Manual Seed',
-          ...(manifestSourceEntry.attribution ? { attributionHint: manifestSourceEntry.attribution } : {}),
-          ...(manifestSourceEntry.datasetYear ? { datasetYear: manifestSourceEntry.datasetYear } : {})
-        }
-      ] : seed.sourceMetadata.generatedFrom,
-      generatorName: seed.generatorName || 'open-vayra-cities-scenario-demand-generator',
+      generatedFrom: finalGeneratedFrom,
+      generatorName: finalGeneratorName,
       generatorVersion: '0.1.0',
-      notes: seed.sourceMetadata.notes
+      ...(finalNotes ? { notes: finalNotes } : {})
     },
     nodes,
     attractors,

@@ -21,6 +21,8 @@ export interface ScenarioSourceMaterialSource {
   readonly attribution?: string;
   readonly notes?: string;
   readonly enabled?: boolean;
+  readonly adapter?: string;
+  readonly options?: Record<string, unknown>;
 }
 
 /**

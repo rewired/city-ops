@@ -143,6 +143,24 @@ export function parseScenarioSourceMaterialManifest(input: unknown): ScenarioSou
       enabled = srcRecord.enabled;
     }
 
+    // adapter
+    let adapter: string | undefined;
+    if ('adapter' in srcRecord) {
+      if (typeof srcRecord.adapter !== 'string') {
+        throw new Error(`Source ${srcRecord.id} adapter must be a string.`);
+      }
+      adapter = srcRecord.adapter;
+    }
+
+    // options
+    let options: Record<string, unknown> | undefined;
+    if ('options' in srcRecord) {
+      if (!srcRecord.options || typeof srcRecord.options !== 'object' || Array.isArray(srcRecord.options)) {
+        throw new Error(`Source ${srcRecord.id} options must be an object.`);
+      }
+      options = srcRecord.options as Record<string, unknown>;
+    }
+
     const sourceEntry: ScenarioSourceMaterialSource = {
       id: srcRecord.id,
       kind,
@@ -152,7 +170,9 @@ export function parseScenarioSourceMaterialManifest(input: unknown): ScenarioSou
       ...(datasetYear !== undefined ? { datasetYear } : {}),
       ...(attribution !== undefined ? { attribution } : {}),
       ...(notes !== undefined ? { notes } : {}),
-      ...(enabled !== undefined ? { enabled } : {})
+      ...(enabled !== undefined ? { enabled } : {}),
+      ...(adapter !== undefined ? { adapter } : {}),
+      ...(options !== undefined ? { options } : {})
     };
     sources.push(sourceEntry);
   }

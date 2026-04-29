@@ -233,7 +233,7 @@ function testManifestEnabledUnsupported() {
     manifestId: 'test-manifest',
     sources: [
       { id: 's1', kind: 'manual-seed', label: 'Seed', path: seedPath, enabled: true },
-      { id: 's2', kind: 'census-grid', label: 'Future Census', expectedPath: 'data/external/census/...', enabled: true }
+      { id: 's2', kind: 'osm-extract', label: 'Future OSM', expectedPath: 'data/external/osm/...', enabled: true }
     ],
     output: { demandArtifactPath: outputPath }
   };
@@ -331,6 +331,236 @@ function testPathlessManualSeed() {
   assert.ok(result.stderr.includes('missing path'));
 }
 
+function testManifestCensusGridValid() {
+  console.log('Testing manifest with enabled census-grid source...');
+  const manifestPath = path.join(tempDir, 'census-grid.manifest.json');
+  const csvPath = path.join(tempDir, 'census-grid.csv');
+  const outputPath = path.join(tempDir, 'census-out.demand.json');
+
+  fs.writeFileSync(csvPath, 'grid_id,lon,lat,population\ng1,10.0,53.5,100\n');
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      {
+        id: 'baseline-population-grid',
+        kind: 'census-grid',
+        label: 'Grid',
+        path: csvPath,
+        enabled: true,
+        adapter: 'census-grid-csv',
+        options: {
+          idColumn: 'grid_id',
+          longitudeColumn: 'lon',
+          latitudeColumn: 'lat',
+          populationColumn: 'population',
+          delimiter: ','
+        }
+      }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 0, `Generator failed: ${result.stderr}`);
+  assert.ok(fs.existsSync(outputPath));
+
+  const generated = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+  assert.strictEqual(generated.nodes.length, 1);
+  
+  const node = generated.nodes[0];
+  assert.strictEqual(node.id, 'baseline-population-grid-g1');
+  assert.strictEqual(node.position.lng, 10.0);
+  assert.strictEqual(node.position.lat, 53.5);
+  assert.strictEqual(node.role, 'origin');
+  assert.strictEqual(node.class, 'residential');
+  assert.strictEqual(node.baseWeight, 100);
+  
+  assert.ok(node.timeBandWeights);
+  assert.strictEqual(node.timeBandWeights['morning-rush'], 1.5);
+  
+  try {
+    parseScenarioDemandArtifact(generated);
+  } catch (e) {
+    assert.fail(`Parser failed: ${e.message}`);
+  }
+}
+
+function testManifestCensusGridMissingOptions() {
+  console.log('Testing manifest census-grid missing options rejection...');
+  const manifestPath = path.join(tempDir, 'missing-options.manifest.json');
+  const csvPath = path.join(tempDir, 'census-grid.csv');
+  const outputPath = path.join(tempDir, 'census-out.demand.json');
+
+  fs.writeFileSync(csvPath, 'grid_id,lon,lat,population\ng1,10.0,53.5,100\n');
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      {
+        id: 'baseline-population-grid',
+        kind: 'census-grid',
+        label: 'Grid',
+        path: csvPath,
+        enabled: true,
+        adapter: 'census-grid-csv'
+      }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('missing valid options object'));
+}
+
+function testManifestCensusGridInvalidCsv() {
+  console.log('Testing manifest census-grid invalid CSV rejection...');
+  const manifestPath = path.join(tempDir, 'invalid-csv.manifest.json');
+  const csvPath = path.join(tempDir, 'invalid-census-grid.csv');
+  const outputPath = path.join(tempDir, 'census-out.demand.json');
+
+  fs.writeFileSync(csvPath, 'grid_id,lon,lat,population\ng1,not-a-number,53.5,100\n');
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      {
+        id: 'baseline-population-grid',
+        kind: 'census-grid',
+        label: 'Grid',
+        path: csvPath,
+        enabled: true,
+        adapter: 'census-grid-csv',
+        options: {
+          idColumn: 'grid_id',
+          longitudeColumn: 'lon',
+          latitudeColumn: 'lat',
+          populationColumn: 'population',
+          delimiter: ','
+        }
+      }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('Invalid or non-finite longitude') || result.stderr.includes('Adapter failure'));
+}
+
+function testManifestMixedSources() {
+  console.log('Testing manifest merging manual seed and census-grid sources...');
+  const manifestPath = path.join(tempDir, 'mixed.manifest.json');
+  const seedPath = path.join(tempDir, 'seed.json');
+  const csvPath = path.join(tempDir, 'census-grid.csv');
+  const outputPath = path.join(tempDir, 'mixed-out.demand.json');
+
+  const seed = {
+    scenarioId: 'test-scenario',
+    sourceMetadata: { generatedFrom: [] },
+    nodes: [
+      { id: 's-node-1', position: { lng: 10, lat: 50 }, role: 'origin', class: 'residential', baseWeight: 1, timeBandWeights: { 'morning-rush': 1, 'late-morning': 1, 'midday': 1, 'afternoon': 1, 'evening-rush': 1, 'evening': 1, 'night': 1 } }
+    ],
+    attractors: [], gateways: []
+  };
+  fs.writeFileSync(seedPath, JSON.stringify(seed, null, 2));
+
+  fs.writeFileSync(csvPath, 'grid_id,lon,lat,population\ng1,10.0,53.5,100\n');
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      { id: 's1', kind: 'manual-seed', label: 'Seed', path: seedPath, enabled: true },
+      {
+        id: 'baseline-population-grid',
+        kind: 'census-grid',
+        label: 'Grid',
+        path: csvPath,
+        enabled: true,
+        adapter: 'census-grid-csv',
+        options: {
+          idColumn: 'grid_id',
+          longitudeColumn: 'lon',
+          latitudeColumn: 'lat',
+          populationColumn: 'population',
+          delimiter: ','
+        }
+      }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 0, `Generator failed: ${result.stderr}`);
+  assert.ok(fs.existsSync(outputPath));
+
+  const generated = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+  assert.strictEqual(generated.nodes.length, 2);
+}
+
+function testManifestCensusGridDuplicateIds() {
+  console.log('Testing manifest duplicate entity ID across sources rejection...');
+  const manifestPath = path.join(tempDir, 'duplicate-mixed.manifest.json');
+  const seedPath = path.join(tempDir, 'seed.json');
+  const csvPath = path.join(tempDir, 'census-grid.csv');
+  const outputPath = path.join(tempDir, 'mixed-out.demand.json');
+
+  const seed = {
+    scenarioId: 'test-scenario',
+    sourceMetadata: { generatedFrom: [] },
+    nodes: [
+      { id: 'baseline-population-grid-g1', position: { lng: 10, lat: 50 }, role: 'origin', class: 'residential', baseWeight: 1, timeBandWeights: { 'morning-rush': 1, 'late-morning': 1, 'midday': 1, 'afternoon': 1, 'evening-rush': 1, 'evening': 1, 'night': 1 } }
+    ],
+    attractors: [], gateways: []
+  };
+  fs.writeFileSync(seedPath, JSON.stringify(seed, null, 2));
+
+  fs.writeFileSync(csvPath, 'grid_id,lon,lat,population\ng1,10.0,53.5,100\n');
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      { id: 's1', kind: 'manual-seed', label: 'Seed', path: seedPath, enabled: true },
+      {
+        id: 'baseline-population-grid',
+        kind: 'census-grid',
+        label: 'Grid',
+        path: csvPath,
+        enabled: true,
+        adapter: 'census-grid-csv',
+        options: {
+          idColumn: 'grid_id',
+          longitudeColumn: 'lon',
+          latitudeColumn: 'lat',
+          populationColumn: 'population',
+          delimiter: ','
+        }
+      }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('Duplicate entity ID detected'));
+}
+
 function runAll() {
   try {
     setup();
@@ -346,6 +576,11 @@ function runAll() {
     testMultipleManualSeeds();
     testSeedScenarioMismatch();
     testPathlessManualSeed();
+    testManifestCensusGridValid();
+    testManifestCensusGridMissingOptions();
+    testManifestCensusGridInvalidCsv();
+    testManifestMixedSources();
+    testManifestCensusGridDuplicateIds();
     console.log('--- All Generator Tests Passed ---');
   } finally {
     cleanup();
