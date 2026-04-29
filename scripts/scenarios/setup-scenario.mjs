@@ -101,6 +101,9 @@ const PRESETS = {
         time: '05:00'
       },
       demandProfileId: 'hamburg-core-synthetic-v1',
+      demandAssets: {
+        scenarioDemand: 'generated/scenarios/hamburg-core-mvp.demand.json'
+      },
       objectives: [
         {
           objectiveId: 'serve-work-demand',
@@ -222,6 +225,22 @@ const registryResult = child_process.spawnSync('node', ['scripts/scenarios/build
 if (registryResult.status !== 0) {
   fail('Failed to rebuild scenario registry.');
 }
+
+// Generate scenario demand if seed exists
+const seedPath = path.join(rootDir, 'data/scenario-demand', `${presetId}.seed.json`);
+if (fs.existsSync(seedPath)) {
+  console.log(`Running build-scenario-demand.mjs for ${presetId}...`);
+  const demandOut = path.join(rootDir, 'apps/web/public/generated/scenarios', `${presetId}.demand.json`);
+  const demandResult = child_process.spawnSync('node', [
+    'scripts/scenario-demand/build-scenario-demand.mjs',
+    '--input', seedPath,
+    '--output', demandOut
+  ], { stdio: 'inherit', cwd: rootDir });
+  if (demandResult.status !== 0) {
+    fail(`Failed to generate scenario demand for ${presetId}.`);
+  }
+}
+
 
 const pbfPath = path.join(rootDir, preset.areaJson.sourcePbfFile);
 const pbfExists = fs.existsSync(pbfPath);

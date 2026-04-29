@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 
+### Slice 143: Generic Scenario Demand Generator Skeleton
+- Introduced a generic, reusable scenario demand artifact generator script (`build-scenario-demand.mjs`).
+- Added curated seed format and initial Hamburg seed fixture (`hamburg-core-mvp.seed.json`).
+- Integrated demand generation directly into scenario setup orchestration (`setup-scenario.mjs`).
+- Added comprehensive validation test suites ensuring strong contract mapping.
+- Configured ADR 0145 documenting baseline generator skeleton strategies.
+
 ### Slice 142: Scenario Demand Parser Type Hygiene Repair
 - Replaced broad unchecked casts in scenario demand artifact parser with strict runtime control-flow type narrowing.
 - Re-derived taxonomy domain string unions directly from constants tuples instead of duplicated definitions.

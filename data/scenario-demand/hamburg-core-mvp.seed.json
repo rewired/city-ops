@@ -1,0 +1,70 @@
+{
+  "scenarioId": "hamburg-core-mvp",
+  "generatorName": "open-vayra-cities-scenario-demand-generator",
+  "sourceMetadata": {
+    "generatedFrom": [
+      {
+        "sourceKind": "manual",
+        "label": "Curated scenario demand seed for generator smoke testing"
+      }
+    ],
+    "notes": "Temporary curated seed until census/OSM source-material pipelines are added."
+  },
+  "nodes": [
+    {
+      "id": "seed-node-1",
+      "position": { "lng": 10.0, "lat": 53.55 },
+      "role": "origin",
+      "class": "residential",
+      "baseWeight": 100.0,
+      "timeBandWeights": {
+        "morning-rush": 1.2,
+        "late-morning": 0.8,
+        "midday": 1.0,
+        "afternoon": 1.1,
+        "evening-rush": 1.3,
+        "evening": 0.9,
+        "night": 0.4
+      }
+    }
+  ],
+  "attractors": [
+    {
+      "id": "seed-attractor-1",
+      "position": { "lng": 10.01, "lat": 53.56 },
+      "category": "workplace",
+      "scale": "district",
+      "sourceWeight": 0.0,
+      "sinkWeight": 150.0,
+      "timeBandWeights": {
+        "morning-rush": 1.5,
+        "late-morning": 0.9,
+        "midday": 1.0,
+        "afternoon": 0.8,
+        "evening-rush": 1.4,
+        "evening": 0.7,
+        "night": 0.2
+      }
+    }
+  ],
+  "gateways": [
+    {
+      "id": "seed-gateway-1",
+      "position": { "lng": 9.99, "lat": 53.54 },
+      "kind": "rail-station",
+      "scale": "major",
+      "sourceWeight": 50.0,
+      "sinkWeight": 50.0,
+      "transferWeight": 20.0,
+      "timeBandWeights": {
+        "morning-rush": 1.1,
+        "late-morning": 0.9,
+        "midday": 1.0,
+        "afternoon": 1.0,
+        "evening-rush": 1.2,
+        "evening": 0.8,
+        "night": 0.3
+      }
+    }
+  ]
+}
