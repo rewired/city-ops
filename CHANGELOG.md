@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 
 
+### Slice 145: Manifest-Driven Scenario Demand Generation
+- Integrated the source-material manifest into the scenario demand generator skeleton (`build-scenario-demand.mjs`).
+- Resolved enabled `manual-seed` source entries, enforcing scenario ID match verification and single enabled seed constraints.
+- Enabled fail-fast evaluation rejecting pathless configurations and enabled unsupported source types.
+- Added ADR 0147 documenting manifest-driven demand artifact lifecycle rules.
+
 ### Slice 144: Generic Scenario Source Material Manifest
 - Introduced a generic, reusable scenario source-material manifest schema and parser.
 - Defined canonical types for source entries (`manual-seed`, `census-grid`, `osm-extract`, etc.) mapping external datasets safely.

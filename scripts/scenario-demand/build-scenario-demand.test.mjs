@@ -244,6 +244,93 @@ function testManifestEnabledUnsupported() {
   assert.ok(result.stderr.includes('is configured but no adapter exists yet'));
 }
 
+function testMissingManifest() {
+  console.log('Testing missing manifest file...');
+  const result = runGenerator(['--manifest', 'non-existent.json']);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('Manifest file not found'));
+}
+
+function testMultipleManualSeeds() {
+  console.log('Testing multiple enabled manual seeds rejection...');
+  const manifestPath = path.join(tempDir, 'multiple.manifest.json');
+  const seedPath = path.join(tempDir, 'seed.json');
+  const outputPath = path.join(tempDir, 'manifest-out.demand.json');
+
+  const seed = {
+    scenarioId: 'test-scenario',
+    sourceMetadata: { generatedFrom: [] },
+    nodes: [], attractors: [], gateways: []
+  };
+  fs.writeFileSync(seedPath, JSON.stringify(seed, null, 2));
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      { id: 's1', kind: 'manual-seed', label: 'Seed 1', path: seedPath, enabled: true },
+      { id: 's2', kind: 'manual-seed', label: 'Seed 2', path: seedPath, enabled: true }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('Only one enabled manual seed is supported for now.'));
+}
+
+function testSeedScenarioMismatch() {
+  console.log('Testing seed scenarioId mismatch...');
+  const manifestPath = path.join(tempDir, 'mismatch.manifest.json');
+  const seedPath = path.join(tempDir, 'mismatched-seed.json');
+  const outputPath = path.join(tempDir, 'manifest-out.demand.json');
+
+  const seed = {
+    scenarioId: 'scenario-a',
+    sourceMetadata: { generatedFrom: [] },
+    nodes: [], attractors: [], gateways: []
+  };
+  fs.writeFileSync(seedPath, JSON.stringify(seed, null, 2));
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'scenario-b',
+    manifestId: 'test-manifest',
+    sources: [
+      { id: 's1', kind: 'manual-seed', label: 'Seed', path: seedPath, enabled: true }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('does not match manifest scenarioId'));
+}
+
+function testPathlessManualSeed() {
+  console.log('Testing pathless manual seed...');
+  const manifestPath = path.join(tempDir, 'pathless.manifest.json');
+  const outputPath = path.join(tempDir, 'manifest-out.demand.json');
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      { id: 's1', kind: 'manual-seed', label: 'Seed', enabled: true }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('missing path'));
+}
+
 function runAll() {
   try {
     setup();
@@ -255,6 +342,10 @@ function runAll() {
     testManifestUsage();
     testManifestDisabledUnsupported();
     testManifestEnabledUnsupported();
+    testMissingManifest();
+    testMultipleManualSeeds();
+    testSeedScenarioMismatch();
+    testPathlessManualSeed();
     console.log('--- All Generator Tests Passed ---');
   } finally {
     cleanup();

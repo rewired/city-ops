@@ -33,6 +33,8 @@ function main() {
   let inputPath = null;
   let outputPath = null;
   let manifestPath = null;
+  let manifestScenarioId = null;
+  let manifestSourceEntry = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--input') {
@@ -67,6 +69,7 @@ function main() {
     if (typeof manifest.scenarioId !== 'string') fail('Manifest missing valid scenarioId.');
     if (!Array.isArray(manifest.sources)) fail('Manifest missing sources array.');
 
+    manifestScenarioId = manifest.scenarioId;
     const enabledSources = manifest.sources.filter(s => s.enabled !== false);
     const supportedKinds = ['manual-seed'];
 
@@ -77,7 +80,12 @@ function main() {
       }
     }
 
-    const seedSource = enabledSources.find(s => s.kind === 'manual-seed');
+    const manualSeeds = enabledSources.filter(s => s.kind === 'manual-seed');
+    if (manualSeeds.length > 1) {
+      fail('Only one enabled manual seed is supported for now.');
+    }
+
+    const seedSource = manualSeeds[0];
     if (!seedSource) {
       fail('No enabled manual-seed source found in manifest.');
     }
@@ -86,6 +94,7 @@ function main() {
       fail(`Source ${seedSource.id} missing path.`);
     }
 
+    manifestSourceEntry = seedSource;
     inputPath = seedSource.path;
 
     if (!manifest.output || typeof manifest.output !== 'object') {
@@ -115,6 +124,10 @@ function main() {
 
   if (typeof seed.scenarioId !== 'string' || !seed.scenarioId) {
     fail('Seed missing valid scenarioId.');
+  }
+
+  if (manifestScenarioId && seed.scenarioId !== manifestScenarioId) {
+    fail(`Seed scenarioId (${seed.scenarioId}) does not match manifest scenarioId (${manifestScenarioId}).`);
   }
 
   if (!seed.sourceMetadata || typeof seed.sourceMetadata !== 'object') {
@@ -225,7 +238,15 @@ function main() {
     scenarioId: seed.scenarioId,
     generatedAt: new Date().toISOString(),
     sourceMetadata: {
-      generatedFrom: seed.sourceMetadata.generatedFrom,
+      generatedFrom: manifestSourceEntry ? [
+        ...seed.sourceMetadata.generatedFrom,
+        {
+          sourceKind: 'manual',
+          label: manifestSourceEntry.label || 'Manual Seed',
+          ...(manifestSourceEntry.attribution ? { attributionHint: manifestSourceEntry.attribution } : {}),
+          ...(manifestSourceEntry.datasetYear ? { datasetYear: manifestSourceEntry.datasetYear } : {})
+        }
+      ] : seed.sourceMetadata.generatedFrom,
       generatorName: seed.generatorName || 'open-vayra-cities-scenario-demand-generator',
       generatorVersion: '0.1.0',
       notes: seed.sourceMetadata.notes
