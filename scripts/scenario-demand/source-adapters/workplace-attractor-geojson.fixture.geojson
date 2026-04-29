@@ -1,0 +1,71 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "point-1",
+        "name": "Point Attractor",
+        "weight": 150,
+        "scale": "district"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.0, 53.5]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "poly-1",
+        "name": "Polygon Attractor",
+        "weight": 300,
+        "scale": "major"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [10.01, 53.51],
+            [10.03, 53.51],
+            [10.03, 53.53],
+            [10.01, 53.53],
+            [10.01, 53.51]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "multi-poly-1",
+        "name": "MultiPolygon Attractor",
+        "weight": 500,
+        "scale": "metropolitan"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [10.04, 53.54],
+              [10.05, 53.54],
+              [10.05, 53.55],
+              [10.04, 53.55],
+              [10.04, 53.54]
+            ]
+          ],
+          [
+            [
+              [10.06, 53.56],
+              [10.07, 53.56],
+              [10.07, 53.57],
+              [10.06, 53.57],
+              [10.06, 53.56]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

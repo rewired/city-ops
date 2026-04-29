@@ -26,6 +26,22 @@
       "expectedPath": "data/osm/...",
       "enabled": false,
       "notes": "Reserved for a later generic OSM attractor adapter."
+    },
+    {
+      "id": "future-workplace-attractors",
+      "kind": "workplace-attractors",
+      "label": "Local workplace attractor source material",
+      "path": "data/scenario-source-material/fixtures/workplace-attractors.geojson",
+      "enabled": false,
+      "adapter": "workplace-attractor-geojson",
+      "options": {
+        "idProperty": "id",
+        "labelProperty": "name",
+        "weightProperty": "weight",
+        "scaleProperty": "scale",
+        "defaultWeight": 100,
+        "defaultScale": "district"
+      }
     }
   ],
   "output": {

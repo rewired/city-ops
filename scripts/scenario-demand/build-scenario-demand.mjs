@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { parseCensusGridCsv } from './source-adapters/census-grid-csv.mjs';
+import { parseWorkplaceAttractorGeoJson } from './source-adapters/workplace-attractor-geojson.mjs';
 
 const CANONICAL_TIME_BANDS = [
   'morning-rush',
@@ -18,6 +19,16 @@ const CENSUS_GRID_RESIDENTIAL_TIME_BANDS = {
   'midday': 0.4,
   'afternoon': 1.0,
   'evening-rush': 0.8,
+  'evening': 0.5,
+  'night': 0.1
+};
+
+const WORKPLACE_ATTRACTOR_TIME_BANDS = {
+  'morning-rush': 1.5,
+  'late-morning': 0.8,
+  'midday': 1.0,
+  'afternoon': 1.0,
+  'evening-rush': 1.5,
   'evening': 0.5,
   'night': 0.1
 };
@@ -96,7 +107,7 @@ function main() {
     outputPath = manifest.output.demandArtifactPath;
 
     const enabledSources = manifest.sources.filter(s => s.enabled !== false);
-    const supportedKinds = ['manual-seed', 'census-grid'];
+    const supportedKinds = ['manual-seed', 'census-grid', 'workplace-attractors'];
 
     for (const src of enabledSources) {
       if (!src.kind || typeof src.kind !== 'string') fail(`Source ${src.id || 'unknown'} missing kind.`);
@@ -190,6 +201,45 @@ function main() {
         finalGeneratedFrom.push({
           sourceKind: 'census',
           label: src.label || 'Census Grid',
+          ...(src.attribution ? { attributionHint: src.attribution } : {}),
+          ...(src.datasetYear ? { datasetYear: src.datasetYear } : {})
+        });
+
+      } else if (src.kind === 'workplace-attractors') {
+        if (src.adapter !== 'workplace-attractor-geojson') {
+          fail(`Unsupported adapter ${src.adapter || 'missing'} for kind workplace-attractors.`);
+        }
+        const opt = src.options || {};
+
+        if (!src.path || typeof src.path !== 'string') fail(`workplace-attractors source ${src.id} missing path.`);
+        if (!fs.existsSync(src.path)) fail(`GeoJSON file not found: ${src.path}`);
+
+        let records;
+        try {
+          records = parseWorkplaceAttractorGeoJson(src.path, opt);
+        } catch (err) {
+          fail(`Adapter failure for source ${src.id}: ${err.message}`);
+        }
+
+        for (const record of records) {
+          finalAttractors.push({
+            id: `${src.id}-${record.id}`,
+            position: { lng: record.longitude, lat: record.latitude },
+            category: 'workplace',
+            scale: record.scale,
+            sourceWeight: record.weight,
+            sinkWeight: record.weight,
+            timeBandWeights: WORKPLACE_ATTRACTOR_TIME_BANDS,
+            sourceTrace: {
+              sourceId: src.id,
+              featureId: record.id
+            }
+          });
+        }
+
+        finalGeneratedFrom.push({
+          sourceKind: 'osm',
+          label: src.label || 'Workplace Attractors',
           ...(src.attribution ? { attributionHint: src.attribution } : {}),
           ...(src.datasetYear ? { datasetYear: src.datasetYear } : {})
         });

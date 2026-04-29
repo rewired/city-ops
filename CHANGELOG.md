@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 148: Generic Workplace Attractor GeoJSON Adapter
+- Introduced a generic, scenario-agnostic GeoJSON workplace attractor source adapter (`workplace-attractor-geojson.mjs`).
+- Implemented deterministic parsing for `Point`, `Polygon`, and `MultiPolygon` feature types, computing fallback bounding box centroids.
+- Configured bidirectional destination time modifiers and bounded verification mappings.
+- Added ADR 0150 documenting adapter scoping rules.
+
 ### Slice 147: Census Grid Adapter to Generator Integration
 - Integrated the generic `census-grid` CSV source adapter into the scenario demand generator (`build-scenario-demand.mjs`).
 - Converted normalized population datasets into residential demand nodes with standard time-band distributions.

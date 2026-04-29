@@ -561,6 +561,122 @@ function testManifestCensusGridDuplicateIds() {
   assert.ok(result.stderr.includes('Duplicate entity ID detected'));
 }
 
+function testManifestWorkplaceAttractorsValid() {
+  console.log('Testing manifest with enabled workplace-attractors source...');
+  const manifestPath = path.join(tempDir, 'workplace.manifest.json');
+  const geojsonPath = path.join(tempDir, 'workplace.geojson');
+  const outputPath = path.join(tempDir, 'workplace-out.demand.json');
+
+  fs.writeFileSync(geojsonPath, JSON.stringify({
+    "type": "FeatureCollection",
+    "features": [{
+      "type": "Feature",
+      "properties": { "id": "w1", "name": "Test Office", "weight": 250, "scale": "major" },
+      "geometry": { "type": "Point", "coordinates": [10.0, 53.5] }
+    }]
+  }));
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      {
+        id: 'workplace-source',
+        kind: 'workplace-attractors',
+        label: 'Workplaces',
+        path: geojsonPath,
+        enabled: true,
+        adapter: 'workplace-attractor-geojson',
+        options: {
+          idProperty: 'id',
+          labelProperty: 'name',
+          weightProperty: 'weight',
+          scaleProperty: 'scale'
+        }
+      }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 0, `Generator failed: ${result.stderr}`);
+  assert.ok(fs.existsSync(outputPath));
+
+  const generated = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+  assert.strictEqual(generated.attractors.length, 1);
+
+  const attractor = generated.attractors[0];
+  assert.strictEqual(attractor.id, 'workplace-source-w1');
+  assert.strictEqual(attractor.position.lng, 10.0);
+  assert.strictEqual(attractor.position.lat, 53.5);
+  assert.strictEqual(attractor.category, 'workplace');
+  assert.strictEqual(attractor.scale, 'major');
+  assert.strictEqual(attractor.sourceWeight, 250);
+  assert.strictEqual(attractor.sinkWeight, 250);
+
+  assert.ok(attractor.timeBandWeights);
+  assert.strictEqual(attractor.timeBandWeights['morning-rush'], 1.5);
+
+  try {
+    parseScenarioDemandArtifact(generated);
+  } catch (e) {
+    assert.fail(`Parser failed: ${e.message}`);
+  }
+}
+
+function testManifestWorkplaceAttractorsDuplicateIds() {
+  console.log('Testing manifest duplicate entity ID across workplace sources rejection...');
+  const manifestPath = path.join(tempDir, 'duplicate-mixed-attractor.manifest.json');
+  const seedPath = path.join(tempDir, 'seed.json');
+  const geojsonPath = path.join(tempDir, 'workplace.geojson');
+  const outputPath = path.join(tempDir, 'mixed-out.demand.json');
+
+  const seed = {
+    scenarioId: 'test-scenario',
+    sourceMetadata: { generatedFrom: [] },
+    nodes: [],
+    attractors: [
+      { id: 'workplace-source-w1', position: { lng: 10, lat: 50 }, category: 'workplace', scale: 'local', sourceWeight: 1, sinkWeight: 1 }
+    ],
+    gateways: []
+  };
+  fs.writeFileSync(seedPath, JSON.stringify(seed, null, 2));
+
+  fs.writeFileSync(geojsonPath, JSON.stringify({
+    "type": "FeatureCollection",
+    "features": [{
+      "type": "Feature",
+      "properties": { "id": "w1" },
+      "geometry": { "type": "Point", "coordinates": [10.0, 53.5] }
+    }]
+  }));
+
+  const manifest = {
+    schemaVersion: 1,
+    scenarioId: 'test-scenario',
+    manifestId: 'test-manifest',
+    sources: [
+      { id: 's1', kind: 'manual-seed', label: 'Seed', path: seedPath, enabled: true },
+      {
+        id: 'workplace-source',
+        kind: 'workplace-attractors',
+        label: 'Workplaces',
+        path: geojsonPath,
+        enabled: true,
+        adapter: 'workplace-attractor-geojson'
+      }
+    ],
+    output: { demandArtifactPath: outputPath }
+  };
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+  const result = runGenerator(['--manifest', manifestPath]);
+  assert.strictEqual(result.status, 1);
+  assert.ok(result.stderr.includes('Duplicate entity ID detected'));
+}
+
 function runAll() {
   try {
     setup();
@@ -581,6 +697,8 @@ function runAll() {
     testManifestCensusGridInvalidCsv();
     testManifestMixedSources();
     testManifestCensusGridDuplicateIds();
+    testManifestWorkplaceAttractorsValid();
+    testManifestWorkplaceAttractorsDuplicateIds();
     console.log('--- All Generator Tests Passed ---');
   } finally {
     cleanup();
