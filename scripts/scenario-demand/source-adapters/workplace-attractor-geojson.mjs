@@ -42,8 +42,10 @@ export function parseWorkplaceAttractorGeoJson(filePath, config = {}) {
   const labelProperty = config.labelProperty || 'name';
   const weightProperty = config.weightProperty || 'weight';
   const scaleProperty = config.scaleProperty || 'scale';
+  const categoryProperty = config.categoryProperty || 'category';
   const defaultWeight = typeof config.defaultWeight === 'number' ? config.defaultWeight : 100;
   const defaultScale = config.defaultScale || 'district';
+  const defaultCategory = config.defaultCategory || 'workplace';
 
   const validScales = ['local', 'district', 'major', 'metropolitan'];
   if (!validScales.includes(defaultScale)) {
@@ -137,6 +139,11 @@ export function parseWorkplaceAttractorGeoJson(filePath, config = {}) {
       }
     }
 
+    let category = defaultCategory;
+    if (props[categoryProperty] !== undefined && props[categoryProperty] !== null) {
+      category = String(props[categoryProperty]).trim();
+    }
+
     let label = undefined;
     if (props[labelProperty] !== undefined && props[labelProperty] !== null) {
       label = String(props[labelProperty]).trim();
@@ -148,6 +155,7 @@ export function parseWorkplaceAttractorGeoJson(filePath, config = {}) {
       latitude: position.latitude,
       weight,
       scale,
+      category,
       ...(label ? { label } : {})
     });
   }

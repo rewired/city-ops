@@ -52,9 +52,16 @@ export function buildScenarioDemandPreviewFeatureCollection(
     properties: ScenarioDemandPreviewFeatureProperties;
   }> = [];
 
-  // 1. Demand Nodes
+  // 1. Demand Nodes (Consumes runtime demand nodes only)
   if (artifact.nodes) {
     for (const node of artifact.nodes) {
+      let entityKind: 'node' | 'attractor' | 'gateway' = 'node';
+      if (node.class === 'workplace') {
+        entityKind = 'attractor';
+      } else if (node.class === 'gateway') {
+        entityKind = 'gateway';
+      }
+
       features.push({
         type: 'Feature',
         geometry: {
@@ -63,59 +70,15 @@ export function buildScenarioDemandPreviewFeatureCollection(
         },
         properties: {
           entityId: node.id,
-          entityKind: 'node',
+          entityKind,
           label: node.id,
-          roleOrCategory: node.role,
+          roleOrCategory: node.role === 'destination' ? (node.class || 'workplace') : node.role,
           scale: 'n/a',
           weight: node.baseWeight,
           isOriginNode: node.role === 'origin',
-          isDestinationNode: node.role === 'destination'
-        }
-      });
-    }
-  }
-
-  // 2. Attractors
-  if (artifact.attractors) {
-    for (const attractor of artifact.attractors) {
-      features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [attractor.position.lng, attractor.position.lat]
-        },
-        properties: {
-          entityId: attractor.id,
-          entityKind: 'attractor',
-          label: attractor.id,
-          roleOrCategory: attractor.category,
-          scale: attractor.scale,
-          weight: attractor.sourceWeight,
-          attractorCategory: attractor.category,
-          attractorScale: attractor.scale
-        }
-      });
-    }
-  }
-
-  // 3. Gateways
-  if (artifact.gateways) {
-    for (const gateway of artifact.gateways) {
-      features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [gateway.position.lng, gateway.position.lat]
-        },
-        properties: {
-          entityId: gateway.id,
-          entityKind: 'gateway',
-          label: gateway.id,
-          roleOrCategory: gateway.kind,
-          scale: gateway.scale,
-          weight: gateway.sourceWeight,
-          gatewayKind: gateway.kind,
-          gatewayScale: gateway.scale
+          isDestinationNode: node.role === 'destination',
+          ...(entityKind === 'attractor' ? { attractorCategory: node.class, attractorScale: 'n/a' } : {}),
+          ...(entityKind === 'gateway' ? { gatewayKind: 'other', gatewayScale: 'n/a' } : {})
         }
       });
     }

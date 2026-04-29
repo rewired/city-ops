@@ -142,6 +142,11 @@ function main() {
     const lng = position.longitude;
     const lat = position.latitude;
 
+    if (!Number.isFinite(lng) || !Number.isFinite(lat) || Number.isNaN(lng) || Number.isNaN(lat)) {
+      skippedUnsupportedGeometries++;
+      continue;
+    }
+
     // Bounds check
     if (lng < bounds.west || lng > bounds.east || lat < bounds.south || lat > bounds.north) {
       continue;

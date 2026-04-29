@@ -33,6 +33,10 @@ const WORKPLACE_ATTRACTOR_TIME_BANDS = {
   'night': 0.1
 };
 
+const MAX_WORKPLACE_ATTRACTOR_SOURCE_FEATURES_FOR_DIRECT_PREVIEW = 5000;
+const MAX_RUNTIME_WORKPLACE_DEMAND_NODES = 1000;
+const WORKPLACE_ATTRACTOR_AGGREGATION_CELL_METERS = 500;
+
 function fail(msg) {
   console.error(`Error: ${msg}`);
   process.exit(1);
@@ -80,6 +84,11 @@ function main() {
   let finalGateways = [];
   let finalGeneratedFrom = [];
   let finalNotes = '';
+  let residentialSourceRows = 0;
+  let residentialRuntimeNodes = 0;
+  let workplaceSourceAttractors = 0;
+  let workplaceRuntimeNodes = 0;
+  let workplaceAggregationMode = 'direct';
 
   if (manifestPath) {
     if (!fs.existsSync(manifestPath)) {
@@ -183,7 +192,9 @@ function main() {
           fail(`Adapter failure for source ${src.id}: ${err.message}`);
         }
 
+        residentialSourceRows += records.length;
         for (const record of records) {
+          residentialRuntimeNodes++;
           finalNodes.push({
             id: `${src.id}-${record.id}`,
             position: { lng: record.longitude, lat: record.latitude },
@@ -221,21 +232,94 @@ function main() {
           fail(`Adapter failure for source ${src.id}: ${err.message}`);
         }
 
-        for (const record of records) {
-          finalAttractors.push({
-            id: `${src.id}-${record.id}`,
-            position: { lng: record.longitude, lat: record.latitude },
-            category: 'workplace',
-            scale: record.scale,
-            sourceWeight: record.weight,
-            sinkWeight: record.weight,
-            timeBandWeights: WORKPLACE_ATTRACTOR_TIME_BANDS,
-            sourceTrace: {
-              sourceId: src.id,
-              featureId: record.id
+        workplaceSourceAttractors += records.length;
+        let workplaceNodes = [];
+        const sourceCount = records.length;
+        let isAggregated = false;
+        
+        if (sourceCount > MAX_WORKPLACE_ATTRACTOR_SOURCE_FEATURES_FOR_DIRECT_PREVIEW) {
+          isAggregated = true;
+          workplaceAggregationMode = 'aggregated';
+          let sumLat = 0;
+          for (const rec of records) {
+            sumLat += rec.latitude;
+          }
+          const avgLat = records.length > 0 ? sumLat / records.length : 53.5;
+          const metersPerDegreeLat = 111320;
+          const metersPerDegreeLng = 111320 * Math.cos(avgLat * Math.PI / 180);
+          const latDelta = WORKPLACE_ATTRACTOR_AGGREGATION_CELL_METERS / metersPerDegreeLat;
+          const lngDelta = WORKPLACE_ATTRACTOR_AGGREGATION_CELL_METERS / metersPerDegreeLng;
+          
+          const buckets = new Map();
+          for (const record of records) {
+            const bucketX = Math.floor(record.longitude / lngDelta);
+            const bucketY = Math.floor(record.latitude / latDelta);
+            const category = record.category || 'workplace';
+            const bucketKey = `${bucketX}_${bucketY}_${category}`;
+            
+            if (!buckets.has(bucketKey)) {
+              buckets.set(bucketKey, {
+                bucketX,
+                bucketY,
+                category,
+                sumLng: 0,
+                sumLat: 0,
+                count: 0,
+                weight: 0
+              });
             }
-          });
+            const b = buckets.get(bucketKey);
+            b.sumLng += record.longitude;
+            b.sumLat += record.latitude;
+            b.count++;
+            b.weight += record.weight;
+          }
+          
+          for (const b of buckets.values()) {
+            const avgLng = b.sumLng / b.count;
+            const avgLat = b.sumLat / b.count;
+            workplaceNodes.push({
+              id: `${finalScenarioId}-workplace-${b.bucketX}-${b.bucketY}-${b.category}`,
+              position: { lng: avgLng, lat: avgLat },
+              role: 'destination',
+              class: 'workplace',
+              baseWeight: b.weight,
+              timeBandWeights: WORKPLACE_ATTRACTOR_TIME_BANDS,
+              sourceTrace: {
+                sourceId: src.id,
+                bucketX: b.bucketX,
+                bucketY: b.bucketY,
+                category: b.category,
+                aggregatedFeatureCount: b.count
+              }
+            });
+          }
+        } else {
+          workplaceAggregationMode = 'direct';
+          for (const record of records) {
+            workplaceNodes.push({
+              id: `${src.id}-${record.id}`,
+              position: { lng: record.longitude, lat: record.latitude },
+              role: 'destination',
+              class: 'workplace',
+              baseWeight: record.weight,
+              timeBandWeights: WORKPLACE_ATTRACTOR_TIME_BANDS,
+              sourceTrace: {
+                sourceId: src.id,
+                featureId: record.id
+              }
+            });
+          }
         }
+        
+        if (workplaceNodes.length > MAX_RUNTIME_WORKPLACE_DEMAND_NODES) {
+          console.warn(`[Warning] Workplace node count (${workplaceNodes.length}) exceeds hard limit (${MAX_RUNTIME_WORKPLACE_DEMAND_NODES}). Truncating deterministically.`);
+          workplaceNodes.sort((a, b) => b.baseWeight - a.baseWeight);
+          workplaceNodes = workplaceNodes.slice(0, MAX_RUNTIME_WORKPLACE_DEMAND_NODES);
+        }
+        
+        workplaceRuntimeNodes += workplaceNodes.length;
+        finalNodes.push(...workplaceNodes);
 
         finalGeneratedFrom.push({
           sourceKind: 'osm',
@@ -403,7 +487,12 @@ function main() {
   }
 
   fs.writeFileSync(outputPath, JSON.stringify(artifact, null, 2), 'utf8');
-  console.log(`Generated scenario demand artifact: ${outputPath}`);
+  console.log(`Residential source rows: ${residentialSourceRows}`);
+  console.log(`Residential runtime nodes: ${residentialRuntimeNodes}`);
+  console.log(`Workplace source attractors: ${workplaceSourceAttractors}`);
+  console.log(`Workplace runtime nodes: ${workplaceRuntimeNodes}`);
+  console.log(`Workplace aggregation: ${workplaceAggregationMode}`);
+  console.log(`Generated demand artifact: ${outputPath}`);
 }
 
 main();

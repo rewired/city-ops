@@ -27,30 +27,26 @@ describe('buildScenarioDemandPreviewFeatureCollection', () => {
           class: 'residential',
           baseWeight: 10,
           timeBandWeights: { 'morning-rush': 1, 'late-morning': 1, 'midday': 1, 'afternoon': 1, 'evening-rush': 1, 'evening': 1, 'night': 1 }
-        }
-      ],
-      attractors: [
+        },
         {
           id: 'attractor-1',
           position: { lng: 10.1, lat: 53.6 },
-          category: 'retail',
-          scale: 'district',
-          sourceWeight: 20,
-          sinkWeight: 15
-        }
-      ],
-      gateways: [
+          role: 'destination',
+          class: 'workplace',
+          baseWeight: 20,
+          timeBandWeights: { 'morning-rush': 1, 'late-morning': 1, 'midday': 1, 'afternoon': 1, 'evening-rush': 1, 'evening': 1, 'night': 1 }
+        },
         {
           id: 'gateway-1',
           position: { lng: 10.2, lat: 53.7 },
-          kind: 'rail-station',
-          scale: 'major',
-          sourceWeight: 30,
-          sinkWeight: 30,
-          transferWeight: 5,
+          role: 'bidirectional',
+          class: 'gateway',
+          baseWeight: 30,
           timeBandWeights: { 'morning-rush': 1, 'late-morning': 1, 'midday': 1, 'afternoon': 1, 'evening-rush': 1, 'evening': 1, 'night': 1 }
         }
-      ]
+      ],
+      attractors: [],
+      gateways: []
     };
 
     const result = buildScenarioDemandPreviewFeatureCollection(mockArtifact);
@@ -77,16 +73,16 @@ describe('buildScenarioDemandPreviewFeatureCollection', () => {
     const attractorFeature = result.features[1]!;
     expect(attractorFeature.geometry.coordinates).toEqual([10.1, 53.6]);
     expect(attractorFeature.properties.entityId).toBe('attractor-1');
-    expect(attractorFeature.properties.attractorCategory).toBe('retail');
-    expect(attractorFeature.properties.scale).toBe('district');
+    expect(attractorFeature.properties.attractorCategory).toBe('workplace');
+    expect(attractorFeature.properties.scale).toBe('n/a');
     expect(attractorFeature.properties.weight).toBe(20);
 
     // Gateway Check
     const gatewayFeature = result.features[2]!;
     expect(gatewayFeature.geometry.coordinates).toEqual([10.2, 53.7]);
     expect(gatewayFeature.properties.entityId).toBe('gateway-1');
-    expect(gatewayFeature.properties.gatewayKind).toBe('rail-station');
-    expect(gatewayFeature.properties.scale).toBe('major');
+    expect(gatewayFeature.properties.gatewayKind).toBe('other');
+    expect(gatewayFeature.properties.scale).toBe('n/a');
     expect(gatewayFeature.properties.weight).toBe(30);
   });
 });

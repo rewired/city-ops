@@ -605,19 +605,19 @@ function testManifestWorkplaceAttractorsValid() {
   assert.ok(fs.existsSync(outputPath));
 
   const generated = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
-  assert.strictEqual(generated.attractors.length, 1);
+  assert.strictEqual(generated.nodes.length, 1);
+  assert.strictEqual(generated.attractors.length, 0);
 
-  const attractor = generated.attractors[0];
-  assert.strictEqual(attractor.id, 'workplace-source-w1');
-  assert.strictEqual(attractor.position.lng, 10.0);
-  assert.strictEqual(attractor.position.lat, 53.5);
-  assert.strictEqual(attractor.category, 'workplace');
-  assert.strictEqual(attractor.scale, 'major');
-  assert.strictEqual(attractor.sourceWeight, 250);
-  assert.strictEqual(attractor.sinkWeight, 250);
+  const node = generated.nodes[0];
+  assert.strictEqual(node.id, 'workplace-source-w1');
+  assert.strictEqual(node.position.lng, 10.0);
+  assert.strictEqual(node.position.lat, 53.5);
+  assert.strictEqual(node.role, 'destination');
+  assert.strictEqual(node.class, 'workplace');
+  assert.strictEqual(node.baseWeight, 250);
 
-  assert.ok(attractor.timeBandWeights);
-  assert.strictEqual(attractor.timeBandWeights['morning-rush'], 1.5);
+  assert.ok(node.timeBandWeights);
+  assert.strictEqual(node.timeBandWeights['morning-rush'], 1.5);
 
   try {
     parseScenarioDemandArtifact(generated);
@@ -694,17 +694,15 @@ function testHamburgManifest() {
 
   const generated = JSON.parse(fs.readFileSync(tempOutputPath, 'utf8'));
   
-  assert.ok(generated.nodes.length >= 8, `Expected >= 8 nodes, got ${generated.nodes.length}`);
-  assert.ok(generated.attractors.length >= 6, `Expected >= 6 attractors, got ${generated.attractors.length}`);
+  assert.ok(generated.nodes.length >= 14, `Expected >= 14 nodes, got ${generated.nodes.length}`);
 
   const residentialNode = generated.nodes.find(n => n.class === 'residential');
   assert.ok(residentialNode.id.startsWith('hamburg-core-mvp-residential-grid-fixture'), `Expected id to start with prefix, got ${residentialNode.id}`);
 
-  const workplaceAttractor = generated.attractors.find(a => a.category === 'workplace');
-  assert.ok(workplaceAttractor.id.startsWith('hamburg-core-mvp-workplace-attractors-fixture'), `Expected id to start with prefix, got ${workplaceAttractor.id}`);
+  const workplaceNode = generated.nodes.find(n => n.class === 'workplace');
+  assert.ok(workplaceNode.id.startsWith('hamburg-core-mvp-workplace-attractors-fixture'), `Expected id to start with prefix, got ${workplaceNode.id}`);
 
-  const hasManualSeed = generated.nodes.some(n => n.id.startsWith('hamburg-core-mvp-manual-seed')) ||
-                        generated.attractors.some(a => a.id.startsWith('hamburg-core-mvp-manual-seed'));
+  const hasManualSeed = generated.nodes.some(n => n.id.startsWith('hamburg-core-mvp-manual-seed'));
   assert.ok(!hasManualSeed, 'Generated artifact contains entities from disabled manual-seed');
 
   const hasCensusMeta = generated.sourceMetadata.generatedFrom.some(s => s.sourceKind === 'census');
