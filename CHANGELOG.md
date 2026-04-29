@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### Slice 158b: Wire OSM Attractor Import Commands and Local Manifest Flow
+- Added counted diagnostics for skipped unsupported geometries in `prepare-osm-attractors-source.mjs`.
+- Extended test coverage in `prepare-osm-attractors-source.test.mjs` for package scripts, missing census CSV, and invalid GeoJSON.
+- Updated documentation in `docs/data/osm-attractor-source-material.md` with explicit output paths.
+
 ### Slice 157b: Destatis Census Grid Column Autodetect and CRS Defaults
+
 - Added `--source-preset` support for `destatis-zensus-2022-1km-population`.
 - Implemented header and delimiter autodetection for Destatis Zensus 2022 CSV files.
 - Applied strict precedence rules: CLI overrides > Preset defaults > Autodetect > Generic Fallbacks.
