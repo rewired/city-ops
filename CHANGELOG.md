@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+
+### Slice 141: Scenario-Owned Demand Contracts
+- Introduced canonical scenario-owned demand data contracts, defining target runtime truth shapes for demand sources, attractors, gateways, and time-band weights.
+- Added strict validation parser accepting `unknown` at public boundaries to narrow constraints without type weakening.
+- Configured scenario pointer architecture mapping asset definitions safely.
+- Deployed comprehensive suite tracking schema rules.
+
 ### Slice 140: Legacy Demand Purge Before Scenario Demand Import
 - Removed all legacy/demo demand domain files, types, constants, and JSON data.
 - Neutralized demand state in `App.tsx` and removed demand props from shell components.

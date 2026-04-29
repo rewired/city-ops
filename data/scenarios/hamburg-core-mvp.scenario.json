@@ -32,6 +32,9 @@
     "time": "05:00"
   },
   "demandProfileId": "hamburg-core-synthetic-v1",
+  "demandAssets": {
+    "scenarioDemand": "generated/scenarios/hamburg-core-mvp.demand.json"
+  },
   "objectives": [
     {
       "objectiveId": "serve-work-demand",

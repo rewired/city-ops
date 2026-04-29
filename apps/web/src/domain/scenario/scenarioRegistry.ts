@@ -69,6 +69,10 @@ export interface ScenarioDefinition {
     readonly objectiveId: string;
     readonly label: string;
   }>;
+  /** Optional demand asset pointers. */
+  readonly demandAssets?: {
+    readonly scenarioDemand: string;
+  };
 }
 
 /**
@@ -243,7 +247,14 @@ export function parseScenarioRegistryPayload(payload: unknown): ScenarioRegistry
           time: String(simStart?.time ?? '05:00')
         },
         demandProfileId: String(inner.demandProfileId ?? ''),
-        objectives
+        objectives,
+        ...(inner.demandAssets && typeof inner.demandAssets === 'object'
+          ? {
+              demandAssets: {
+                scenarioDemand: String((inner.demandAssets as Record<string, unknown>).scenarioDemand ?? '')
+              }
+            }
+          : {})
       }
     };
   });
