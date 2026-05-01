@@ -49,6 +49,7 @@ export interface UseMapWorkspaceSourceSyncInput {
   readonly layerVisibility: MapLayerVisibilityById;
   readonly setFeatureDiagnostics: React.Dispatch<React.SetStateAction<MapWorkspaceFeatureDiagnostics>>;
   readonly scenarioDemandArtifact: import('../domain/types/scenarioDemand').ScenarioDemandArtifact | null;
+  readonly routingCoverage: import('../domain/scenario/scenarioRegistry').ScenarioRoutingCoverage | null;
   readonly isMapStyleReady: boolean;
 }
 
@@ -72,6 +73,7 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
     layerVisibility,
     setFeatureDiagnostics,
     scenarioDemandArtifact,
+    routingCoverage,
     isMapStyleReady
   } = input;
 
@@ -323,6 +325,34 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
     });
   }, [scenarioDemandArtifact, layerVisibility['scenario-demand-preview'], isMapStyleReady]);
+  
+  // 6. Scenario routing coverage source sync
+  useEffect(() => {
+    const mapInstance = mapRef.current;
+
+    if (!mapInstance) {
+      return;
+    }
+
+    const sourceSyncDiagnostics = syncExistingMapWorkspaceSourceData({
+      map: mapInstance,
+      routingCoverage
+    });
+
+    if (sourceSyncDiagnostics) {
+      applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
+      return;
+    }
+
+    return runWhenMapStyleReady(mapInstance, () => {
+      applyBasemapSemanticReadabilityOverrides(mapInstance);
+      syncAllMapWorkspaceSources({
+        map: mapInstance,
+        routingCoverage
+      });
+      applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
+    });
+  }, [routingCoverage, isMapStyleReady]);
 
 
 

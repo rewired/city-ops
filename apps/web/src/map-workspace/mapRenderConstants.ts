@@ -15,6 +15,10 @@ export const MAP_SOURCE_ID_DRAFT_LINE = 'openvayra-cities-draft-line';
  * Canonical GeoJSON source id for projected active vehicle point rendering.
  */
 export const MAP_SOURCE_ID_VEHICLES = 'openvayra-cities-vehicles';
+/**
+ * Canonical GeoJSON source id for scenario-specific routing coverage mask.
+ */
+export const MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE = 'openvayra-cities-scenario-routing-coverage';
 
 /**
  * Canonical circle layer id for stop body rendering and feature hit interactions.
@@ -44,6 +48,10 @@ export const MAP_LAYER_ID_DRAFT_LINE = 'openvayra-cities-draft-line';
  * Canonical circle layer id for projected active vehicle marker rendering.
  */
 export const MAP_LAYER_ID_VEHICLES = 'openvayra-cities-vehicles';
+/**
+ * Canonical fill layer id for scenario routing coverage dim/mask rendering.
+ */
+export const MAP_LAYER_ID_SCENARIO_ROUTING_COVERAGE_MASK = 'openvayra-cities-scenario-routing-coverage-mask';
 
 /**
  * Canonical style layer ids for stop rendering in deterministic registration order.
@@ -57,6 +65,10 @@ export const MAP_COMPLETED_LINE_LAYER_IDS = [MAP_LAYER_ID_COMPLETED_LINES_CASING
  * Canonical style layer ids for projected vehicle marker rendering in deterministic registration order.
  */
 export const MAP_VEHICLE_LAYER_IDS = [MAP_LAYER_ID_VEHICLES] as const;
+/**
+ * Canonical style layer ids for scenario routing coverage mask rendering.
+ */
+export const MAP_SCENARIO_ROUTING_COVERAGE_LAYER_IDS = [MAP_LAYER_ID_SCENARIO_ROUTING_COVERAGE_MASK] as const;
 
 /**
  * Canonical circle layer style for stop body rendering and state-dependent visual emphasis.
@@ -276,6 +288,15 @@ export const SCENARIO_DEMAND_PREVIEW_WORKPLACE_AGGREGATION_CELL_METERS = 100;
  * Minimum zoom level required to draw full, un-thinned point distributions safely.
  */
 export const SCENARIO_DEMAND_PREVIEW_MIN_ZOOM_FOR_FULL_DETAIL = 13;
+
+/**
+ * Canonical fill layer paint for scenario routing coverage mask.
+ * Dims areas outside the routable scenario area.
+ */
+export const MAP_SCENARIO_ROUTING_COVERAGE_MASK_PAINT = {
+  'fill-color': '#0f172a',
+  'fill-opacity': 0.6
+} as const;
 
 
 

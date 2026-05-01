@@ -57,6 +57,7 @@ export interface UseMapWorkspaceInteractionBindingsInput {
   ) => Stop;
   readonly onStopCreated: (stop: Stop) => void;
   readonly isMapStyleReady: boolean;
+  readonly routingCoverage: import('../domain/scenario/scenarioRegistry').ScenarioRoutingCoverage | null;
 }
 
 /**
@@ -105,9 +106,10 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
           return [...currentStops, nextStop];
         });
 
-        return createdStop;
-      }
-    });
+          return createdStop;
+        },
+        routingCoverage: input.routingCoverage
+      });
 
     const osmCandidateInteractionBinding = bindOsmCandidateFeatureInteractions(mapInstance, (event) => {
       if (input.activeToolModeRef.current !== 'inspect') {

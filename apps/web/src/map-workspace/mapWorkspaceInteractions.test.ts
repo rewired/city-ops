@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { hasInteractiveSelectionFeatureAtPoint } from './mapWorkspaceInteractions';
+import { hasInteractiveSelectionFeatureAtPoint, isPointInScenarioRoutingCoverage } from './mapWorkspaceInteractions';
 import type { MapLibreInteractionEvent, MapLibreRenderedFeature, MapLibreLayerSpecification } from './maplibreGlobal';
 import { 
   MAP_LAYER_ID_STOPS_CIRCLE, 
@@ -111,6 +111,30 @@ describe('mapWorkspaceInteractions', () => {
         const binding = bindSafeLayerInteraction(map, 'click', 'missing-layer', listener);
         binding.dispose();
       }).not.toThrow();
+    });
+  });
+
+  describe('isPointInScenarioRoutingCoverage', () => {
+    const coverage: import('../domain/scenario/scenarioRegistry').ScenarioRoutingCoverage = {
+      kind: 'bounds',
+      bounds: { west: 10, south: 50, east: 12, north: 52 }
+    };
+
+    it('returns true if point is inside bounds', () => {
+      expect(isPointInScenarioRoutingCoverage(coverage, 11, 51)).toBe(true);
+    });
+
+    it('returns true if point is on the boundary', () => {
+      expect(isPointInScenarioRoutingCoverage(coverage, 10, 50)).toBe(true);
+    });
+
+    it('returns false if point is outside bounds', () => {
+      expect(isPointInScenarioRoutingCoverage(coverage, 9, 51)).toBe(false);
+      expect(isPointInScenarioRoutingCoverage(coverage, 11, 53)).toBe(false);
+    });
+
+    it('returns true if coverage is null', () => {
+      expect(isPointInScenarioRoutingCoverage(null, 0, 0)).toBe(true);
     });
   });
 });

@@ -26,6 +26,26 @@ export interface ScenarioPlayableBounds {
 }
 
 /**
+ * Geographic bounding box for routing coverage limits.
+ */
+export interface ScenarioRoutingCoverageBounds {
+  readonly west: number;
+  readonly south: number;
+  readonly east: number;
+  readonly north: number;
+}
+
+/**
+ * Explicit routing coverage contract defining where routing engine extracts are available.
+ */
+export interface ScenarioRoutingCoverage {
+  /** Discriminator for coverage representation. */
+  readonly kind: 'bounds';
+  /** Bounding box limits. */
+  readonly bounds: ScenarioRoutingCoverageBounds;
+}
+
+/**
  * Hard structural parameters defining scenario gameplay contexts.
  */
 export interface ScenarioDefinition {
@@ -55,6 +75,8 @@ export interface ScenarioDefinition {
   readonly initialViewport: ScenarioViewport;
   /** Outer geographic limits. */
   readonly playableBounds: ScenarioPlayableBounds;
+  /** Validated routing engine coverage limits. */
+  readonly routingCoverage: ScenarioRoutingCoverage;
   /** Available startup funds. */
   readonly startingBudget: number;
   /** Default time schedule starting point. */
@@ -186,6 +208,26 @@ export function parseScenarioRegistryPayload(payload: unknown): ScenarioRegistry
       throw new Error(`Scenario ${e.scenarioId} contains malformed playableBounds.`);
     }
 
+    const routingCoverage = inner.routingCoverage as Record<string, unknown> | undefined;
+    if (!routingCoverage || typeof routingCoverage !== 'object') {
+      throw new Error(`Scenario ${e.scenarioId} missing routingCoverage.`);
+    }
+    if (routingCoverage.kind !== 'bounds') {
+      throw new Error(`Scenario ${e.scenarioId} holds unsupported routingCoverage kind.`);
+    }
+    const routingBounds = routingCoverage.bounds as Record<string, unknown> | undefined;
+    if (!routingBounds || typeof routingBounds !== 'object') {
+      throw new Error(`Scenario ${e.scenarioId} missing routingCoverage bounds.`);
+    }
+    if (
+      typeof routingBounds.west !== 'number' ||
+      typeof routingBounds.south !== 'number' ||
+      typeof routingBounds.east !== 'number' ||
+      typeof routingBounds.north !== 'number'
+    ) {
+      throw new Error(`Scenario ${e.scenarioId} contains malformed routingCoverage bounds.`);
+    }
+
     const reqAssets = inner.requiredAssets as Record<string, unknown> | undefined;
     const routingAsset = reqAssets?.routing as Record<string, unknown> | undefined;
     const stopAsset = reqAssets?.stopCandidates as Record<string, unknown> | undefined;
@@ -240,6 +282,15 @@ export function parseScenarioRegistryPayload(payload: unknown): ScenarioRegistry
           south: playableBounds.south as number,
           east: playableBounds.east as number,
           north: playableBounds.north as number
+        },
+        routingCoverage: {
+          kind: 'bounds',
+          bounds: {
+            west: routingBounds.west as number,
+            south: routingBounds.south as number,
+            east: routingBounds.east as number,
+            north: routingBounds.north as number
+          }
         },
         startingBudget: Number(inner.startingBudget ?? 0),
         simulationStart: {

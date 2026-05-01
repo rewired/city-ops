@@ -2,7 +2,8 @@ import type { MapLibreMap } from './maplibreGlobal';
 import type { MapFocusIntent } from '../session/sessionTypes';
 import type { Stop } from '../domain/types/stop';
 import type { Line } from '../domain/types/line';
-import { MAP_FOCUS_PADDING, MAP_FOCUS_ZOOM_STOP } from './mapBootstrapConfig';
+import { MAP_FOCUS_PADDING, MAP_FOCUS_ZOOM_STOP, MAP_ROUTING_COVERAGE_MAX_BOUNDS_PADDING } from './mapBootstrapConfig';
+import type { ScenarioRoutingCoverage } from '../domain/scenario/scenarioRegistry';
 
 /**
  * Input parameters for applying map workspace focus intent.
@@ -99,4 +100,26 @@ export function applyMapWorkspaceFocusIntent(input: ApplyMapWorkspaceFocusIntent
       zoom: MAP_FOCUS_ZOOM_STOP
     });
   }
+}
+
+/**
+ * Applies scenario-level max-bounds to the map workspace instance to prevent out-of-coverage drift.
+ * Includes a small standardized padding around the coverage bounding box.
+ * 
+ * @param map The MapLibre instance.
+ * @param coverage The scenario routing coverage definition.
+ */
+export function applyMapMaxBounds(map: MapLibreMap, coverage: ScenarioRoutingCoverage | null): void {
+  if (!coverage || coverage.kind !== 'bounds') {
+    map.setMaxBounds(null);
+    return;
+  }
+
+  const { west, south, east, north } = coverage.bounds;
+  const padding = MAP_ROUTING_COVERAGE_MAX_BOUNDS_PADDING;
+
+  map.setMaxBounds([
+    [west - padding, south - padding],
+    [east + padding, north + padding]
+  ]);
 }

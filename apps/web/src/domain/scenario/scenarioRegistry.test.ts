@@ -32,6 +32,10 @@ describe('scenarioRegistry parser', () => {
           },
           initialViewport: { lng: 10, lat: 53, zoom: 11 },
           playableBounds: { west: 9, south: 52, east: 11, north: 54 },
+          routingCoverage: {
+            kind: 'bounds',
+            bounds: { west: 9, south: 52, east: 11, north: 54 }
+          },
           startingBudget: 1000,
           simulationStart: { weekday: 'monday', time: '05:00' },
           demandProfileId: 'test-demand',
@@ -81,5 +85,17 @@ describe('scenarioRegistry parser', () => {
     const invalid = JSON.parse(JSON.stringify(validRegistryPayload));
     delete invalid.scenarios[0].scenario.initialViewport;
     expect(() => parseScenarioRegistryPayload(invalid)).toThrow('missing initialViewport metadata.');
+  });
+
+  test('throws on missing routing coverage', () => {
+    const invalid = JSON.parse(JSON.stringify(validRegistryPayload));
+    delete invalid.scenarios[0].scenario.routingCoverage;
+    expect(() => parseScenarioRegistryPayload(invalid)).toThrow('missing routingCoverage.');
+  });
+
+  test('throws on malformed routing coverage kind', () => {
+    const invalid = JSON.parse(JSON.stringify(validRegistryPayload));
+    invalid.scenarios[0].scenario.routingCoverage.kind = 'unsupported';
+    expect(() => parseScenarioRegistryPayload(invalid)).toThrow('holds unsupported routingCoverage kind.');
   });
 });

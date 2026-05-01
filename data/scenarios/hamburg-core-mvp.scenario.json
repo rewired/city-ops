@@ -26,6 +26,15 @@
     "east": 10.2,
     "north": 53.7
   },
+  "routingCoverage": {
+    "kind": "bounds",
+    "bounds": {
+      "west": 9.75,
+      "south": 53.43,
+      "east": 10.2,
+      "north": 53.7
+    }
+  },
   "startingBudget": 250000,
   "simulationStart": {
     "weekday": "monday",

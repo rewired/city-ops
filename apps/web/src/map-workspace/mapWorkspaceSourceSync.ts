@@ -25,15 +25,19 @@ import {
   MAP_SOURCE_ID_OSM_STOP_CANDIDATES,
   MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
   MAP_OSM_STOP_CANDIDATE_CIRCLE_LAYER_PAINT,
-  MAP_SOURCE_ID_SCENARIO_DEMAND_PREVIEW,
   MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE,
-  MAP_SCENARIO_DEMAND_PREVIEW_CIRCLE_LAYER_PAINT
+  MAP_SOURCE_ID_SCENARIO_DEMAND_PREVIEW,
+  MAP_SCENARIO_DEMAND_PREVIEW_CIRCLE_LAYER_PAINT,
+  MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE,
+  MAP_LAYER_ID_SCENARIO_ROUTING_COVERAGE_MASK,
+  MAP_SCENARIO_ROUTING_COVERAGE_MASK_PAINT
 } from './mapRenderConstants';
 import { buildScenarioDemandPreviewFeatureCollection } from './scenarioDemandPreviewGeoJson';
 import type { MapLibreMap } from './maplibreGlobal';
 import { buildStopFeatureCollection } from './stopGeoJson';
 import { buildVehicleFeatureCollection } from './vehicleGeoJson';
 import { buildOsmStopCandidateFeatureCollection } from './osmStopCandidateGeoJson';
+import { buildScenarioRoutingCoverageMaskFeatureCollection } from './scenarioRoutingCoverageGeoJson';
 
 
 
@@ -76,6 +80,7 @@ export interface SyncAllMapWorkspaceSourcesInput {
   readonly vehicleSync?: MapWorkspaceVehicleSyncInput;
   readonly osmStopCandidateSync?: readonly OsmStopCandidateGroup[];
   readonly scenarioDemandArtifact?: import('../domain/types/scenarioDemand').ScenarioDemandArtifact | null;
+  readonly routingCoverage?: import('../domain/scenario/scenarioRegistry').ScenarioRoutingCoverage | null;
 }
 
 /**
@@ -97,6 +102,7 @@ const CUSTOM_LAYER_ORDER = [
   MAP_LAYER_ID_COMPLETED_LINES_CASING,
   MAP_LAYER_ID_COMPLETED_LINES,
   MAP_LAYER_ID_DRAFT_LINE,
+  MAP_LAYER_ID_SCENARIO_ROUTING_COVERAGE_MASK,
   MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE,
   MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
   MAP_LAYER_ID_STOPS_CIRCLE,
@@ -121,7 +127,8 @@ const WORKSPACE_SOURCE_IDS = [
   MAP_SOURCE_ID_STOPS,
   MAP_SOURCE_ID_VEHICLES,
   MAP_SOURCE_ID_OSM_STOP_CANDIDATES,
-  MAP_SOURCE_ID_SCENARIO_DEMAND_PREVIEW
+  MAP_SOURCE_ID_SCENARIO_DEMAND_PREVIEW,
+  MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE
 ] as const;
 
 
@@ -295,6 +302,23 @@ const ensureAllMapWorkspaceRenderSourcesAndLayers = (map: MapLibreMap): void => 
       layout: { visibility: 'none' }
     });
   }
+  
+  if (!map.getSource(MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE)) {
+    map.addSource(MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] }
+    });
+  }
+
+  if (!map.getLayer(MAP_LAYER_ID_SCENARIO_ROUTING_COVERAGE_MASK)) {
+    map.addLayer({
+      id: MAP_LAYER_ID_SCENARIO_ROUTING_COVERAGE_MASK,
+      type: 'fill',
+      source: MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE,
+      paint: MAP_SCENARIO_ROUTING_COVERAGE_MASK_PAINT,
+      layout: { visibility: 'visible' }
+    });
+  }
 };
 
 
@@ -368,6 +392,12 @@ const syncMapWorkspaceSourceData = ({
     const demandFeatureCollection = buildScenarioDemandPreviewFeatureCollection(scenarioDemandArtifact);
     const demandSource = map.getSource(MAP_SOURCE_ID_SCENARIO_DEMAND_PREVIEW);
     demandSource?.setData(demandFeatureCollection);
+  }
+
+  if (routingCoverage !== undefined) {
+    const coverageFeatureCollection = buildScenarioRoutingCoverageMaskFeatureCollection(routingCoverage);
+    const coverageSource = map.getSource(MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE);
+    coverageSource?.setData(coverageFeatureCollection);
   }
 
   enforceMapWorkspaceCustomLayerOrder(map);

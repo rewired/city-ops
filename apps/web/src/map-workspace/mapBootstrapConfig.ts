@@ -31,3 +31,8 @@ export const MAP_FOCUS_ZOOM_STOP = 15.5;
 /** Screen-space padding in pixels applied when fitting a line into the map viewport. */
 export const MAP_FOCUS_PADDING = 64;
 
+/**
+ * Geographic padding (in degrees) applied to scenario routing coverage bounds when calculating map max-bounds.
+ * Prevents the user from panning far outside the routable area.
+ */
+export const MAP_ROUTING_COVERAGE_MAX_BOUNDS_PADDING = 0.05;

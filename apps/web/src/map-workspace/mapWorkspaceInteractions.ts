@@ -14,6 +14,7 @@ import {
   type MapLibreInteractionEvent,
   type MapLibreMap
 } from './maplibreGlobal';
+import type { ScenarioRoutingCoverage } from '../domain/scenario/scenarioRegistry';
 import { 
   queryRenderedFeaturesForExistingLayers,
   bindSafeLayerInteraction,
@@ -67,6 +68,7 @@ interface PlacementGameplayContracts {
   readonly setPlacementAttemptResult: (nextState: PlacementAttemptResult) => void;
   readonly onStopSelectionChange: (nextSelection: StopSelectionState | null) => void;
   readonly onValidPlacement: (lng: number, lat: number, labelCandidate: string | null) => Stop;
+  readonly routingCoverage: ScenarioRoutingCoverage | null;
 }
 
 interface BuildLineModeMapClickContracts {
@@ -84,6 +86,7 @@ export interface MapWorkspaceSurfaceInteractionsContracts {
   readonly onValidPlacement: (lng: number, lat: number, labelCandidate: string | null) => Stop;
   readonly buildLineContracts: BuildLineModeMapClickContracts;
   readonly onOsmCandidateHoverChange?: (nextHover: OsmStopCandidateHoverPayload | null) => void;
+  readonly routingCoverage: ScenarioRoutingCoverage | null;
 }
 
 
@@ -175,14 +178,38 @@ export const hasInteractiveSelectionFeatureAtPoint = (map: RenderedFeatureLayerQ
   return renderedFeatures.length > 0;
 };
 
+/**
+ * Returns true if the given [lng, lat] point is within the provided scenario routing coverage.
+ */
+export const isPointInScenarioRoutingCoverage = (
+  coverage: ScenarioRoutingCoverage | null,
+  lng: number,
+  lat: number
+): boolean => {
+  if (!coverage) {
+    return true; // No coverage defined, allow all
+  }
+
+  if (coverage.kind === 'bounds') {
+    const { west, south, east, north } = coverage.bounds;
+    return lng >= west && lng <= east && lat >= south && lat <= north;
+  }
+
+  return true;
+};
+
 const handleStopPlacementClick = (
-  { map, setInteractionState, setPlacementAttemptResult, onStopSelectionChange, onValidPlacement }: PlacementGameplayContracts,
+  { map, setInteractionState, setPlacementAttemptResult, onStopSelectionChange, onValidPlacement, routingCoverage }: PlacementGameplayContracts,
   event: MapLibreInteractionEvent
 ): void => {
   const streetLayerIds = resolveStreetLayerIdsFromStyle(map);
   const snappedPosition = resolveSnappedStreetPosition(map, event, streetLayerIds);
 
-  if (!event.lngLat || !isEligibleStopPlacementClickForLayers(map, event, streetLayerIds) || !snappedPosition) {
+  const isPointInCoverage = snappedPosition 
+    ? isPointInScenarioRoutingCoverage(routingCoverage, snappedPosition.lng, snappedPosition.lat)
+    : true;
+
+  if (!event.lngLat || !isEligibleStopPlacementClickForLayers(map, event, streetLayerIds) || !snappedPosition || !isPointInCoverage) {
     setPlacementAttemptResult('invalid-target');
     setInteractionState({
       status: 'placement-rejected',
@@ -212,7 +239,8 @@ export const setupMapWorkspaceInteractions = ({
   onStopHoverChange,
   onValidPlacement,
   buildLineContracts,
-  onOsmCandidateHoverChange
+  onOsmCandidateHoverChange,
+  routingCoverage
 }: MapWorkspaceSurfaceInteractionsContracts): MapWorkspaceInteractionBinding => {
   const neutralTelemetryHandlers = createNeutralMapTelemetryHandlers({ setInteractionState });
 
@@ -220,7 +248,7 @@ export const setupMapWorkspaceInteractions = ({
     neutralTelemetryHandlers.onMapClick(event);
 
     if (activeToolMode === 'place-stop') {
-      handleStopPlacementClick({ map, setInteractionState, setPlacementAttemptResult, onStopSelectionChange, onValidPlacement }, event);
+      handleStopPlacementClick({ map, setInteractionState, setPlacementAttemptResult, onStopSelectionChange, onValidPlacement, routingCoverage }, event);
       return;
     }
 

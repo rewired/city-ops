@@ -49,7 +49,7 @@ import {
   type ResolvedOsmStopCandidateHoverPayload,
   type OsmStopCandidateAnchorResolutionCache
 } from './mapWorkspaceOsmCandidateHover';
-import { applyMapWorkspaceFocusIntent } from './mapWorkspaceFocus';
+import { applyMapWorkspaceFocusIntent, applyMapMaxBounds } from './mapWorkspaceFocus';
 import { buildMapWorkspaceDebugSnapshot, type MapWorkspaceDebugSnapshot } from './mapWorkspaceDebugSnapshot';
 import { useMapWorkspaceSourceSync, type MapWorkspaceFeatureDiagnostics, type LayerFeatureDiagnostics } from './useMapWorkspaceSourceSync';
 import { MapLayerFlyout } from './MapLayerFlyout';
@@ -83,6 +83,7 @@ interface MapWorkspaceSurfaceProps {
   readonly osmStopCandidateGroups: readonly OsmStopCandidateGroup[];
   readonly onOsmCandidateAnchorResolved: (resolution: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution | null) => void;
   readonly scenarioDemandArtifact: import('../domain/types/scenarioDemand').ScenarioDemandArtifact | null;
+  readonly routingCoverage: import('../domain/scenario/scenarioRegistry').ScenarioRoutingCoverage | null;
 }
 
 
@@ -130,10 +131,10 @@ export function MapWorkspaceSurface({
   mapFocusIntent,
   onMapFocusIntentConsumed,
   onDebugSnapshotChange,
-  onOsmCandidateSelectionChange,
   osmStopCandidateGroups,
   onOsmCandidateAnchorResolved,
-  scenarioDemandArtifact
+  scenarioDemandArtifact,
+  routingCoverage
 }: MapWorkspaceSurfaceProps): ReactElement {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<MapLibreMap | null>(null);
@@ -269,9 +270,12 @@ export function MapWorkspaceSurface({
         vehicleSync: {
           vehicleNetworkProjection: vehicleNetworkProjectionRef.current
         },
-
-
+        routingCoverage
       });
+
+      if (mapInstance) {
+        applyMapMaxBounds(mapInstance, routingCoverage);
+      }
 
       setFeatureDiagnostics((currentDiagnostics) => ({
         ...currentDiagnostics,
@@ -347,7 +351,8 @@ export function MapWorkspaceSurface({
     onOsmCandidateAnchorResolved,
     createStop: buildDeterministicStop,
     onStopCreated: (stop) => setLastPlacedStopLabel(stop.label ?? null),
-    isMapStyleReady
+    isMapStyleReady,
+    routingCoverage
   });
 
   useMapWorkspaceSourceSync({
@@ -364,6 +369,7 @@ export function MapWorkspaceSurface({
     layerVisibility,
     setFeatureDiagnostics,
     scenarioDemandArtifact,
+    routingCoverage,
     isMapStyleReady
   });
 
@@ -421,6 +427,13 @@ export function MapWorkspaceSurface({
 
     onMapFocusIntentConsumed(null);
   }, [mapFocusIntent, onMapFocusIntentConsumed]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (map && isMapStyleReady) {
+      applyMapMaxBounds(map, routingCoverage);
+    }
+  }, [routingCoverage, isMapStyleReady]);
 
   const handleDraftCancel = (): void => {
     setDraftLineState(INITIAL_DRAFT_LINE_STATE);

@@ -38,4 +38,13 @@ export function applyMapLayerVisibility(
       }
     }
   }
+
+  // scenario-routing-coverage
+  const coverageVisible = visibility['scenario-routing-coverage'];
+  if (coverageVisible !== undefined) {
+    const visibilityValue = coverageVisible ? 'visible' : 'none';
+    if (map.getLayer('openvayra-cities-scenario-routing-coverage-mask')) {
+      map.setLayoutProperty('openvayra-cities-scenario-routing-coverage-mask', 'visibility', visibilityValue);
+    }
+  }
 }
