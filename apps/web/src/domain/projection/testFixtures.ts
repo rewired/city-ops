@@ -22,17 +22,22 @@ import {
 
 /**
  * Creates a complete time-band weight record for all canonical MVP bands.
+ * 
+ * Uses explicit literal construction to ensure total coverage of the TimeBandId union
+ * without requiring broad record casts.
  */
 export const createTestTimeBandWeights = (
   defaultWeight: number,
   overrides: Partial<Record<TimeBandId, number>> = {}
-): Readonly<Record<TimeBandId, number>> => {
-  const weights: Record<TimeBandId, number> = {} as Record<TimeBandId, number>;
-  for (const id of MVP_TIME_BAND_IDS) {
-    weights[id] = overrides[id] ?? defaultWeight;
-  }
-  return weights as Readonly<Record<TimeBandId, number>>;
-};
+): Record<TimeBandId, number> => ({
+  'morning-rush': overrides['morning-rush'] ?? defaultWeight,
+  'late-morning': overrides['late-morning'] ?? defaultWeight,
+  midday: overrides['midday'] ?? defaultWeight,
+  afternoon: overrides['afternoon'] ?? defaultWeight,
+  'evening-rush': overrides['evening-rush'] ?? defaultWeight,
+  evening: overrides['evening'] ?? defaultWeight,
+  night: overrides['night'] ?? defaultWeight
+});
 
 /**
  * Creates a valid ScenarioDemandNode fixture.

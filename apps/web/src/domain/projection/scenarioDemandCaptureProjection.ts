@@ -2,6 +2,7 @@ import { SCENARIO_DEMAND_STOP_ACCESS_RADIUS_METERS } from '../constants/scenario
 import type { ScenarioDemandArtifact, ScenarioDemandNode, ScenarioDemandAttractor, ScenarioDemandGateway } from '../types/scenarioDemand';
 import type { Stop } from '../types/stop';
 import { calculateGreatCircleDistanceMeters } from '../../lib/geometry';
+import { calculateActiveAttractorSinkWeight, calculateActiveDemandWeight, calculateActiveGatewayTransferWeight } from './demandWeight';
 
 /**
  * Input payload for the scenario demand capture projection.
@@ -229,7 +230,6 @@ export function projectScenarioDemandCapture(
   };
 }
 
-import { calculateActiveAttractorSinkWeight, calculateActiveDemandWeight, calculateActiveGatewayTransferWeight } from './demandWeight';
 
 function createEmptySummary(): CapturedEntitySummary {
   return {

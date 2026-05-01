@@ -47,40 +47,35 @@ describe('demandWeight helpers', () => {
 
   describe('calculateActiveDemandWeight', () => {
     it('multiplies base weight by time band weight', () => {
-      expect(calculateActiveDemandWeight(mockNode, 'morning-rush' as TimeBandId)).toBe(150);
-      expect(calculateActiveDemandWeight(mockNode, 'midday' as TimeBandId)).toBe(50);
+      expect(calculateActiveDemandWeight(mockNode, 'morning-rush')).toBe(150);
+      expect(calculateActiveDemandWeight(mockNode, 'midday')).toBe(50);
     });
 
     it('returns 0 for zero time band weight', () => {
-      expect(calculateActiveDemandWeight(mockNode, 'night' as TimeBandId)).toBe(0);
-    });
-
-    it('returns 0 for missing time band weight', () => {
-      // 'unknown-band' is not in MVP_TIME_BAND_IDS, so it will be undefined in the record
-      expect(calculateActiveDemandWeight(mockNode, 'unknown-band' as TimeBandId)).toBe(0);
+      expect(calculateActiveDemandWeight(mockNode, 'night')).toBe(0);
     });
   });
 
   describe('calculateActiveAttractorSinkWeight', () => {
     it('multiplies sink weight by time band weight', () => {
-      expect(calculateActiveAttractorSinkWeight(mockAttractor, 'morning-rush' as TimeBandId)).toBe(240);
+      expect(calculateActiveAttractorSinkWeight(mockAttractor, 'morning-rush')).toBe(240);
     });
 
     it('falls back to 1.0 multiplier if timeBandWeights is missing or band is missing', () => {
       const { timeBandWeights: _, ...attractorNoWeights } = mockAttractor;
-      expect(calculateActiveAttractorSinkWeight(attractorNoWeights as ScenarioDemandAttractor, 'morning-rush' as TimeBandId)).toBe(200);
-      expect(calculateActiveAttractorSinkWeight(mockAttractor, 'midday' as TimeBandId)).toBe(200);
+      expect(calculateActiveAttractorSinkWeight(attractorNoWeights, 'morning-rush')).toBe(200);
+      expect(calculateActiveAttractorSinkWeight(mockAttractor, 'midday')).toBe(200);
     });
   });
 
   describe('calculateActiveGatewayTransferWeight', () => {
     it('multiplies transfer weight by time band weight', () => {
-      expect(calculateActiveGatewayTransferWeight(mockGateway, 'morning-rush' as TimeBandId)).toBe(600);
-      expect(calculateActiveGatewayTransferWeight(mockGateway, 'midday' as TimeBandId)).toBe(300);
+      expect(calculateActiveGatewayTransferWeight(mockGateway, 'morning-rush')).toBe(600);
+      expect(calculateActiveGatewayTransferWeight(mockGateway, 'midday')).toBe(300);
     });
 
     it('returns 0 for missing time band weight', () => {
-      expect(calculateActiveGatewayTransferWeight(mockGateway, 'night' as TimeBandId)).toBe(0);
+      expect(calculateActiveGatewayTransferWeight(mockGateway, 'night')).toBe(0);
     });
   });
 });

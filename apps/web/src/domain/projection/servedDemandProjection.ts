@@ -5,6 +5,7 @@ import type { Line } from '../types/line';
 import type { TimeBandId } from '../types/timeBand';
 import { calculateGreatCircleDistanceMeters } from '../../lib/geometry';
 import { projectLineServicePlanForLine } from './lineServicePlanProjection';
+import { calculateActiveDemandWeight } from './demandWeight';
 
 /**
  * Result of the served demand projection.
@@ -228,7 +229,6 @@ export function projectServedDemand(
   };
 }
 
-import { calculateActiveDemandWeight } from './demandWeight';
 
 function createEmptyProjection(activeTimeBandId: TimeBandId): ServedDemandProjection {
   return {
