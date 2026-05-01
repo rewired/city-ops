@@ -13,16 +13,15 @@
 .right-panel,
 .workspace,
 .status-bar {
-  padding: 16px;
+  padding: 12px var(--openvayra-cities-shell-padding-x);
   min-height: 0;
   min-width: 0;
 }
 
 .left-panel {
   grid-area: left;
-  border-right: 1px solid var(--openvayra-cities-color-border-dark);
   background: #111824;
-  padding: 10px 8px;
+  padding: 12px var(--openvayra-cities-shell-padding-x);
 }
 
 .tool-mode-rail {
@@ -30,7 +29,6 @@
   gap: 10px;
   justify-items: center;
   align-content: start;
-  padding-top: 6px;
 }
 
 .tool-mode-rail__button {
@@ -95,7 +93,6 @@
 
 .right-panel {
   grid-area: right;
-  border-left: 1px solid var(--openvayra-cities-color-border-dark);
   background: #121a27;
   display: flex;
   flex-direction: column;

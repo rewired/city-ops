@@ -24,6 +24,11 @@
   border-top: 1px solid var(--openvayra-cities-color-border-subtle);
 }
 
+.inspector-compact-table tr:first-child th,
+.inspector-compact-table tr:first-child td {
+  border-top: none;
+}
+
 .inspector-compact-table th {
   text-align: left;
   width: 46%;

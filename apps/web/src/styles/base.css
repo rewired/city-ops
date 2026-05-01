@@ -51,10 +51,21 @@ body,
   --openvayra-cities-radius-2xl: 16px;
   --openvayra-cities-radius-pill: 999px;
 
+  --openvayra-cities-shell-padding-x: 12px;
+
   margin: 0;
   height: 100vh;
   width: 100%;
   overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
 }
 
 body {

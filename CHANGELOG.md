@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 168d — Shell Panel Spacing and Inspector Disclosure Polish**:
+    - Removed vertical separator lines between `left-panel`, `workspace`, and `right-panel` for a more integrated look.
+    - Normalized and reduced horizontal padding across shell panels to recover map space.
+    - Aligned the top rhythm of the left rail, map workspace, and right inspector panel.
+    - Implemented a global heading margin reset (`margin-top: 0`) to prevent unexpected vertical offsets.
+    - Reduced visual noise in Inspector disclosures by removing redundant top dividers in expanded content.
+    - Added ADR 0171 documenting layout and spacing refinements.
 - **Slice 168b — Inspector Icon-Tab Information Architecture Repair**:
     - Refactored Inspector to use an icon-first tabbed navigation (`Overview`, `Lines`, `Demand`, `Service`).
     - Split overloaded `Network` tab into focused `Overview`, `Demand`, and `Service` perspectives.

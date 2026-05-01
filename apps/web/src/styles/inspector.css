@@ -27,7 +27,6 @@
 }
 
 .inspector-tabs {
-  margin-top: 12px;
   display: flex;
   gap: 8px;
   border-bottom: 1px solid var(--openvayra-cities-color-border-subtle);
