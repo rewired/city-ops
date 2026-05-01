@@ -1,5 +1,6 @@
 import { MAP_WORKSPACE_BOOTSTRAP_CONFIG } from './mapBootstrapConfig';
 import type { MapLibreMap } from './maplibreGlobal';
+import { filterExistingLayerIds } from './mapWorkspaceRenderedFeatureQuery';
 
 /** Disposable resize binding contract for map workspace lifecycle setup. */
 export interface MapWorkspaceResizeBinding {
@@ -79,7 +80,7 @@ export const runWhenMapStyleReady = (map: MapLibreMap, callback: () => void): ((
 
 /** Counts currently rendered features for layers that are present in the active style. */
 export const countRenderedFeaturesForLayers = (map: MapLibreMap, layerIds: readonly string[]): number => {
-  const availableLayerIds = layerIds.filter((layerId) => map.getLayer(layerId) !== undefined);
+  const availableLayerIds = filterExistingLayerIds(map, layerIds);
 
   if (availableLayerIds.length === 0) {
     return 0;

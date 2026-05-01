@@ -150,6 +150,7 @@ export function MapWorkspaceSurface({
   );
   const [lastPlacedStopLabel, setLastPlacedStopLabel] = useState<string | null>(null);
   const [layerVisibility, setLayerVisibility] = useState<MapLayerVisibilityById>(INITIAL_MAP_LAYER_VISIBILITY);
+  const [isMapStyleReady, setIsMapStyleReady] = useState(false);
 
   const handleToggleLayer = (layerId: MapLayerId): void => {
     setLayerVisibility((prev) => ({
@@ -168,10 +169,13 @@ export function MapWorkspaceSurface({
   const sessionLinesRef = useRef<readonly Line[]>(sessionLines);
   const selectedLineIdRef = useRef<Line['id'] | null>(selectedLineId);
   const vehicleNetworkProjectionRef = useRef<LineVehicleNetworkProjection>(vehicleNetworkProjection);
-  const draftStopIdSet: ReadonlySet<StopId> = new Set(draftLineState.stopIds);
+  const draftStopIdSet: ReadonlySet<StopId> = useMemo(() => new Set(draftLineState.stopIds), [draftLineState.stopIds]);
   const draftStopIdsRef = useRef<readonly StopId[]>(draftLineState.stopIds);
   const draftStopIdSetRef = useRef<ReadonlySet<StopId>>(draftStopIdSet);
   const stopsByIdRef = useRef<ReadonlyMap<StopId, Stop>>(new Map());
+
+  const lastEmittedDraftStopIdsRef = useRef<readonly StopId[]>([]);
+  const lastEmittedDebugSnapshotRef = useRef<string>('');
 
   const anchorResolutionCacheRef = useRef<OsmStopCandidateAnchorResolutionCache>(new Map());
 
@@ -285,6 +289,7 @@ export function MapWorkspaceSurface({
       }));
 
       applyMapLayerVisibility(mapInstance, layerVisibility);
+      setIsMapStyleReady(true);
     };
     mapInstance.on('load', onMapLoad);
     const mapResizeBinding = setupMapResizeBinding(containerElement, mapInstanceRef);
@@ -298,7 +303,17 @@ export function MapWorkspaceSurface({
   }, []);
 
   useEffect(() => {
-    onLineBuildSelectionChange({ selectedStopIds: draftLineState.stopIds });
+    const currentStopIds = draftLineState.stopIds;
+    const lastStopIds = lastEmittedDraftStopIdsRef.current;
+
+    const hasChanged =
+      currentStopIds.length !== lastStopIds.length ||
+      currentStopIds.some((id, index) => id !== lastStopIds[index]);
+
+    if (hasChanged) {
+      lastEmittedDraftStopIdsRef.current = currentStopIds;
+      onLineBuildSelectionChange({ selectedStopIds: currentStopIds });
+    }
   }, [draftLineState.stopIds, onLineBuildSelectionChange]);
 
   useEffect(() => {
@@ -347,7 +362,8 @@ export function MapWorkspaceSurface({
     osmStopCandidateGroups,
     layerVisibility,
     setFeatureDiagnostics,
-    scenarioDemandArtifact
+    scenarioDemandArtifact,
+    isMapStyleReady
   });
 
   const placementUiFeedback = buildPlacementUiFeedback(activeToolMode, placementAttemptResult);
@@ -370,7 +386,11 @@ export function MapWorkspaceSurface({
       hoveredOsmCandidateAnchorResolution: hoveredOsmCandidate?.anchorResolution,
       osmStopCandidateStreetLayerCount: mapInstanceRef.current ? resolveStreetLayerIdsFromStyle(mapInstanceRef.current).length : undefined
     });
-    onDebugSnapshotChange(nextSnapshot);
+    const snapshotString = JSON.stringify(nextSnapshot);
+    if (snapshotString !== lastEmittedDebugSnapshotRef.current) {
+      lastEmittedDebugSnapshotRef.current = snapshotString;
+      onDebugSnapshotChange(nextSnapshot);
+    }
   }, [
     interactionState,
     selectedStopId,

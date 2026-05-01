@@ -49,6 +49,7 @@ export interface UseMapWorkspaceSourceSyncInput {
   readonly layerVisibility: MapLayerVisibilityById;
   readonly setFeatureDiagnostics: React.Dispatch<React.SetStateAction<MapWorkspaceFeatureDiagnostics>>;
   readonly scenarioDemandArtifact: import('../domain/types/scenarioDemand').ScenarioDemandArtifact | null;
+  readonly isMapStyleReady: boolean;
 }
 
 /**
@@ -70,8 +71,61 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
     osmStopCandidateGroups,
     layerVisibility,
     setFeatureDiagnostics,
-    scenarioDemandArtifact
+    scenarioDemandArtifact,
+    isMapStyleReady
   } = input;
+
+  const updateLineDiagnostics = (
+    builderCount: number | undefined,
+    sourceCount: number | undefined
+  ): void => {
+    setFeatureDiagnostics((prev) => {
+      const nextBuilder = builderCount ?? prev.lines.builderFeatureCount;
+      const nextSource = sourceCount ?? prev.lines.sourceFeatureCount;
+
+      if (
+        prev.lines.builderFeatureCount === nextBuilder &&
+        prev.lines.sourceFeatureCount === nextSource
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        lines: {
+          ...prev.lines,
+          builderFeatureCount: nextBuilder,
+          sourceFeatureCount: nextSource
+        }
+      };
+    });
+  };
+
+  const updateVehicleDiagnostics = (
+    builderCount: number | undefined,
+    sourceCount: number | undefined
+  ): void => {
+    setFeatureDiagnostics((prev) => {
+      const nextBuilder = builderCount ?? prev.vehicles.builderFeatureCount;
+      const nextSource = sourceCount ?? prev.vehicles.sourceFeatureCount;
+
+      if (
+        prev.vehicles.builderFeatureCount === nextBuilder &&
+        prev.vehicles.sourceFeatureCount === nextSource
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        vehicles: {
+          ...prev.vehicles,
+          builderFeatureCount: nextBuilder,
+          sourceFeatureCount: nextSource
+        }
+      };
+    });
+  };
 
   const layerVisibilityRef = useRef(layerVisibility);
   useEffect(() => {
@@ -121,7 +175,7 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       });
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
     });
-  }, [activeToolMode, draftStopIdSet, placedStops, selectedStopId, sessionLines, selectedLineId, mapRef.current]);
+  }, [activeToolMode, draftStopIdSet, placedStops, selectedStopId, sessionLines, selectedLineId, isMapStyleReady]);
 
   // 2. Line source sync
   useEffect(() => {
@@ -143,14 +197,10 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
 
     if (sourceSyncDiagnostics) {
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        lines: {
-          ...currentDiagnostics.lines,
-          builderFeatureCount: sourceSyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
-          sourceFeatureCount: sourceSyncDiagnostics.lineSourceFeatureCount
-        }
-      }));
+      updateLineDiagnostics(
+        sourceSyncDiagnostics.lineBuilderFeatureCount,
+        sourceSyncDiagnostics.lineSourceFeatureCount
+      );
       return;
     }
 
@@ -167,17 +217,12 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       });
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
 
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        lines: {
-          ...currentDiagnostics.lines,
-          builderFeatureCount:
-            styleReadySyncDiagnostics.lineBuilderFeatureCount ?? currentDiagnostics.lines.builderFeatureCount,
-          sourceFeatureCount: styleReadySyncDiagnostics.lineSourceFeatureCount
-        }
-      }));
+      updateLineDiagnostics(
+        styleReadySyncDiagnostics.lineBuilderFeatureCount,
+        styleReadySyncDiagnostics.lineSourceFeatureCount
+      );
     });
-  }, [draftStopIds, placedStops, selectedLineId, sessionLines, mapRef.current]);
+  }, [draftStopIds, placedStops, selectedLineId, sessionLines, isMapStyleReady]);
 
   // 3. Vehicle source sync
   useEffect(() => {
@@ -196,14 +241,10 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
 
     if (sourceSyncDiagnostics) {
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        vehicles: {
-          ...currentDiagnostics.vehicles,
-          builderFeatureCount: sourceSyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
-          sourceFeatureCount: sourceSyncDiagnostics.vehicleSourceFeatureCount
-        }
-      }));
+      updateVehicleDiagnostics(
+        sourceSyncDiagnostics.vehicleBuilderFeatureCount,
+        sourceSyncDiagnostics.vehicleSourceFeatureCount
+      );
       return;
     }
 
@@ -217,17 +258,12 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       });
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
 
-      setFeatureDiagnostics((currentDiagnostics) => ({
-        ...currentDiagnostics,
-        vehicles: {
-          ...currentDiagnostics.vehicles,
-          builderFeatureCount:
-            styleReadySyncDiagnostics.vehicleBuilderFeatureCount ?? currentDiagnostics.vehicles.builderFeatureCount,
-          sourceFeatureCount: styleReadySyncDiagnostics.vehicleSourceFeatureCount
-        }
-      }));
+      updateVehicleDiagnostics(
+        styleReadySyncDiagnostics.vehicleBuilderFeatureCount,
+        styleReadySyncDiagnostics.vehicleSourceFeatureCount
+      );
     });
-  }, [vehicleNetworkProjection, mapRef.current]);
+  }, [vehicleNetworkProjection, isMapStyleReady]);
 
   // 4. OSM candidate source sync
   useEffect(() => {
@@ -255,7 +291,7 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       });
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
     });
-  }, [osmStopCandidateGroups, mapRef.current]);
+  }, [osmStopCandidateGroups, isMapStyleReady]);
 
   // 5. Scenario demand source sync
   useEffect(() => {
@@ -286,7 +322,7 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       });
       applyMapLayerVisibility(mapInstance, layerVisibilityRef.current);
     });
-  }, [scenarioDemandArtifact, layerVisibility['scenario-demand-preview'], mapRef.current]);
+  }, [scenarioDemandArtifact, layerVisibility['scenario-demand-preview'], isMapStyleReady]);
 
 
 
@@ -298,7 +334,7 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
     }
 
     applyMapLayerVisibility(mapInstance, layerVisibility);
-  }, [layerVisibility, mapRef.current]);
+  }, [layerVisibility, isMapStyleReady]);
 
   // 6. Rendered feature diagnostics refresh
 
@@ -346,5 +382,5 @@ export function useMapWorkspaceSourceSync(input: UseMapWorkspaceSourceSyncInput)
       mapInstance.off('render', refreshRenderedFeatureDiagnostics);
       mapInstance.off('idle', refreshRenderedFeatureDiagnostics);
     };
-  }, [mapRef.current]);
+  }, [isMapStyleReady]);
 }

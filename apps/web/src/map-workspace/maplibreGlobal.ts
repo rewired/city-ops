@@ -14,7 +14,7 @@ interface MapConstructorOptions {
 /**
  * Screen-space coordinates emitted by pointer-like map interaction events.
  */
-interface MapEventPoint {
+export interface MapEventPoint {
   readonly x: number;
   readonly y: number;
 }

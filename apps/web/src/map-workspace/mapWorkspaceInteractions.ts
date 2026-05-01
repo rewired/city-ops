@@ -14,6 +14,7 @@ import {
   type MapLibreInteractionEvent,
   type MapLibreMap
 } from './maplibreGlobal';
+import { queryRenderedFeaturesForExistingLayers } from './mapWorkspaceRenderedFeatureQuery';
 import {
   isEligibleStopPlacementClickForLayers,
   resolveSnappedStreetPosition,
@@ -168,7 +169,7 @@ export const hasInteractiveSelectionFeatureAtPoint = (map: MapLibreMap, event: M
     MAP_LAYER_ID_COMPLETED_LINES,
     MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE
   ];
-  const renderedFeatures = map.queryRenderedFeatures(event.point, { layers: interactiveSelectionLayers });
+  const renderedFeatures = queryRenderedFeaturesForExistingLayers(map, event.point, interactiveSelectionLayers);
 
   return renderedFeatures.length > 0;
 };
@@ -287,7 +288,7 @@ export const setupMapWorkspaceInteractions = ({
 
     // Defensive fallback: if mouseleave didn't fire, check if we're still over interactive layers
     const interactiveLayers = [MAP_LAYER_ID_STOPS_CIRCLE, MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE];
-    const features = map.queryRenderedFeatures(event.point, { layers: interactiveLayers });
+    const features = queryRenderedFeaturesForExistingLayers(map, event.point, interactiveLayers);
     
     const isOverStop = features.some(f => f.layer?.id === MAP_LAYER_ID_STOPS_CIRCLE);
     const isOverOsm = features.some(f => f.layer?.id === MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE);
