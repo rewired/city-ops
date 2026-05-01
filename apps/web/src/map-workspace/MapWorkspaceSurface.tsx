@@ -53,6 +53,7 @@ import { applyMapWorkspaceFocusIntent, applyMapMaxBounds } from './mapWorkspaceF
 import { buildMapWorkspaceDebugSnapshot, type MapWorkspaceDebugSnapshot } from './mapWorkspaceDebugSnapshot';
 import { useMapWorkspaceSourceSync, type MapWorkspaceFeatureDiagnostics, type LayerFeatureDiagnostics } from './useMapWorkspaceSourceSync';
 import { MapLayerFlyout } from './MapLayerFlyout';
+import { DemandGapLegend } from './DemandGapLegend';
 import {
   INITIAL_MAP_LAYER_VISIBILITY,
   type MapLayerId,
@@ -508,6 +509,8 @@ export function MapWorkspaceSurface({
         visibility={layerVisibility}
         onToggleLayer={handleToggleLayer}
       />
+
+      {layerVisibility['demand-gap-overlay'] && <DemandGapLegend />}
 
 
 

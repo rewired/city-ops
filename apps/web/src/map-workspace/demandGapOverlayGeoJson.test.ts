@@ -84,6 +84,33 @@ describe('demandGapOverlayGeoJson', () => {
     expect(feature1.geometry.coordinates).toEqual([13.4, 52.5]);
     expect(feature1.properties.kind).toBe('uncaptured-residential');
     expect(feature1.properties.activeWeight).toBe(10);
+    expect(feature1.properties.visualWeight).toBe(10);
     expect(feature1.properties.nearestStopDistanceMeters).toBeNull();
+  });
+
+  it('clamps visualWeight within expected bounds', () => {
+    const projectionWithLargeWeight: DemandGapRankingProjection = {
+      ...mockProjection,
+      uncapturedResidentialGaps: [
+        {
+          ...mockProjection.uncapturedResidentialGaps[0]!,
+          activeWeight: 100
+        }
+      ]
+    };
+    const resultLarge = buildDemandGapOverlayFeatureCollection(projectionWithLargeWeight);
+    expect(resultLarge.features[0]!.properties.visualWeight).toBe(20);
+
+    const projectionWithSmallWeight: DemandGapRankingProjection = {
+      ...mockProjection,
+      uncapturedResidentialGaps: [
+        {
+          ...mockProjection.uncapturedResidentialGaps[0]!,
+          activeWeight: 0.05
+        }
+      ]
+    };
+    const resultSmall = buildDemandGapOverlayFeatureCollection(projectionWithSmallWeight);
+    expect(resultSmall.features[0]!.properties.visualWeight).toBe(1);
   });
 });

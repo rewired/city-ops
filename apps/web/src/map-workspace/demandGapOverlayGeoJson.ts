@@ -11,6 +11,8 @@ export interface DemandGapOverlayFeatureProperties {
   readonly kind: DemandGapRankingItem['kind'];
   /** Active demand weight for the current time band. */
   readonly activeWeight: number;
+  /** Visual weight clamped for heatmap visibility. */
+  readonly visualWeight: number;
   /** Base demographic weight. */
   readonly baseWeight: number;
   /** Distance to the nearest stop in meters, if any. */
@@ -53,6 +55,9 @@ export function buildDemandGapOverlayFeatureCollection(
         gapId: item.id,
         kind: item.kind,
         activeWeight: item.activeWeight,
+        // Clamp visual weight to ensure even small gaps contribute to the heatmap pressure.
+        // We use a floor to avoid invisible heat areas for very small weights.
+        visualWeight: Math.max(1, Math.min(20, item.activeWeight)),
         baseWeight: item.baseWeight,
         nearestStopDistanceMeters: item.nearestStopDistanceMeters,
         capturingStopCount: item.capturingStopCount

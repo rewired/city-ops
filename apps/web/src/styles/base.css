@@ -20,29 +20,29 @@ body,
   --openvayra-cities-color-accent-yellow: #f5c358;
   --openvayra-cities-color-accent-blue: #0075de;
   --openvayra-cities-color-accent-blue-hover: #3c73c0;
-  
+
   /* Wordmark Branding */
   --openvayra-cities-wordmark-city-color: #ffffff;
   --openvayra-cities-wordmark-ops-color: #016be6;
-  
+
   /* Semantic Colors */
   --openvayra-cities-color-success: #9fe3ad;
   --openvayra-cities-color-danger: #ffb5b5;
   --openvayra-cities-color-warning: #fae6b3;
-  
+
   /* Borders */
   --openvayra-cities-color-border: #425b83;
   --openvayra-cities-color-border-medium: #304766;
   --openvayra-cities-color-border-dark: #263142;
   --openvayra-cities-color-border-subtle: #2f415f;
-  
+
   /* Surfaces */
   --openvayra-cities-color-surface: #141c29;
   --openvayra-cities-color-surface-hover: #1d2a3f;
   --openvayra-cities-color-surface-active: #2f466f;
   --openvayra-cities-color-surface-card: #131f31;
   --openvayra-cities-color-surface-soft: #1b2a40;
-  
+
   /* Radii */
   --openvayra-cities-radius-sm: 6px;
   --openvayra-cities-radius-md: 8px;
@@ -65,7 +65,7 @@ h3,
 h4,
 h5,
 h6 {
-  margin-top: 0.1rem;
+  margin-top: 0.2rem;
   margin-bottom: 0.35rem;
 }
 

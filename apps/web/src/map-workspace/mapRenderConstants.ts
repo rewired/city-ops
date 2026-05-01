@@ -323,18 +323,18 @@ export const MAP_DEMAND_GAP_OVERLAY_LAYER_IDS = [
 
 /**
  * Heatmap paint style for demand gap aggregate pressure.
- * Weighted by activeWeight and intensity increases at higher zooms.
+ * Weighted by visualWeight and intensity increases at higher zooms.
  */
 export const MAP_DEMAND_GAP_OVERLAY_HEATMAP_PAINT = {
-  'heatmap-weight': ['get', 'activeWeight'],
+  'heatmap-weight': ['get', 'visualWeight'],
   'heatmap-intensity': [
     'interpolate',
     ['linear'],
     ['zoom'],
     10,
-    1,
+    2,
     15,
-    3
+    6
   ],
   'heatmap-color': [
     'interpolate',
@@ -343,26 +343,26 @@ export const MAP_DEMAND_GAP_OVERLAY_HEATMAP_PAINT = {
     0,
     'rgba(255,255,255,0)',
     0.2,
-    'rgba(254,243,199,0.5)',
+    'rgba(254,243,199,0.6)',
     0.4,
-    'rgba(252,211,77,0.6)',
+    'rgba(252,211,77,0.7)',
     0.6,
-    'rgba(251,191,36,0.7)',
+    'rgba(251,191,36,0.8)',
     0.8,
-    'rgba(245,158,11,0.8)',
+    'rgba(245,158,11,0.9)',
     1,
-    'rgba(217,119,6,0.9)'
+    'rgba(217,119,6,0.95)'
   ],
   'heatmap-radius': [
     'interpolate',
     ['linear'],
     ['zoom'],
     10,
+    25,
     15,
-    15,
-    30
+    50
   ],
-  'heatmap-opacity': 0.7
+  'heatmap-opacity': 0.85
 } as const;
 
 /**
@@ -370,7 +370,7 @@ export const MAP_DEMAND_GAP_OVERLAY_HEATMAP_PAINT = {
  * Fades in at higher zooms to avoid visual clutter at low zooms.
  */
 export const MAP_DEMAND_GAP_OVERLAY_CIRCLE_PAINT = {
-  'circle-radius': 4,
+  'circle-radius': 5,
   'circle-color': [
     'match',
     ['get', 'kind'],
@@ -388,18 +388,18 @@ export const MAP_DEMAND_GAP_OVERLAY_CIRCLE_PAINT = {
     'interpolate',
     ['linear'],
     ['zoom'],
-    13,
+    11,
     0,
-    14,
+    12,
     0.8
   ],
   'circle-stroke-opacity': [
     'interpolate',
     ['linear'],
     ['zoom'],
-    13,
+    11,
     0,
-    14,
+    12,
     0.8
   ]
 } as const;
