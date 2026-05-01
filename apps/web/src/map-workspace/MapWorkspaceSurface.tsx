@@ -346,7 +346,8 @@ export function MapWorkspaceSurface({
     onOsmCandidateSelectionChange,
     onOsmCandidateAnchorResolved,
     createStop: buildDeterministicStop,
-    onStopCreated: (stop) => setLastPlacedStopLabel(stop.label ?? null)
+    onStopCreated: (stop) => setLastPlacedStopLabel(stop.label ?? null),
+    isMapStyleReady
   });
 
   useMapWorkspaceSourceSync({

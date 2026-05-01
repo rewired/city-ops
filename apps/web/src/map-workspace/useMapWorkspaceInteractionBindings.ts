@@ -56,6 +56,7 @@ export interface UseMapWorkspaceInteractionBindingsInput {
     existingStops: readonly Stop[]
   ) => Stop;
   readonly onStopCreated: (stop: Stop) => void;
+  readonly isMapStyleReady: boolean;
 }
 
 /**
@@ -68,7 +69,7 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
   useEffect(() => {
     const mapInstance = input.mapRef.current;
 
-    if (!mapInstance) {
+    if (!mapInstance || !input.isMapStyleReady) {
       return;
     }
 
@@ -144,13 +145,14 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
     input.activeToolMode,
     input.onPlacedStopsChange,
     input.onStopSelectionChange,
-    input.onOsmCandidateSelectionChange
+    input.onOsmCandidateSelectionChange,
+    input.isMapStyleReady
   ]);
 
   useEffect(() => {
     const mapInstance = input.mapRef.current;
 
-    if (!mapInstance) {
+    if (!mapInstance || !input.isMapStyleReady) {
       return;
     }
 
@@ -190,12 +192,12 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
     return () => {
       stopInteractionBinding.dispose();
     };
-  }, []);
+  }, [input.isMapStyleReady]);
 
   useEffect(() => {
     const mapInstance = input.mapRef.current;
 
-    if (!mapInstance) {
+    if (!mapInstance || !input.isMapStyleReady) {
       return;
     }
 
@@ -218,5 +220,5 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
     return () => {
       completedLineInteractionBinding.dispose();
     };
-  }, [input.onSelectedLineIdChange]);
+  }, [input.onSelectedLineIdChange, input.isMapStyleReady]);
 }

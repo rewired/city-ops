@@ -14,7 +14,11 @@ import {
   type MapLibreInteractionEvent,
   type MapLibreMap
 } from './maplibreGlobal';
-import { queryRenderedFeaturesForExistingLayers } from './mapWorkspaceRenderedFeatureQuery';
+import { 
+  queryRenderedFeaturesForExistingLayers,
+  bindSafeLayerInteraction,
+  type MapWorkspaceInteractionBinding
+} from './mapWorkspaceRenderedFeatureQuery';
 import {
   isEligibleStopPlacementClickForLayers,
   resolveSnappedStreetPosition,
@@ -81,10 +85,6 @@ export interface MapWorkspaceSurfaceInteractionsContracts {
   readonly onOsmCandidateHoverChange?: (nextHover: OsmStopCandidateHoverPayload | null) => void;
 }
 
-/** Disposable interaction binding returned by workspace map setup helpers. */
-export interface MapWorkspaceInteractionBinding {
-  readonly dispose: () => void;
-}
 
 /** Context contract for resolving stop-feature clicks across inspect and build-line modes. */
 export interface StopFeatureInteractionContext {
@@ -303,27 +303,33 @@ export const setupMapWorkspaceInteractions = ({
 
   map.on('mousemove', onGeneralMouseMove);
   map.on('click', onMapClick);
-  map.on('mouseenter', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseEnter);
-  map.on('mousemove', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseMove);
-  map.on('mouseleave', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseLeave);
+
+  const stopMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseEnter);
+  const stopMouseMoveBinding = bindSafeLayerInteraction(map, 'mousemove', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseMove);
+  const stopMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseLeave);
+
+  let osmMouseEnterBinding: MapWorkspaceInteractionBinding | null = null;
+  let osmMouseMoveBinding: MapWorkspaceInteractionBinding | null = null;
+  let osmMouseLeaveBinding: MapWorkspaceInteractionBinding | null = null;
+
   if (onOsmCandidateHoverChange) {
-    map.on('mouseenter', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseEnter);
-    map.on('mousemove', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseMove);
-    map.on('mouseleave', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseLeave);
+    osmMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseEnter);
+    osmMouseMoveBinding = bindSafeLayerInteraction(map, 'mousemove', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseMove);
+    osmMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseLeave);
   }
 
   return {
     dispose: () => {
       map.off('mousemove', onGeneralMouseMove);
       map.off('click', onMapClick);
-      map.off('mouseenter', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseEnter);
-      map.off('mousemove', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseMove);
-      map.off('mouseleave', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseLeave);
-      if (onOsmCandidateHoverChange) {
-        map.off('mouseenter', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseEnter);
-        map.off('mousemove', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseMove);
-        map.off('mouseleave', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseLeave);
-      }
+
+      stopMouseEnterBinding.dispose();
+      stopMouseMoveBinding.dispose();
+      stopMouseLeaveBinding.dispose();
+
+      osmMouseEnterBinding?.dispose();
+      osmMouseMoveBinding?.dispose();
+      osmMouseLeaveBinding?.dispose();
     }
   };
 };
@@ -353,13 +359,7 @@ export const bindStopFeatureInteractions = (
   map: MapLibreMap,
   onStopFeatureClick: (event: MapLibreInteractionEvent) => void
 ): MapWorkspaceInteractionBinding => {
-  map.on('click', MAP_LAYER_ID_STOPS_CIRCLE, onStopFeatureClick);
-
-  return {
-    dispose: () => {
-      map.off('click', MAP_LAYER_ID_STOPS_CIRCLE, onStopFeatureClick);
-    }
-  };
+  return bindSafeLayerInteraction(map, 'click', MAP_LAYER_ID_STOPS_CIRCLE, onStopFeatureClick);
 };
 
 /** Binds click interactions for rendered completed-line features and provides a dispose hook. */
@@ -367,13 +367,7 @@ export const bindCompletedLineFeatureInteractions = (
   map: MapLibreMap,
   onCompletedLineClick: (event: MapLibreInteractionEvent) => void
 ): MapWorkspaceInteractionBinding => {
-  map.on('click', MAP_LAYER_ID_COMPLETED_LINES, onCompletedLineClick);
-
-  return {
-    dispose: () => {
-      map.off('click', MAP_LAYER_ID_COMPLETED_LINES, onCompletedLineClick);
-    }
-  };
+  return bindSafeLayerInteraction(map, 'click', MAP_LAYER_ID_COMPLETED_LINES, onCompletedLineClick);
 };
 
 /** Binds click interactions for rendered OSM stop candidate features and provides a dispose hook. */
@@ -381,11 +375,5 @@ export const bindOsmCandidateFeatureInteractions = (
   map: MapLibreMap,
   onOsmCandidateFeatureClick: (event: MapLibreInteractionEvent) => void
 ): MapWorkspaceInteractionBinding => {
-  map.on('click', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateFeatureClick);
-
-  return {
-    dispose: () => {
-      map.off('click', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateFeatureClick);
-    }
-  };
+  return bindSafeLayerInteraction(map, 'click', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateFeatureClick);
 };

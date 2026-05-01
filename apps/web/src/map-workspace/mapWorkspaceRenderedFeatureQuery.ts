@@ -2,8 +2,14 @@ import type {
   MapLibreMap, 
   MapEventPoint, 
   MapLibreRenderedFeatureQueryBox, 
-  MapLibreRenderedFeature 
+  MapLibreRenderedFeature,
+  MapLibreInteractionEvent
 } from './maplibreGlobal';
+
+/** Disposable interaction binding returned by workspace map setup helpers. */
+export interface MapWorkspaceInteractionBinding {
+  readonly dispose: () => void;
+}
 
 /**
  * Filters the requested layer IDs to only those currently present in the map style.
@@ -41,4 +47,34 @@ export const queryRenderedFeaturesForExistingLayers = (
   }
 
   return map.queryRenderedFeatures(pointOrBox, { layers: existingLayerIds });
+};
+
+/**
+ * Safely registers a layer-scoped MapLibre interaction listener only if the layer exists.
+ * 
+ * Returns a disposable binding that removes the listener only if it was actually registered.
+ * 
+ * @param map The MapLibre map instance.
+ * @param type The interaction event type.
+ * @param layerId The style layer ID to bind to.
+ * @param listener The interaction event listener.
+ * @returns A disposable binding.
+ */
+export const bindSafeLayerInteraction = (
+  map: MapLibreMap,
+  type: 'click' | 'mouseenter' | 'mouseleave' | 'mousemove',
+  layerId: string,
+  listener: (event: MapLibreInteractionEvent) => void
+): MapWorkspaceInteractionBinding => {
+  if (!map.getLayer(layerId)) {
+    return { dispose: () => {} };
+  }
+
+  map.on(type, layerId, listener);
+
+  return {
+    dispose: () => {
+      map.off(type, layerId, listener);
+    }
+  };
 };

@@ -1,19 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 import { hasInteractiveSelectionFeatureAtPoint } from './mapWorkspaceInteractions';
-import type { MapLibreInteractionEvent, MapLibreMap } from './maplibreGlobal';
+import type { MapLibreInteractionEvent, MapLibreMap, MapLibreRenderedFeature } from './maplibreGlobal';
 import { 
   MAP_LAYER_ID_STOPS_CIRCLE, 
   MAP_LAYER_ID_COMPLETED_LINES,
   MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE
 } from './mapRenderConstants';
 
-const createMapMock = (presentLayerIds: string[], features: any[] = []) => {
+const createMapMock = (
+  presentLayerIds: string[], 
+  features: readonly MapLibreRenderedFeature[] = []
+) => {
   const layerSet = new Set(presentLayerIds);
   const queryRenderedFeatures = vi.fn().mockReturnValue(features);
 
   return {
-    getLayer: (id: string) => layerSet.has(id) ? { id } : undefined,
+    getLayer: (id: string) => layerSet.has(id) ? { id, type: 'circle', source: 'test' } : undefined,
     queryRenderedFeatures,
+    on: vi.fn(),
+    off: vi.fn(),
   } as unknown as MapLibreMap;
 };
 
@@ -22,7 +27,7 @@ describe('mapWorkspaceInteractions', () => {
     it('returns true when interactive features are found in existing layers', () => {
       const map = createMapMock(
         [MAP_LAYER_ID_STOPS_CIRCLE], 
-        [{ id: 'stop-1', layer: { id: MAP_LAYER_ID_STOPS_CIRCLE } }]
+        [{ properties: { stopId: 'stop-1' }, layer: { id: MAP_LAYER_ID_STOPS_CIRCLE } }]
       );
       const event = { point: { x: 10, y: 10 } } as MapLibreInteractionEvent;
       
