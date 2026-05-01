@@ -12,6 +12,7 @@ import type { Stop } from '../types/stop';
 import type { TimeBandId } from '../types/timeBand';
 import type { SimulationMinuteOfDay, SimulationSecondOfDay } from '../types/simulationClock';
 import type { LineRouteSegment, RouteStatus } from '../types/lineRoute';
+import { projectSelectedLineDemandContribution, type SelectedLineDemandContributionProjection } from './selectedLineDemandContributionProjection';
 
 const MAX_READINESS_ISSUES_VISIBLE = 5;
 
@@ -65,6 +66,7 @@ export interface NetworkPlanningProjections {
   readonly scenarioDemandCaptureProjection: ScenarioDemandCaptureProjection;
   readonly servedDemandProjection: ServedDemandProjection;
   readonly servicePressureProjection: ServicePressureProjection;
+  readonly selectedLineDemandContribution: SelectedLineDemandContributionProjection | null;
 }
 
 
@@ -178,6 +180,13 @@ export const useNetworkPlanningProjections = (
     networkServicePlanProjection
   );
 
+  const selectedLineDemandContribution = projectSelectedLineDemandContribution(
+    selectedLine,
+    sessionStops,
+    scenarioDemandArtifact,
+    activeSimulationTimeBandId
+  );
+
   return {
     staticNetworkSummaryKpis,
     selectedLineRouteBaseline,
@@ -191,6 +200,7 @@ export const useNetworkPlanningProjections = (
     selectedLineServiceInspectorProjection,
     scenarioDemandCaptureProjection,
     servedDemandProjection,
-    servicePressureProjection
+    servicePressureProjection,
+    selectedLineDemandContribution
   };
 };

@@ -41,6 +41,7 @@ interface SelectedLineInspectorProps {
   ) => void;
   readonly openDialogIntent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null;
   readonly onOpenDialogIntentConsumed: (intent: import('../session/sessionTypes').SelectedLineDialogOpenIntent | null) => void;
+  readonly selectedLineDemandContribution: import('../domain/projection/selectedLineDemandContributionProjection').SelectedLineDemandContributionProjection | null;
 }
 
 type SelectedLineDialogId = 'frequency' | 'service-plan' | 'departures' | 'projected-vehicles';
@@ -68,7 +69,8 @@ export function SelectedLineInspector({
   onStopRename,
   onFrequencyChange,
   openDialogIntent,
-  onOpenDialogIntentConsumed
+  onOpenDialogIntentConsumed,
+  selectedLineDemandContribution
 }: SelectedLineInspectorProps): ReactElement {
   const [activeDialogId, setActiveDialogId] = useState<SelectedLineDialogId | null>(null);
   const readinessBlockerCount = selectedLineServiceProjection?.readiness.summary.errorIssueCount ?? 0;
@@ -190,6 +192,49 @@ export function SelectedLineInspector({
             <MaterialIcon name="directions_bus" />
           </button>
         </div>
+      </section>
+
+      <section className="selected-line-inspector__demand" aria-label="Line demand contribution">
+        <h3>Line demand contribution</h3>
+        {!selectedLineDemandContribution || selectedLineDemandContribution.status === 'unavailable' ? (
+          <p className="inspector-dialog__note">Demand contribution unavailable.</p>
+        ) : (
+          <>
+            <table className="inspector-compact-table">
+              <tbody>
+                <tr>
+                  <th scope="row">Residential served</th>
+                  <td>
+                    {Math.round(selectedLineDemandContribution.servedResidentialActiveWeight)} / {Math.round(selectedLineDemandContribution.capturedResidentialActiveWeight)} active demand
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Workplace reachable</th>
+                  <td>
+                    {Math.round(selectedLineDemandContribution.reachableWorkplaceActiveWeight)} active demand
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Departures/hour</th>
+                  <td>{selectedLineDemandContribution.activeDeparturesPerHourEstimate.toFixed(1)}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Line pressure</th>
+                  <td className="inspector-compact-table__value--left">
+                    {selectedLineDemandContribution.servicePressureStatus.charAt(0).toUpperCase() + selectedLineDemandContribution.servicePressureStatus.slice(1)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            {selectedLineDemandContribution.notes.length > 0 && (
+              <div className="selected-line-inspector__demand-notes">
+                {selectedLineDemandContribution.notes.map((note, index) => (
+                  <p key={index} className="inspector-dialog__note">{note}</p>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </section>
 
       <section className="selected-line-inspector__route-sequence" aria-label="Selected line route sequence">

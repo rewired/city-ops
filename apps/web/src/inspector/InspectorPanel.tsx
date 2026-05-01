@@ -51,6 +51,7 @@ interface InspectorPanelProps {
   readonly scenarioDemandCaptureProjection: import('../domain/projection/scenarioDemandCaptureProjection').ScenarioDemandCaptureProjection;
   readonly servedDemandProjection: import('../domain/projection/servedDemandProjection').ServedDemandProjection;
   readonly servicePressureProjection: import('../domain/projection/servicePressureProjection').ServicePressureProjection;
+  readonly selectedLineDemandContribution: import('../domain/projection/selectedLineDemandContributionProjection').SelectedLineDemandContributionProjection | null;
 }
 
 const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
@@ -99,7 +100,8 @@ export function InspectorPanel({
   adoptedOsmCandidateGroupIds,
   scenarioDemandCaptureProjection,
   servedDemandProjection,
-  servicePressureProjection
+  servicePressureProjection,
+  selectedLineDemandContribution
 }: InspectorPanelProps): ReactElement {
   const [activeTabId, setActiveTabId] = useState<InspectorTabId>('network');
   const [linesViewMode, setLinesViewMode] = useState<'list' | 'detail'>('list');
@@ -395,6 +397,7 @@ export function InspectorPanel({
                       onFrequencyChange={onFrequencyChange}
                       openDialogIntent={openDialogIntent}
                       onOpenDialogIntentConsumed={onOpenDialogIntentConsumed}
+                      selectedLineDemandContribution={selectedLineDemandContribution}
                     />
                   ) : (
                     <p>Select a completed line from the list to open detail.</p>
