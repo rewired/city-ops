@@ -11,28 +11,26 @@ import type { TimeBandId } from '../domain/types/timeBand';
 
 // Minimal mock data
 const mockPanelState: InspectorPanelState = {
-  mode: 'network',
-  networkSummary: {
-    status: 'idle',
-    blockerCount: 0,
-    warningCount: 0
-  }
+  mode: 'empty'
 };
 
 const mockKpis = {
   totalStopCount: 10,
-  completedLineCount: 5
-};
+  completedLineCount: 5,
+  selectedCompletedLine: null
+} as any;
 
 const mockVehicleProjection = {
   summary: { totalProjectedVehicleCount: 15 },
-  lineProjections: []
-};
+  lineProjections: [],
+  lines: []
+} as any;
 
 const mockServicePlanProjection = {
-  summary: { activeTimeBandId: 'peak_morning' as TimeBandId, degradedLineCount: 0, blockedLineCount: 0 },
-  lineProjections: []
-};
+  summary: { activeTimeBandId: 'morning-rush' as TimeBandId, degradedLineCount: 0, blockedLineCount: 0 },
+  lineProjections: [],
+  lines: []
+} as any;
 
 const mockDemandCaptureProjection = { status: 'unavailable' } as any;
 const mockServedDemandProjection = { status: 'unavailable' } as any;
@@ -56,16 +54,34 @@ const renderInspectorPanel = (): RenderResult => {
         staticNetworkSummaryKpis={mockKpis}
         placedStops={[]}
         completedLines={[]}
+        activeTimeBandId="morning-rush"
         onStopSelectionChange={vi.fn()}
         onSelectedLineIdChange={vi.fn()}
         onLineRename={vi.fn()}
+        onStopRename={vi.fn()}
+        onLineSequenceStopFocus={vi.fn()}
+        onPositionFocus={vi.fn()}
         vehicleNetworkProjection={mockVehicleProjection}
         networkServicePlanProjection={mockServicePlanProjection}
         scenarioDemandCaptureProjection={mockDemandCaptureProjection}
         servedDemandProjection={mockServedDemandProjection}
         servicePressureProjection={mockServicePressureProjection}
         demandGapRankingProjection={mockDemandGapRankingProjection}
-        onPositionFocus={vi.fn()}
+        selectedLineRouteBaseline={null}
+        selectedLineServiceProjection={null}
+        selectedLineServiceInspectorProjection={null}
+        selectedLinePlanningVehicleProjection={null}
+        lineFrequencyInputByTimeBand={{} as any}
+        lineFrequencyControlByTimeBand={{} as any}
+        lineFrequencyValidationByTimeBand={{} as any}
+        onFrequencyChange={vi.fn()}
+        openDialogIntent={null}
+        onOpenDialogIntentConsumed={vi.fn()}
+        onOsmCandidateAdopt={vi.fn()}
+        osmStopCandidateGroups={[]}
+        selectedOsmCandidateAnchor={null}
+        adoptedOsmCandidateGroupIds={new Set()}
+        selectedLineDemandContribution={null}
       />
     );
   });

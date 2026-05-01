@@ -1,13 +1,5 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
-import { MaterialIcon } from '../ui/icons/MaterialIcon';
-
-import { TIME_BAND_DISPLAY_LABELS } from '../domain/constants/timeBands';
+import { useMemo, useState, type ReactElement } from 'react';
 import type { Line } from '../domain/types/line';
-import { InlineRenameField } from './InlineRenameField';
-import { SelectedLineInspector } from './SelectedLineInspector';
-import { NetworkInventory } from './NetworkInventory';
-import { InspectorDisclosure } from '../ui/InspectorDisclosure';
-import { INSPECTOR_TAB_IDS, INSPECTOR_TAB_LABELS, INSPECTOR_TAB_ICONS, type InspectorTabId } from './inspectorTabs';
 import { OsmStopCandidateInspector } from './OsmStopCandidateInspector';
 import type { InspectorPanelState } from './types';
 import type {
@@ -17,6 +9,14 @@ import type {
   SelectedLineFrequencyUpdateAction
 } from '../session/useNetworkSessionState';
 import type { TimeBandId } from '../domain/types/timeBand';
+import type { InspectorTabId } from './inspectorTabs';
+
+import { InspectorTabBar } from './InspectorTabBar';
+import { InspectorScrollArea } from './InspectorScrollArea';
+import { InspectorOverviewTab } from './InspectorOverviewTab';
+import { InspectorDemandTab } from './InspectorDemandTab';
+import { InspectorServiceTab } from './InspectorServiceTab';
+import { InspectorLinesTab } from './InspectorLinesTab';
 
 interface InspectorPanelProps {
   readonly inspectorPanelState: InspectorPanelState;
@@ -74,7 +74,10 @@ const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
   return 'No active line or stop selection';
 };
 
-/** Renders inspector tab sections while keeping projection usage read-only and selection-specific details delegated to child components. */
+/**
+ * Acts as a coordinator for the inspector panel, managing tab state and delegating
+ * rendering to specialized tab components.
+ */
 export function InspectorPanel({
   inspectorPanelState,
   completedLines,
@@ -110,399 +113,95 @@ export function InspectorPanel({
   onPositionFocus
 }: InspectorPanelProps): ReactElement {
   const [activeTabId, setActiveTabId] = useState<InspectorTabId>('overview');
-  const [linesViewMode, setLinesViewMode] = useState<'list' | 'detail'>('list');
   const globalStateLabel = useMemo(() => resolveGlobalStateLabel(inspectorPanelState), [inspectorPanelState]);
 
-  useEffect(() => {
-    if (linesViewMode === 'detail' && inspectorPanelState.mode !== 'line-selected') {
-      setLinesViewMode('list');
-    }
-  }, [inspectorPanelState.mode, linesViewMode]);
-
-  useEffect(() => {
-    if (
-      openDialogIntent &&
-      inspectorPanelState.mode === 'line-selected' &&
-      openDialogIntent.lineId === inspectorPanelState.selectedLine.id
-    ) {
-      setActiveTabId('lines');
-      setLinesViewMode('detail');
-    }
-  }, [openDialogIntent, inspectorPanelState]);
-
   return (
-    <aside className="right-panel" aria-label="Inspector panel">
-      <h2>Inspector</h2>
-
+    <aside 
+      className="right-panel" 
+      aria-label="Inspector panel" 
+      style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+    >
       {inspectorPanelState.mode === 'osm-candidate-selected' ? (
         (() => {
           const candidateGroup = osmStopCandidateGroups.find((g) => g.id === inspectorPanelState.candidateGroupId);
           if (!candidateGroup) return null;
 
           return (
-            <OsmStopCandidateInspector
-              candidateGroup={candidateGroup}
-              anchorResolution={selectedOsmCandidateAnchor}
-              existingStops={placedStops}
-              adoptedCandidateGroupIds={adoptedOsmCandidateGroupIds}
-              onAdopt={onOsmCandidateAdopt}
-            />
+            <InspectorScrollArea>
+              <OsmStopCandidateInspector
+                candidateGroup={candidateGroup}
+                anchorResolution={selectedOsmCandidateAnchor}
+                existingStops={placedStops}
+                adoptedCandidateGroupIds={adoptedOsmCandidateGroupIds}
+                onAdopt={onOsmCandidateAdopt}
+              />
+            </InspectorScrollArea>
           );
         })()
       ) : (
         <>
-          <nav className="inspector-tabs" aria-label="Inspector tabs" role="tablist">
-            {INSPECTOR_TAB_IDS.map((tabId) => (
-              <button
-                key={tabId}
-                type="button"
-                role="tab"
-                aria-selected={activeTabId === tabId}
-                className="inspector-tabs__button"
-                onClick={() => {
-                  setActiveTabId(tabId);
-                }}
-                title={INSPECTOR_TAB_LABELS[tabId]}
-                aria-label={INSPECTOR_TAB_LABELS[tabId]}
-              >
-                <MaterialIcon name={INSPECTOR_TAB_ICONS[tabId]} />
-              </button>
-            ))}
-          </nav>
+          <InspectorTabBar 
+            activeTabId={activeTabId} 
+            onTabChange={setActiveTabId} 
+          />
 
-          {activeTabId === 'overview' ? (
-            <section className="inspector-overview-tab" aria-label="Overview">
-              <h3>Overview</h3>
-              <table className="inspector-compact-table inspector-network-summary__primary-table">
-                <tbody>
-                  <tr>
-                    <th scope="row">Stops</th>
-                    <td>{staticNetworkSummaryKpis.totalStopCount}</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Completed lines</th>
-                    <td>{staticNetworkSummaryKpis.completedLineCount}</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Projected vehicles</th>
-                    <td>{vehicleNetworkProjection.summary.totalProjectedVehicleCount}</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Active service band</th>
-                    <td className="inspector-compact-table__value--left">
-                      {TIME_BAND_DISPLAY_LABELS[networkServicePlanProjection.summary.activeTimeBandId]}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Global state</th>
-                    <td className="inspector-compact-table__value--left">{globalStateLabel}</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Degraded service lines</th>
-                    <td>{networkServicePlanProjection.summary.degradedLineCount}</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Blocked service lines</th>
-                    <td>{networkServicePlanProjection.summary.blockedLineCount}</td>
-                  </tr>
-                </tbody>
-              </table>
+          <InspectorScrollArea>
+            {activeTabId === 'overview' && (
+              <InspectorOverviewTab
+                staticNetworkSummaryKpis={staticNetworkSummaryKpis}
+                networkServicePlanProjection={networkServicePlanProjection}
+                vehicleNetworkProjection={vehicleNetworkProjection}
+                globalStateLabel={globalStateLabel}
+                placedStops={placedStops}
+                completedLines={completedLines}
+                onStopSelectionChange={onStopSelectionChange}
+                onSelectedLineIdChange={onSelectedLineIdChange}
+                onLineRename={onLineRename}
+              />
+            )}
 
-              <InspectorDisclosure summaryText="Network inventory">
-                <NetworkInventory
-                  placedStops={placedStops}
-                  completedLines={completedLines}
-                  onStopSelect={onStopSelectionChange}
-                  onLineSelect={onSelectedLineIdChange}
-                  onLineRename={onLineRename}
-                />
-              </InspectorDisclosure>
-            </section>
-          ) : null}
+            {activeTabId === 'demand' && (
+              <InspectorDemandTab
+                scenarioDemandCaptureProjection={scenarioDemandCaptureProjection}
+                servedDemandProjection={servedDemandProjection}
+                demandGapRankingProjection={demandGapRankingProjection}
+                onPositionFocus={onPositionFocus}
+              />
+            )}
 
-          {activeTabId === 'demand' ? (
-            <section className="inspector-demand-tab" aria-label="Demand">
-              <h3>Demand</h3>
-              
-              <h4 className="inspector-section-title">Demand capture</h4>
-              {scenarioDemandCaptureProjection.status === 'unavailable' ? (
-                <p className="inspector-dialog__note">Demand projection unavailable.</p>
-              ) : (
-                <>
-                  <p className="inspector-dialog__note">
-                    Place stops to capture nearby scenario demand.
-                  </p>
-                  <table className="inspector-compact-table inspector-network-summary__primary-table">
-                    <tbody>
-                      <tr>
-                        <th scope="row">Residential nodes</th>
-                        <td>
-                          {scenarioDemandCaptureProjection.residentialSummary.capturedCount} / {scenarioDemandCaptureProjection.residentialSummary.totalCount}
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Workplace destinations</th>
-                        <td>
-                          {scenarioDemandCaptureProjection.workplaceSummary.capturedCount} / {scenarioDemandCaptureProjection.workplaceSummary.totalCount}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+            {activeTabId === 'service' && (
+              <InspectorServiceTab
+                servicePressureProjection={servicePressureProjection}
+              />
+            )}
 
-                  <InspectorDisclosure summaryText="Capture details">
-                    <table className="inspector-compact-table">
-                      <tbody>
-                        <tr>
-                          <th scope="row">Access radius</th>
-                          <td>
-                            {scenarioDemandCaptureProjection.accessRadiusMeters}m
-                          </td>
-                        </tr>
-                        {scenarioDemandCaptureProjection.gatewaySummary.totalCount > 0 && (
-                          <tr>
-                            <th scope="row">Gateways</th>
-                            <td>
-                              {scenarioDemandCaptureProjection.gatewaySummary.capturedCount} / {scenarioDemandCaptureProjection.gatewaySummary.totalCount}
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </InspectorDisclosure>
-                </>
-              )}
-
-              <h4 className="inspector-section-title">Served demand</h4>
-              {servedDemandProjection.status === 'unavailable' ? (
-                <p className="inspector-dialog__note">Served demand projection unavailable.</p>
-              ) : (
-                <>
-                  <table className="inspector-compact-table inspector-network-summary__primary-table">
-                    <tbody>
-                      <tr>
-                        <th scope="row">Residential served</th>
-                        <td>
-                          {Math.round(servedDemandProjection.servedResidentialActiveWeight)} / {Math.round(servedDemandProjection.capturedResidentialActiveWeight)}
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Workplace reachable</th>
-                        <td>
-                          {Math.round(servedDemandProjection.reachableWorkplaceActiveWeight)} / {Math.round(servedDemandProjection.capturedWorkplaceActiveWeight)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  <InspectorDisclosure summaryText="Service details">
-                    <table className="inspector-compact-table">
-                      <tbody>
-                        <tr>
-                          <th scope="row">Active band</th>
-                          <td className="inspector-compact-table__value--left">
-                            {TIME_BAND_DISPLAY_LABELS[servedDemandProjection.activeTimeBandId]}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Unserved captured res.</th>
-                          <td>
-                            {Math.round(servedDemandProjection.unservedResidentialActiveWeight)}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Active service lines</th>
-                          <td>{servedDemandProjection.activeServiceLineCount}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </InspectorDisclosure>
-                </>
-              )}
-
-              <h4 className="inspector-section-title">Demand gaps</h4>
-              {demandGapRankingProjection.status === 'unavailable' ? (
-                <p className="inspector-dialog__note">Demand gap ranking unavailable.</p>
-              ) : (
-                <div className="inspector-demand-gaps">
-                  {demandGapRankingProjection.uncapturedResidentialGaps.length === 0 &&
-                  demandGapRankingProjection.capturedButUnservedResidentialGaps.length === 0 &&
-                  demandGapRankingProjection.capturedButUnreachableWorkplaceGaps.length === 0 ? (
-                    <p className="inspector-dialog__note">No major demand gaps identified.</p>
-                  ) : (
-                    <InspectorDisclosure
-                      summaryText="Identify gaps"
-                      summaryBadge={`${demandGapRankingProjection.uncapturedResidentialGaps.length + demandGapRankingProjection.capturedButUnservedResidentialGaps.length + demandGapRankingProjection.capturedButUnreachableWorkplaceGaps.length} areas`}
-                    >
-                      {[
-                        { title: 'Unserved homes', gaps: demandGapRankingProjection.capturedButUnservedResidentialGaps },
-                        { title: 'Uncaptured homes', gaps: demandGapRankingProjection.uncapturedResidentialGaps },
-                        { title: 'Unreachable workplaces', gaps: demandGapRankingProjection.capturedButUnreachableWorkplaceGaps }
-                      ].map(
-                        (section) =>
-                          section.gaps.length > 0 && (
-                            <div key={section.title} className="inspector-demand-gaps__section">
-                              <h5 className="inspector-demand-gaps__section-title">{section.title}</h5>
-                              <ul className="inspector-simple-list">
-                                {section.gaps.map((gap) => (
-                                  <li key={gap.id} className="inspector-demand-gaps__item">
-                                    <div className="inspector-demand-gaps__item-content">
-                                      <span className="inspector-demand-gaps__item-label">
-                                        {gap.id} · {gap.activeWeight.toFixed(1)} demand
-                                      </span>
-                                      <span className="inspector-demand-gaps__item-note">{gap.note}</span>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      className="inspector-demand-gaps__focus-button"
-                                      title="Focus on map"
-                                      onClick={() => onPositionFocus(gap.position)}
-                                    >
-                                      <MaterialIcon name="center_focus_strong" />
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )
-                      )}
-                    </InspectorDisclosure>
-                  )}
-                </div>
-              )}
-            </section>
-          ) : null}
-
-          {activeTabId === 'service' ? (
-            <section className="inspector-service-tab" aria-label="Service">
-              <h3>Service</h3>
-              
-              <h4 className="inspector-section-title">Service pressure</h4>
-              {servicePressureProjection.activeDeparturesPerHourEstimate === 0 ? (
-                <p className="inspector-dialog__note">No active service frequency in the current time band.</p>
-              ) : (
-                <>
-                  <table className="inspector-compact-table inspector-network-summary__primary-table">
-                    <tbody>
-                      <tr>
-                        <th scope="row">Pressure</th>
-                        <td className="inspector-compact-table__value--left">
-                          {servicePressureProjection.servicePressureStatus.charAt(0).toUpperCase() +
-                            servicePressureProjection.servicePressureStatus.slice(1)}
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Departures/hour</th>
-                        <td>{servicePressureProjection.activeDeparturesPerHourEstimate.toFixed(1)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  <InspectorDisclosure summaryText="Pressure details">
-                    <table className="inspector-compact-table">
-                      <tbody>
-                        <tr>
-                          <th scope="row">Active band</th>
-                          <td className="inspector-compact-table__value--left">
-                            {TIME_BAND_DISPLAY_LABELS[servicePressureProjection.activeTimeBandId]}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Average headway</th>
-                          <td>
-                            {servicePressureProjection.averageHeadwayMinutes !== null
-                              ? `${servicePressureProjection.averageHeadwayMinutes.toFixed(1)} min`
-                              : '—'}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Demand per departure</th>
-                          <td>{servicePressureProjection.servicePressureRatio.toFixed(1)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </InspectorDisclosure>
-                </>
-              )}
-            </section>
-          ) : null}
-
-          {activeTabId === 'lines' ? (
-            <section className="inspector-lines-tab" aria-label="Lines">
-              <h3>Lines</h3>
-              {linesViewMode === 'list' ? (
-                completedLines.length > 0 ? (
-                  <ul className="inspector-simple-list inspector-lines-tab__list" aria-label="Completed line list">
-                    {completedLines.map((line) => (
-                      <li key={line.id} className="inspector-lines-tab__list-item">
-                        <button
-                          type="button"
-                          className="inspector-lines-tab__line-badge-button"
-                          onClick={() => {
-                            onSelectedLineIdChange(line.id);
-                            setLinesViewMode('detail');
-                          }}
-                          title={`Select and focus ${line.label}`}
-                          aria-label={`Select line ${line.id}: ${line.label}`}
-                        >
-                          {line.id}
-                        </button>
-                        <span className="inspector-lines-tab__line-label" title={line.label}>
-                          {line.label}
-                        </span>
-                        <InlineRenameField
-                          value={line.label}
-                          entityLabel="line"
-                          idleDisplayMode="edit-only"
-                          onAccept={(nextValue) => onLineRename(line.id, nextValue)}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No completed lines.</p>
-                )
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="inspector-lines-tab__back"
-                    onClick={() => {
-                      setLinesViewMode('list');
-                    }}
-                  >
-                    Back to completed lines
-                  </button>
-                  {inspectorPanelState.mode === 'line-selected' ? (
-                    <SelectedLineInspector
-                      panelState={inspectorPanelState}
-                      selectedLineRouteBaseline={selectedLineRouteBaseline}
-                      placedStops={placedStops}
-                      activeTimeBandId={activeTimeBandId}
-                      lineFrequencyInputByTimeBand={lineFrequencyInputByTimeBand}
-                      lineFrequencyControlByTimeBand={lineFrequencyControlByTimeBand}
-                      lineFrequencyValidationByTimeBand={lineFrequencyValidationByTimeBand}
-                      selectedLineServiceProjection={selectedLineServiceProjection}
-                      selectedLineServiceInspectorProjection={selectedLineServiceInspectorProjection}
-                      selectedLinePlanningVehicleProjection={selectedLinePlanningVehicleProjection}
-                      onLineRename={onLineRename}
-                      onLineSequenceStopFocus={onLineSequenceStopFocus}
-                      onStopRename={onStopRename}
-                      onStopSelectionChange={onStopSelectionChange}
-                      onFrequencyChange={onFrequencyChange}
-                      openDialogIntent={openDialogIntent}
-                      onOpenDialogIntentConsumed={onOpenDialogIntentConsumed}
-                      selectedLineDemandContribution={selectedLineDemandContribution}
-                    />
-                  ) : (
-                    <p>Select a completed line from the list to open detail.</p>
-                  )}
-                </>
-              )}
-            </section>
-          ) : null}
+            {activeTabId === 'lines' && (
+              <InspectorLinesTab
+                inspectorPanelState={inspectorPanelState}
+                completedLines={completedLines}
+                selectedLineRouteBaseline={selectedLineRouteBaseline}
+                placedStops={placedStops}
+                activeTimeBandId={activeTimeBandId}
+                selectedLineServiceProjection={selectedLineServiceProjection}
+                selectedLineServiceInspectorProjection={selectedLineServiceInspectorProjection}
+                selectedLinePlanningVehicleProjection={selectedLinePlanningVehicleProjection}
+                lineFrequencyInputByTimeBand={lineFrequencyInputByTimeBand}
+                lineFrequencyControlByTimeBand={lineFrequencyControlByTimeBand}
+                lineFrequencyValidationByTimeBand={lineFrequencyValidationByTimeBand}
+                onFrequencyChange={onFrequencyChange}
+                onSelectedLineIdChange={onSelectedLineIdChange}
+                onStopSelectionChange={onStopSelectionChange}
+                onLineSequenceStopFocus={onLineSequenceStopFocus}
+                onStopRename={onStopRename}
+                onLineRename={onLineRename}
+                openDialogIntent={openDialogIntent}
+                onOpenDialogIntentConsumed={onOpenDialogIntentConsumed}
+                selectedLineDemandContribution={selectedLineDemandContribution}
+              />
+            )}
+          </InspectorScrollArea>
         </>
       )}
-
     </aside>
   );
 }

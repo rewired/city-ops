@@ -1,0 +1,35 @@
+/**
+ * Centralized scrollbar utility for app-owned scroll surfaces.
+ * 
+ * Provides a slim, subtle, and readable scrollbar in the dark shell theme.
+ * Scoped to surfaces with the .u-scrollbar utility class.
+ */
+
+.u-scrollbar {
+  /* Firefox support */
+  scrollbar-width: thin;
+  scrollbar-color: var(--openvayra-cities-color-border-medium) transparent;
+}
+
+/* Chromium/WebKit support */
+.u-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.u-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.u-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--openvayra-cities-color-border-medium);
+  border-radius: 10px;
+}
+
+.u-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--openvayra-cities-color-border);
+}
+
+.u-scrollbar::-webkit-scrollbar-thumb:active {
+  background-color: var(--openvayra-cities-color-accent-blue);
+}
