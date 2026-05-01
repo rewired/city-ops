@@ -485,6 +485,7 @@ const toolModeControlOptions: ReadonlyArray<{
           osmStopCandidateGroups={osmStopCandidateGroups}
           onOsmCandidateAnchorResolved={setSelectedOsmCandidateAnchor}
           scenarioDemandArtifact={scenarioDemandArtifactState.status === 'loaded' ? scenarioDemandArtifactState.artifact : null}
+          routingCoverage={selectedScenario?.scenario.routingCoverage ?? null}
         />
 
       </main>

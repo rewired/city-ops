@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "areaId": "hvv-mvp",
+  "areaId": "hamburg-core-mvp",
   "displayName": "Hamburg + HVV MVP Area",
   "sourcePbfFile": "data/osm/hvv-mvp.osm.pbf",
   "routing": {

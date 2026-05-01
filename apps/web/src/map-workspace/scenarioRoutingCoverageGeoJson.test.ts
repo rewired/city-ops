@@ -18,7 +18,7 @@ describe('scenarioRoutingCoverageGeoJson', () => {
       const result = buildScenarioRoutingCoverageMaskFeatureCollection(coverage);
       
       expect(result.features).toHaveLength(1);
-      const feature = result.features[0];
+      const feature = result.features[0]!;
       expect(feature.geometry.type).toBe('Polygon');
       
       const coords = (feature.geometry as any).coordinates;

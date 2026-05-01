@@ -155,10 +155,15 @@ interface MapLibreGeoJsonLineStringGeometry {
   readonly coordinates: readonly MapLibreLngLatTuple[];
 }
 
+interface MapLibreGeoJsonPolygonGeometry {
+  readonly type: 'Polygon';
+  readonly coordinates: readonly (readonly MapLibreLngLatTuple[])[];
+}
+
 /**
  * Minimal GeoJSON geometry union used by typed source updates.
  */
-type MapLibreGeoJsonGeometry = MapLibreGeoJsonPointGeometry | MapLibreGeoJsonLineStringGeometry;
+type MapLibreGeoJsonGeometry = MapLibreGeoJsonPointGeometry | MapLibreGeoJsonLineStringGeometry | MapLibreGeoJsonPolygonGeometry;
 
 /**
  * Minimal GeoJSON feature shape used by typed source updates.
@@ -215,7 +220,7 @@ export interface MapLibreGeoJsonSource<
  */
 export interface MapLibreLayerSpecification {
   readonly id: string;
-  readonly type: 'circle' | 'symbol' | 'line';
+  readonly type: 'circle' | 'symbol' | 'line' | 'fill';
   readonly source: string;
   readonly paint?: Readonly<Record<string, MapLibreExpressionValue>>;
   readonly layout?: Readonly<Record<string, MapLibreExpressionValue>>;
@@ -282,6 +287,8 @@ export interface MapLibreMap {
   setPaintProperty(layerId: string, name: string, value: MapLibreExpressionValue): void;
   /** Updates a layout property for an existing style layer. */
   setLayoutProperty(layerId: string, name: string, value: MapLibreExpressionValue): void;
+  /** Applies scenario-level max-bounds to the map workspace instance to prevent out-of-coverage drift. */
+  setMaxBounds(bounds: [MapLibreLngLatTuple, MapLibreLngLatTuple] | null): void;
 }
 
 /**

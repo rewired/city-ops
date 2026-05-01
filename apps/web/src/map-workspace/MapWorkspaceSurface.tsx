@@ -131,6 +131,7 @@ export function MapWorkspaceSurface({
   mapFocusIntent,
   onMapFocusIntentConsumed,
   onDebugSnapshotChange,
+  onOsmCandidateSelectionChange,
   osmStopCandidateGroups,
   onOsmCandidateAnchorResolved,
   scenarioDemandArtifact,

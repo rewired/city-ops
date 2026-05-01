@@ -328,7 +328,8 @@ const syncMapWorkspaceSourceData = ({
   lineSync,
   vehicleSync,
   osmStopCandidateSync,
-  scenarioDemandArtifact
+  scenarioDemandArtifact,
+  routingCoverage
 }: SyncAllMapWorkspaceSourcesInput): MapWorkspaceSourceSyncDiagnostics => {
 
   let stopBuilderFeatureCount: number | undefined;

@@ -47,6 +47,7 @@ const createMapWithPresentLayers = (presentLayerIds: readonly string[]): MapLibr
     fitBounds: () => undefined,
     setPaintProperty: () => undefined,
     setLayoutProperty: () => undefined,
+    setMaxBounds: () => undefined,
     getZoom: () => 14
   };
 };
