@@ -7,7 +7,7 @@ import { InlineRenameField } from './InlineRenameField';
 import { SelectedLineInspector } from './SelectedLineInspector';
 import { NetworkInventory } from './NetworkInventory';
 import { InspectorDisclosure } from '../ui/InspectorDisclosure';
-import { INSPECTOR_TAB_IDS, INSPECTOR_TAB_LABELS, type InspectorTabId } from './inspectorTabs';
+import { INSPECTOR_TAB_IDS, INSPECTOR_TAB_LABELS, INSPECTOR_TAB_ICONS, type InspectorTabId } from './inspectorTabs';
 import { OsmStopCandidateInspector } from './OsmStopCandidateInspector';
 import type { InspectorPanelState } from './types';
 import type {
@@ -109,7 +109,7 @@ export function InspectorPanel({
   demandGapRankingProjection,
   onPositionFocus
 }: InspectorPanelProps): ReactElement {
-  const [activeTabId, setActiveTabId] = useState<InspectorTabId>('network');
+  const [activeTabId, setActiveTabId] = useState<InspectorTabId>('overview');
   const [linesViewMode, setLinesViewMode] = useState<'list' | 'detail'>('list');
   const globalStateLabel = useMemo(() => resolveGlobalStateLabel(inspectorPanelState), [inspectorPanelState]);
 
@@ -162,15 +162,17 @@ export function InspectorPanel({
                 onClick={() => {
                   setActiveTabId(tabId);
                 }}
+                title={INSPECTOR_TAB_LABELS[tabId]}
+                aria-label={INSPECTOR_TAB_LABELS[tabId]}
               >
-                {INSPECTOR_TAB_LABELS[tabId]}
+                <MaterialIcon name={INSPECTOR_TAB_ICONS[tabId]} />
               </button>
             ))}
           </nav>
 
-          {activeTabId === 'network' ? (
-            <section className="inspector-network-summary" aria-label="Network">
-              <h3>Network</h3>
+          {activeTabId === 'overview' ? (
+            <section className="inspector-overview-tab" aria-label="Overview">
+              <h3>Overview</h3>
               <table className="inspector-compact-table inspector-network-summary__primary-table">
                 <tbody>
                   <tr>
@@ -206,14 +208,30 @@ export function InspectorPanel({
                 </tbody>
               </table>
 
+              <InspectorDisclosure summaryText="Network inventory">
+                <NetworkInventory
+                  placedStops={placedStops}
+                  completedLines={completedLines}
+                  onStopSelect={onStopSelectionChange}
+                  onLineSelect={onSelectedLineIdChange}
+                  onLineRename={onLineRename}
+                />
+              </InspectorDisclosure>
+            </section>
+          ) : null}
+
+          {activeTabId === 'demand' ? (
+            <section className="inspector-demand-tab" aria-label="Demand">
+              <h3>Demand</h3>
+              
               <h4 className="inspector-section-title">Demand capture</h4>
               {scenarioDemandCaptureProjection.status === 'unavailable' ? (
                 <p className="inspector-dialog__note">Demand projection unavailable.</p>
               ) : (
                 <>
-                    <p className="inspector-dialog__note">
-                      Place stops to capture nearby scenario demand.
-                    </p>
+                  <p className="inspector-dialog__note">
+                    Place stops to capture nearby scenario demand.
+                  </p>
                   <table className="inspector-compact-table inspector-network-summary__primary-table">
                     <tbody>
                       <tr>
@@ -250,9 +268,6 @@ export function InspectorPanel({
                         )}
                       </tbody>
                     </table>
-                    <p className="inspector-dialog__note">
-                      Stops capture and serve demand. They do not generate it.
-                    </p>
                   </InspectorDisclosure>
                 </>
               )}
@@ -297,54 +312,6 @@ export function InspectorPanel({
                         <tr>
                           <th scope="row">Active service lines</th>
                           <td>{servedDemandProjection.activeServiceLineCount}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </InspectorDisclosure>
-                </>
-              )}
-
-              <h4 className="inspector-section-title">Service pressure</h4>
-              {servicePressureProjection.activeDeparturesPerHourEstimate === 0 ? (
-                <p className="inspector-dialog__note">No active service frequency in the current time band.</p>
-              ) : (
-                <>
-                  <table className="inspector-compact-table inspector-network-summary__primary-table">
-                    <tbody>
-                      <tr>
-                        <th scope="row">Pressure</th>
-                        <td className="inspector-compact-table__value--left">
-                          {servicePressureProjection.servicePressureStatus.charAt(0).toUpperCase() +
-                            servicePressureProjection.servicePressureStatus.slice(1)}
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Departures/hour</th>
-                        <td>{servicePressureProjection.activeDeparturesPerHourEstimate.toFixed(1)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  <InspectorDisclosure summaryText="Pressure details">
-                    <table className="inspector-compact-table">
-                      <tbody>
-                        <tr>
-                          <th scope="row">Active band</th>
-                          <td className="inspector-compact-table__value--left">
-                            {TIME_BAND_DISPLAY_LABELS[servicePressureProjection.activeTimeBandId]}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Average headway</th>
-                          <td>
-                            {servicePressureProjection.averageHeadwayMinutes !== null
-                              ? `${servicePressureProjection.averageHeadwayMinutes.toFixed(1)} min`
-                              : '—'}
-                          </td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Demand per departure</th>
-                          <td>{servicePressureProjection.servicePressureRatio.toFixed(1)}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -402,18 +369,60 @@ export function InspectorPanel({
                   )}
                 </div>
               )}
+            </section>
+          ) : null}
 
-              <InspectorDisclosure summaryText="Network inventory">
-                <NetworkInventory
-                  placedStops={placedStops}
-                  completedLines={completedLines}
-                  onStopSelect={onStopSelectionChange}
-                  onLineSelect={onSelectedLineIdChange}
-                  onLineRename={onLineRename}
-                />
-              </InspectorDisclosure>
+          {activeTabId === 'service' ? (
+            <section className="inspector-service-tab" aria-label="Service">
+              <h3>Service</h3>
+              
+              <h4 className="inspector-section-title">Service pressure</h4>
+              {servicePressureProjection.activeDeparturesPerHourEstimate === 0 ? (
+                <p className="inspector-dialog__note">No active service frequency in the current time band.</p>
+              ) : (
+                <>
+                  <table className="inspector-compact-table inspector-network-summary__primary-table">
+                    <tbody>
+                      <tr>
+                        <th scope="row">Pressure</th>
+                        <td className="inspector-compact-table__value--left">
+                          {servicePressureProjection.servicePressureStatus.charAt(0).toUpperCase() +
+                            servicePressureProjection.servicePressureStatus.slice(1)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Departures/hour</th>
+                        <td>{servicePressureProjection.activeDeparturesPerHourEstimate.toFixed(1)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
 
-
+                  <InspectorDisclosure summaryText="Pressure details">
+                    <table className="inspector-compact-table">
+                      <tbody>
+                        <tr>
+                          <th scope="row">Active band</th>
+                          <td className="inspector-compact-table__value--left">
+                            {TIME_BAND_DISPLAY_LABELS[servicePressureProjection.activeTimeBandId]}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Average headway</th>
+                          <td>
+                            {servicePressureProjection.averageHeadwayMinutes !== null
+                              ? `${servicePressureProjection.averageHeadwayMinutes.toFixed(1)} min`
+                              : '—'}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Demand per departure</th>
+                          <td>{servicePressureProjection.servicePressureRatio.toFixed(1)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </InspectorDisclosure>
+                </>
+              )}
             </section>
           ) : null}
 

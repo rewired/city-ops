@@ -25,7 +25,11 @@ export type MaterialIconName =
   | 'directions_boat'
   | 'schedule'
   | 'stacks'
-  | 'center_focus_strong';
+  | 'center_focus_strong'
+  | 'monitoring'
+  | 'groups'
+  | 'speed'
+  | 'dashboard';
 
 /**
  * Canonical Material icon name mapping for workspace mode controls.

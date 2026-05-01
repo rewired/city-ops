@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 12px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--openvayra-cities-color-border-subtle);
   margin-bottom: 16px;
 }
 
@@ -17,7 +17,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--openvayra-cities-color-text-secondary);
   margin: 0;
   letter-spacing: 0.05em;
 }
@@ -40,12 +40,12 @@
 .inspector-demand-gaps__item-label {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--openvayra-cities-color-text);
 }
 
 .inspector-demand-gaps__item-note {
   font-size: 0.75rem;
-  color: var(--color-text-secondary);
+  color: var(--openvayra-cities-color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -57,10 +57,10 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--openvayra-cities-color-border-subtle);
   border-radius: 4px;
-  background: var(--color-bg-surface-elevated);
-  color: var(--color-accent-primary);
+  background: var(--openvayra-cities-color-surface-hover);
+  color: var(--openvayra-cities-color-accent-blue);
   cursor: pointer;
   transition: all 0.15s ease-in-out;
   padding: 0;
@@ -68,8 +68,8 @@
 }
 
 .inspector-demand-gaps__focus-button:hover {
-  background: var(--color-accent-primary-subtle);
-  border-color: var(--color-accent-primary);
+  background: var(--openvayra-cities-color-surface-active);
+  border-color: var(--openvayra-cities-color-accent-blue);
 }
 
 .inspector-demand-gaps__focus-button .material-icons {

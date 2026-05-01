@@ -29,23 +29,36 @@
 .inspector-tabs {
   margin-top: 12px;
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  border-bottom: 1px solid var(--openvayra-cities-color-border-subtle);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .inspector-tabs__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
   border: 1px solid var(--openvayra-cities-color-border);
-  border-radius: var(--openvayra-cities-radius-md);
+  border-radius: var(--openvayra-cities-radius-sm);
   background: var(--openvayra-cities-color-surface-hover);
-  color: var(--openvayra-cities-color-text-soft);
-  padding: 4px 10px;
-  font-size: 0.76rem;
+  color: var(--openvayra-cities-color-text-muted);
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.inspector-tabs__button:hover {
+  background: var(--openvayra-cities-color-surface-active);
+  color: var(--openvayra-cities-color-text-light);
 }
 
 .inspector-tabs__button[aria-selected='true'] {
   border-color: var(--openvayra-cities-color-accent-yellow);
   background: var(--openvayra-cities-color-surface-active);
-  color: var(--openvayra-cities-color-text-brightest);
+  color: var(--openvayra-cities-color-accent-yellow);
+  box-shadow: 0 0 8px rgba(245, 195, 88, 0.2);
 }
 
 .inspector-network-summary {

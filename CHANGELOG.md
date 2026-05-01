@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Slice 168b — Inspector Icon-Tab Information Architecture Repair**:
+    - Refactored Inspector to use an icon-first tabbed navigation (`Overview`, `Lines`, `Demand`, `Service`).
+    - Split overloaded `Network` tab into focused `Overview`, `Demand`, and `Service` perspectives.
+    - Repaired contrast for `InspectorDisclosure` labels and `Demand Gaps` items for dark theme accessibility.
+    - Added ADR 0169 to document the new information architecture.
+
 ### Slice 168: Inspector Information Architecture / Collapsible Projection Sections
 - Introduced a collapsible information architecture for the Inspector panel to reduce visual density and vertical scroll pressure.
 - Created the reusable `InspectorDisclosure` component using native `<details>` and `<summary>` elements with "whisper-weight" styling.
