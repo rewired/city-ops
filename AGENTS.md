@@ -21,6 +21,35 @@ When working on this project, use the following source-of-truth order:
 7. `DESIGN.md` (externally owned; only as provided)
 8. Current repository code
 
+Task-specific files under `.agents/skills/**/SKILL.md` provide operational playbooks for recurring work types. They do not outrank the canonical documents above. If a skill conflicts with canonical project documentation or current code, surface the conflict explicitly.
+
+## Task-specific agent skills
+
+The repository may contain task-specific agent skills under:
+
+```text
+.agents/skills/<skill-name>/SKILL.md
+```
+
+Use only the skills relevant to the current task. Do not load every skill by default.
+
+Initial skill categories:
+
+* scope control
+* TypeScript
+* React projections
+* UI information design
+* HTML/CSS
+* MapLibre and geospatial work
+* simulation
+* data ingestion
+* testing
+* documentation and ADRs
+* security and integrity
+* slice planning
+
+Skills are operational playbooks. They do not replace `AGENTS.md` or any canonical project document.
+
 If code and docs disagree, do not silently choose one. Surface the conflict explicitly.
 
 ---
@@ -43,6 +72,10 @@ The repository root may contain only the following project-wide documentation fi
 * `TDD.md`
 * `SEC.md`
 * `DESIGN.md`
+
+Tool-specific root context file:
+
+* `GEMINI.md`
 
 Do not add additional ad-hoc Markdown files to the repository root unless explicitly approved.
 
@@ -67,6 +100,24 @@ Examples include:
 * Prefer `/docs` for all non-root documentation.
 * If a document is project-wide and canonical, place it in the root only if it clearly belongs to the short approved root list.
 * If a document is exploratory, supporting, historical, or feature-specific, place it in `/docs`.
+
+### Agent skill placement rules
+
+Task-specific agent skills may live under `.agents/skills/`.
+
+Required:
+
+* Each skill must live in its own folder.
+* Each skill must use a `SKILL.md` file.
+* Skill content must remain English-only.
+* Skills must stay operational and task-specific.
+* Skills must not duplicate entire canonical documents.
+
+Forbidden:
+
+* Do not use skills to override canonical project documents.
+* Do not store app/runtime code under `.agents/skills/`.
+* Do not add broad catch-all skills that recreate the entire project manual.
 
 ### README rule
 
