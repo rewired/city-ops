@@ -94,3 +94,97 @@ describe('mapWorkspaceSourceSync custom-layer helpers', () => {
     ]);
   });
 });
+
+import { vi } from 'vitest';
+import { syncAllMapWorkspaceSources, syncExistingMapWorkspaceSourceData } from './mapWorkspaceSourceSync';
+import { MAP_SOURCE_ID_DEMAND_GAP_OVERLAY } from './mapRenderConstants';
+
+describe('mapWorkspaceSourceSync integration', () => {
+  const createMockMap = () => {
+    const sources = new Map<string, { setData: any }>();
+    const layers = new Set<string>();
+
+    return {
+      getSource: vi.fn((id: string) => sources.get(id)),
+      addSource: vi.fn((id: string) => {
+        sources.set(id, { setData: vi.fn() });
+      }),
+      getLayer: vi.fn((id: string) => layers.has(id) ? {} : undefined),
+      addLayer: vi.fn((spec: any) => {
+        layers.add(spec.id);
+      }),
+      moveLayer: vi.fn(),
+      querySourceFeatures: vi.fn(() => []),
+    } as any as MapLibreMap;
+  };
+
+  it('syncAllMapWorkspaceSources ensures demand gap source and sets data', () => {
+    const map = createMockMap();
+    const mockProjection: any = { 
+      status: 'ready', 
+      uncapturedResidentialGaps: [],
+      capturedButUnservedResidentialGaps: [],
+      capturedButUnreachableWorkplaceGaps: []
+    };
+
+    syncAllMapWorkspaceSources({
+      map,
+      demandGapRankingProjection: mockProjection
+    });
+
+    expect(map.addSource).toHaveBeenCalled();
+    const source = map.getSource(MAP_SOURCE_ID_DEMAND_GAP_OVERLAY);
+    expect(source?.setData).toHaveBeenCalled();
+  });
+
+  it('syncExistingMapWorkspaceSourceData skips demand gap sync if source is missing', () => {
+    const map = createMockMap();
+    // Add all other sources except demand-gap
+    const otherSourceIds = [
+      'openvayra-cities-completed-lines', 'openvayra-cities-draft-line', 
+      'openvayra-cities-stops', 'openvayra-cities-vehicles', 
+      'osm-stop-candidates', 'openvayra-cities-scenario-demand-preview', 
+      'openvayra-cities-scenario-routing-coverage'
+    ];
+    otherSourceIds.forEach(id => map.addSource(id, {} as any));
+
+    const mockProjection: any = { 
+      status: 'ready', 
+      uncapturedResidentialGaps: [],
+      capturedButUnservedResidentialGaps: [],
+      capturedButUnreachableWorkplaceGaps: []
+    };
+
+    const result = syncExistingMapWorkspaceSourceData({
+      map,
+      demandGapRankingProjection: mockProjection
+    });
+
+    expect(result).toBeNull();
+    expect(map.getSource).toHaveBeenCalledWith(MAP_SOURCE_ID_DEMAND_GAP_OVERLAY);
+  });
+
+  it('syncMapWorkspaceSourceData handles null/unavailable projection gracefully', () => {
+    const map = createMockMap();
+    
+    // We need to make sure all sources are present for syncExisting to not return null
+    const sourceIds = [
+      'openvayra-cities-completed-lines', 'openvayra-cities-draft-line', 
+      'openvayra-cities-stops', 'openvayra-cities-vehicles', 
+      'osm-stop-candidates', 'openvayra-cities-scenario-demand-preview', 
+      'openvayra-cities-scenario-routing-coverage', 'openvayra-cities-demand-gap-overlay'
+    ];
+    sourceIds.forEach(id => map.addSource(id, {} as any));
+
+    syncExistingMapWorkspaceSourceData({
+      map,
+      demandGapRankingProjection: null
+    });
+
+    const source = map.getSource(MAP_SOURCE_ID_DEMAND_GAP_OVERLAY);
+    expect(source?.setData).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'FeatureCollection',
+      features: []
+    }));
+  });
+});

@@ -6,36 +6,124 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InspectorPanel } from './InspectorPanel';
 import type { InspectorPanelState } from './types';
 import type { TimeBandId } from '../domain/types/timeBand';
+import { MVP_TIME_BAND_IDS } from '../domain/constants/timeBands';
+import type { StaticNetworkSummaryKpis } from '../domain/projection/useNetworkPlanningProjections';
+import type { LineVehicleNetworkProjection } from '../domain/types/lineVehicleProjection';
+import type { LineServicePlanProjection } from '../domain/types/lineServicePlanProjection';
+import type { ScenarioDemandCaptureProjection, CapturedEntitySummary } from '../domain/projection/scenarioDemandCaptureProjection';
+import type { ServedDemandProjection } from '../domain/projection/servedDemandProjection';
+import type { ServicePressureProjection } from '../domain/projection/servicePressureProjection';
+import type { DemandGapRankingProjection } from '../domain/projection/demandGapProjection';
+import type { LineFrequencyInputByTimeBand, LineFrequencyControlByTimeBand, LineFrequencyValidationByTimeBand } from '../session/useNetworkSessionState';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+const createEmptyCapturedEntitySummary = (): CapturedEntitySummary => ({
+  totalCount: 0,
+  capturedCount: 0,
+  uncapturedCount: 0,
+  totalWeight: 0,
+  capturedWeight: 0,
+  uncapturedWeight: 0,
+  totalActiveWeight: 0,
+  capturedActiveWeight: 0,
+  uncapturedActiveWeight: 0,
+  capturedPercentageByCount: 0,
+  capturedPercentageByWeight: 0,
+  capturedPercentageByActiveWeight: 0
+});
 
 // Minimal mock data
 const mockPanelState: InspectorPanelState = {
   mode: 'empty'
 };
 
-const mockKpis = {
+const mockKpis: StaticNetworkSummaryKpis = {
   totalStopCount: 10,
   completedLineCount: 5,
   selectedCompletedLine: null
-} as any;
+};
 
-const mockVehicleProjection = {
-  summary: { totalProjectedVehicleCount: 15 },
-  lineProjections: [],
+const mockVehicleProjection: LineVehicleNetworkProjection = {
+  summary: { 
+    totalProjectedVehicleCount: 15,
+    totalDegradedProjectedVehicleCount: 0,
+    linesWithProjectedVehiclesCount: 1,
+    activeTimeBandId: 'morning-rush' as TimeBandId
+  },
   lines: []
-} as any;
+};
 
-const mockServicePlanProjection = {
-  summary: { activeTimeBandId: 'morning-rush' as TimeBandId, degradedLineCount: 0, blockedLineCount: 0 },
-  lineProjections: [],
+const mockServicePlanProjection: LineServicePlanProjection = {
+  summary: { 
+    activeTimeBandId: 'morning-rush' as TimeBandId, 
+    degradedLineCount: 0, 
+    blockedLineCount: 0,
+    configuredLineCount: 0,
+    totalLineCount: 0,
+    totalCompletedLineCount: 0,
+    availableLineCount: 0,
+    unavailableLineCount: 0,
+    totalRouteSegmentCount: 0,
+    totalRouteTravelMinutes: 0,
+    totalTheoreticalDeparturesPerHour: 0
+  },
   lines: []
-} as any;
+};
 
-const mockDemandCaptureProjection = { status: 'unavailable' } as any;
-const mockServedDemandProjection = { status: 'unavailable' } as any;
-const mockServicePressureProjection = { activeDeparturesPerHourEstimate: 0 } as any;
-const mockDemandGapRankingProjection = { status: 'unavailable' } as any;
+const mockDemandCaptureProjection: ScenarioDemandCaptureProjection = { 
+  status: 'unavailable',
+  accessRadiusMeters: 400,
+  stopCount: 0,
+  activeTimeBandId: 'morning-rush' as TimeBandId,
+  nodeSummary: createEmptyCapturedEntitySummary(),
+  attractorSummary: createEmptyCapturedEntitySummary(),
+  gatewaySummary: createEmptyCapturedEntitySummary(),
+  residentialSummary: createEmptyCapturedEntitySummary(),
+  workplaceSummary: createEmptyCapturedEntitySummary(),
+  nearestStopByEntityId: new Map()
+};
+
+const mockServedDemandProjection: ServedDemandProjection = { 
+  status: 'unavailable',
+  activeTimeBandId: 'morning-rush' as TimeBandId,
+  capturedResidentialActiveWeight: 0,
+  capturedWorkplaceActiveWeight: 0,
+  servedResidentialActiveWeight: 0,
+  unservedResidentialActiveWeight: 0,
+  reachableWorkplaceActiveWeight: 0,
+  activeServiceLineCount: 0,
+  inactiveOrNoServiceLineCount: 0,
+  blockedLineCount: 0,
+  reasons: {
+    residentialCapturedButNoReachableWorkplace: 0,
+    residentialCapturedButNoActiveService: 0,
+    residentialNotCaptured: 0,
+    workplaceCapturedButUnreachable: 0
+  }
+};
+
+const mockServicePressureProjection: ServicePressureProjection = { 
+  activeTimeBandId: 'morning-rush' as TimeBandId,
+  activeDeparturesPerHourEstimate: 0,
+  averageHeadwayMinutes: null,
+  servicePressureRatio: 0,
+  servicePressureStatus: 'none',
+  servedResidentialActiveWeight: 0
+};
+
+const mockDemandGapRankingProjection: DemandGapRankingProjection = { 
+  status: 'unavailable',
+  activeTimeBandId: 'morning-rush' as TimeBandId,
+  uncapturedResidentialGaps: [],
+  capturedButUnservedResidentialGaps: [],
+  capturedButUnreachableWorkplaceGaps: [],
+  summary: { totalGapCount: 0 }
+};
+
+const mockLineFrequencyInput: LineFrequencyInputByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: '' }), {} as LineFrequencyInputByTimeBand);
+const mockLineFrequencyControl: LineFrequencyControlByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: { status: 'unset', message: 'Not configured' } }), {} as LineFrequencyControlByTimeBand);
+const mockLineFrequencyValidation: LineFrequencyValidationByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: { isValid: true, issues: [] } }), {} as LineFrequencyValidationByTimeBand);
 
 interface RenderResult {
   readonly container: HTMLDivElement;
@@ -71,9 +159,9 @@ const renderInspectorPanel = (): RenderResult => {
         selectedLineServiceProjection={null}
         selectedLineServiceInspectorProjection={null}
         selectedLinePlanningVehicleProjection={null}
-        lineFrequencyInputByTimeBand={{} as any}
-        lineFrequencyControlByTimeBand={{} as any}
-        lineFrequencyValidationByTimeBand={{} as any}
+        lineFrequencyInputByTimeBand={mockLineFrequencyInput}
+        lineFrequencyControlByTimeBand={mockLineFrequencyControl}
+        lineFrequencyValidationByTimeBand={mockLineFrequencyValidation}
         onFrequencyChange={vi.fn()}
         openDialogIntent={null}
         onOpenDialogIntentConsumed={vi.fn()}
