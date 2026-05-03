@@ -20,16 +20,19 @@ describe('scenarioRoutingCoverageGeoJson', () => {
       expect(result.features).toHaveLength(1);
       const feature = result.features[0]!;
       expect(feature.geometry.type).toBe('Polygon');
+      if (feature.geometry.type !== 'Polygon') {
+        throw new Error('Expected Polygon geometry');
+      }
       
-      const coords = (feature.geometry as any).coordinates;
+      const coords = feature.geometry.coordinates;
       expect(coords).toHaveLength(2); // Outer world ring and inner hole
       
       // Outer ring should be world bounds
-      expect(coords[0][0]).toEqual([-180, 90]);
+      expect(coords[0]?.[0]).toEqual([-180, 90]);
       
       // Inner ring should be our coverage bounds
-      expect(coords[1][0]).toEqual([10, 51]);
-      expect(coords[1][1]).toEqual([10, 50]);
+      expect(coords[1]?.[0]).toEqual([10, 51]);
+      expect(coords[1]?.[1]).toEqual([10, 50]);
     });
   });
 });

@@ -48,6 +48,26 @@ import { buildScenarioRoutingCoverageMaskFeatureCollection } from './scenarioRou
 import { buildDemandGapOverlayFeatureCollection } from './demandGapOverlayGeoJson';
 
 
+/**
+ * Minimal MapLibre surface required for map source/layer synchronization.
+ */
+export interface MapWorkspaceSourceSyncMap {
+  /** Returns whether the provided source id exists in the current style. */
+  readonly getSource: MapLibreMap['getSource'];
+  /** Registers a GeoJSON source for subsequent style-layer rendering. */
+  readonly addSource: MapLibreMap['addSource'];
+  /** Returns whether the provided layer id exists in the current style. */
+  readonly getLayer: MapLibreMap['getLayer'];
+  /** Registers a style layer bound to an existing source id. */
+  readonly addLayer: MapLibreMap['addLayer'];
+  /** Reorders an existing layer before another layer id, or to the top. */
+  readonly moveLayer: MapLibreMap['moveLayer'];
+  /** Queries source features for a known source id and optional source-layer constraint. */
+  readonly querySourceFeatures: MapLibreMap['querySourceFeatures'];
+}
+
+
+
 
 
 /**
@@ -86,7 +106,7 @@ import type { DemandGapRankingProjection } from '../domain/projection/demandGapP
  * Inputs for one lifecycle-safe source/layer synchronization pass.
  */
 export interface SyncAllMapWorkspaceSourcesInput {
-  readonly map: MapLibreMap;
+  readonly map: MapWorkspaceSourceSyncMap;
   readonly stopSync?: MapWorkspaceStopSyncInput;
   readonly lineSync?: MapWorkspaceLineSyncInput;
   readonly vehicleSync?: MapWorkspaceVehicleSyncInput;
@@ -135,7 +155,7 @@ export const getMapWorkspaceCustomLayerOrder = (): readonly string[] => [...CUST
 /**
  * Returns existing workspace custom-layer ids in canonical deterministic order.
  */
-export const listPresentMapWorkspaceCustomLayerIds = (map: MapLibreMap): readonly string[] =>
+export const listPresentMapWorkspaceCustomLayerIds = (map: MapWorkspaceSourceSyncMap): readonly string[] =>
   getMapWorkspaceCustomLayerOrder().filter((layerId) => map.getLayer(layerId) !== undefined);
 
 const WORKSPACE_SOURCE_IDS = [
@@ -153,10 +173,10 @@ const WORKSPACE_SOURCE_IDS = [
 /**
  * Returns whether all workspace-owned GeoJSON sources already exist on the current map style.
  */
-export const hasAllMapWorkspaceRenderSources = (map: MapLibreMap): boolean =>
+export const hasAllMapWorkspaceRenderSources = (map: MapWorkspaceSourceSyncMap): boolean =>
   WORKSPACE_SOURCE_IDS.every((sourceId) => map.getSource(sourceId) !== undefined);
 
-const countSourceFeatures = (map: MapLibreMap, sourceId: string): number => {
+const countSourceFeatures = (map: MapWorkspaceSourceSyncMap, sourceId: string): number => {
   if (!map.getSource(sourceId)) {
     return 0;
   }
@@ -167,7 +187,7 @@ const countSourceFeatures = (map: MapLibreMap, sourceId: string): number => {
 /**
  * Reapplies deterministic ordering for all workspace-owned custom layers.
  */
-export const enforceMapWorkspaceCustomLayerOrder = (map: MapLibreMap): void => {
+export const enforceMapWorkspaceCustomLayerOrder = (map: MapWorkspaceSourceSyncMap): void => {
   const customLayerOrder = getMapWorkspaceCustomLayerOrder();
 
   for (let index = customLayerOrder.length - 1; index >= 0; index -= 1) {
@@ -187,7 +207,7 @@ export const enforceMapWorkspaceCustomLayerOrder = (map: MapLibreMap): void => {
   }
 };
 
-const ensureAllMapWorkspaceRenderSourcesAndLayers = (map: MapLibreMap): void => {
+const ensureAllMapWorkspaceRenderSourcesAndLayers = (map: MapWorkspaceSourceSyncMap): void => {
   if (!map.getSource(MAP_SOURCE_ID_COMPLETED_LINES)) {
     map.addSource(MAP_SOURCE_ID_COMPLETED_LINES, {
       type: 'geojson',

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getMapWorkspaceCustomLayerOrder,
-  listPresentMapWorkspaceCustomLayerIds
+  listPresentMapWorkspaceCustomLayerIds,
+  type MapWorkspaceSourceSyncMap
 } from './mapWorkspaceSourceSync';
 import {
   MAP_LAYER_ID_COMPLETED_LINES,
@@ -20,19 +21,10 @@ import {
 } from './mapRenderConstants';
 import type { MapLibreLayerSpecification, MapLibreMap } from './maplibreGlobal';
 
-const createMapWithPresentLayers = (presentLayerIds: readonly string[]): MapLibreMap => {
+const createMapWithPresentLayers = (presentLayerIds: readonly string[]): MapWorkspaceSourceSyncMap => {
   const layerSet = new Set(presentLayerIds);
 
   return {
-    remove: () => undefined,
-    resize: () => undefined,
-    addControl: () => undefined,
-    on: () => undefined,
-    off: () => undefined,
-    getStyle: () => undefined,
-    queryRenderedFeatures: () => [],
-    querySourceFeatures: () => [],
-    project: () => ({ x: 0, y: 0 }),
     getSource: () => undefined,
     addSource: () => undefined,
     getLayer: (layerId: string): MapLibreLayerSpecification | undefined =>
@@ -45,13 +37,7 @@ const createMapWithPresentLayers = (presentLayerIds: readonly string[]): MapLibr
         : undefined,
     addLayer: () => undefined,
     moveLayer: () => undefined,
-    isStyleLoaded: () => true,
-    easeTo: () => undefined,
-    fitBounds: () => undefined,
-    setPaintProperty: () => undefined,
-    setLayoutProperty: () => undefined,
-    setMaxBounds: () => undefined,
-    getZoom: () => 14
+    querySourceFeatures: () => []
   };
 };
 
@@ -107,7 +93,7 @@ interface TestGeoJsonSource {
   setData: ReturnType<typeof vi.fn>;
 }
 
-interface SourceSyncTestMap {
+interface SourceSyncTestMap extends MapWorkspaceSourceSyncMap {
   getSource: ReturnType<typeof vi.fn>;
   addSource: ReturnType<typeof vi.fn>;
   getLayer: ReturnType<typeof vi.fn>;
@@ -117,7 +103,7 @@ interface SourceSyncTestMap {
 }
 
 describe('mapWorkspaceSourceSync integration', () => {
-  const createMockMap = (): MapLibreMap => {
+  const createMockMap = (): MapWorkspaceSourceSyncMap => {
     const sources = new Map<string, TestGeoJsonSource>();
     const layers = new Set<string>();
 
@@ -134,7 +120,7 @@ describe('mapWorkspaceSourceSync integration', () => {
       querySourceFeatures: vi.fn(() => []),
     };
 
-    return mockMap as unknown as MapLibreMap;
+    return mockMap;
   };
 
   it('syncAllMapWorkspaceSources ensures demand gap source and sets data', () => {
