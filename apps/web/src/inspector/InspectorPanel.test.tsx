@@ -232,6 +232,7 @@ const renderInspectorPanel = (): RenderResult => {
         selectedLineDemandContribution={null}
         onDemandGapFocus={vi.fn()}
         focusedDemandGapId={null}
+        onPlanningEntrypoint={vi.fn()}
       />
     );
   });

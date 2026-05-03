@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 176 — Focused Demand Gap Planning Action Entrypoints**:
+    - Added explicit map-focus and tool-mode action entrypoints within the Focused Demand Gap Planning Summary.
+    - Preserved pure-projection boundaries by delegating mode transitions to the application shell.
+    - Added ADR 0177 documenting non-authoritative planning action entrypoints.
 - **Slice 174 — Focused Demand Gap Planning Summary Projection**:
     - Extracted legacy component-local planning guidance semantics into a pure projection module (`focusedDemandGapPlanningProjection.ts`).
     - Wired the new projection into the `NetworkPlanningProjections` bundle via `useNetworkPlanningProjections.ts`.

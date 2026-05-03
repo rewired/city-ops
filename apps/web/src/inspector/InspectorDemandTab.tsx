@@ -10,6 +10,15 @@ import type { DemandGapOdContextProjection } from '../domain/projection/demandGa
 import type { DemandGapOdCandidateListProjection } from '../domain/projection/demandGapOdCandidateListProjection';
 import type { FocusedDemandGapPlanningProjection } from '../domain/projection/focusedDemandGapPlanningProjection';
 
+export type FocusedDemandGapPlanningEntrypointKind =
+  | 'start-stop-placement-near-gap'
+  | 'start-line-planning-near-gap';
+
+export interface FocusedDemandGapPlanningEntrypointRequest {
+  readonly kind: FocusedDemandGapPlanningEntrypointKind;
+  readonly position: { readonly lng: number; readonly lat: number };
+}
+
 interface InspectorDemandTabProps {
   readonly scenarioDemandCaptureProjection: ScenarioDemandCaptureProjection;
   readonly servedDemandProjection: ServedDemandProjection;
@@ -20,6 +29,7 @@ interface InspectorDemandTabProps {
   readonly onPositionFocus: (position: { lng: number; lat: number }) => void;
   readonly onDemandGapFocus: (gap: DemandGapRankingItem | null) => void;
   readonly focusedDemandGapId: string | null;
+  readonly onPlanningEntrypoint: (request: FocusedDemandGapPlanningEntrypointRequest) => void;
 }
 
 
@@ -36,7 +46,8 @@ export function InspectorDemandTab({
   focusedDemandGapPlanningProjection,
   onPositionFocus,
   onDemandGapFocus,
-  focusedDemandGapId
+  focusedDemandGapId,
+  onPlanningEntrypoint
 }: InspectorDemandTabProps): ReactElement {
   const renderGapList = (gaps: readonly DemandGapRankingItem[], title: string): ReactElement | null => {
     if (gaps.length === 0) return null;
@@ -211,6 +222,40 @@ export function InspectorDemandTab({
                           <p className="inspector-demand-gaps__guidance-supporting">{focusedDemandGapPlanningProjection.supportingContext}</p>
                         </div>
                       </div>
+                      
+                      {focusedDemandGapPlanningProjection.actionKind && (() => {
+                        const gap = 
+                          demandGapRankingProjection.uncapturedResidentialGaps.find(g => g.id === focusedDemandGapId) ??
+                          demandGapRankingProjection.capturedButUnservedResidentialGaps.find(g => g.id === focusedDemandGapId) ??
+                          demandGapRankingProjection.capturedButUnreachableWorkplaceGaps.find(g => g.id === focusedDemandGapId);
+                        
+                        if (!gap) return null;
+
+                        const isCoverage = focusedDemandGapPlanningProjection.actionKind === 'add-stop-coverage';
+                        const actionLabel = isCoverage ? 'Start stop placement' : 'Start line planning';
+                        const helperCopy = isCoverage
+                          ? 'Switches to stop placement and centers this gap. You still choose the street anchor.'
+                          : 'Switches to line planning and centers this gap. No line is created automatically.';
+                        const requestKind: FocusedDemandGapPlanningEntrypointKind = isCoverage
+                          ? 'start-stop-placement-near-gap'
+                          : 'start-line-planning-near-gap';
+
+                        return (
+                          <div className="inspector-demand-gaps__planning-action-container">
+                            <button
+                              type="button"
+                              className="inspector-button-primary inspector-demand-gaps__planning-action-button"
+                              onClick={() => onPlanningEntrypoint({ kind: requestKind, position: gap.position })}
+                            >
+                              <MaterialIcon name={isCoverage ? 'add_location_alt' : 'route'} />
+                              <span>{actionLabel}</span>
+                            </button>
+                            <p className="inspector-dialog__note inspector-demand-gaps__planning-action-note">
+                              {helperCopy}
+                            </p>
+                          </div>
+                        );
+                      })()}
                       
                       {focusedDemandGapPlanningProjection.evidence.length > 0 && (
                         <table className="inspector-compact-table inspector-compact-table--evidence">

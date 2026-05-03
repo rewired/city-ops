@@ -29,6 +29,7 @@ import type { ActiveDataOperation } from './ui/data-operation/types';
 import type { Stop, StopId } from './domain/types/stop';
 import type { LineId } from './domain/types/line';
 import type { DemandGapRankingItem } from './domain/projection/demandGapProjection';
+import type { FocusedDemandGapPlanningEntrypointRequest } from './inspector/InspectorDemandTab';
 
 import { AppShell } from './AppShell';
 import { loadScenarioRegistry } from './domain/scenario/loadScenarioRegistry';
@@ -353,6 +354,16 @@ const toolModeControlOptions: ReadonlyArray<{
     handlePositionFocus(gap.position);
   };
 
+  const handlePlanningEntrypoint = useCallback((request: FocusedDemandGapPlanningEntrypointRequest) => {
+    handlePositionFocus(request.position);
+    
+    if (request.kind === 'start-stop-placement-near-gap') {
+      sessionController.handleToolModeSelection('place-stop');
+    } else if (request.kind === 'start-line-planning-near-gap') {
+      sessionController.handleToolModeSelection('build-line');
+    }
+  }, [handlePositionFocus, sessionController]);
+
   if (registryState.status === 'loading') {
     return (
       <div className="scenario-loading-state" aria-label="Scenario loading state">
@@ -536,6 +547,7 @@ const toolModeControlOptions: ReadonlyArray<{
         onPositionFocus={handlePositionFocus}
         onDemandGapFocus={handleDemandGapFocus}
         focusedDemandGapId={focusedDemandGapId}
+        onPlanningEntrypoint={handlePlanningEntrypoint}
         onStopRename={sessionController.renameStopLabel}
         onLineRename={sessionController.renameLineLabel}
         openDialogIntent={sessionController.selectedLineDialogOpenIntent}

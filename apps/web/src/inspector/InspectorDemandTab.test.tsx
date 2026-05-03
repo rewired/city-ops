@@ -151,7 +151,8 @@ describe('InspectorDemandTab', () => {
       focusedDemandGapPlanningProjection: mockPlanning,
       onPositionFocus: vi.fn(),
       onDemandGapFocus: vi.fn(),
-      focusedDemandGapId: 'gap-123'
+      focusedDemandGapId: 'gap-123',
+      onPlanningEntrypoint: vi.fn()
     });
 
     const textContent = mounted.container.textContent;
@@ -205,7 +206,8 @@ describe('InspectorDemandTab', () => {
       focusedDemandGapPlanningProjection: mockPlanning,
       onPositionFocus: vi.fn(),
       onDemandGapFocus,
-      focusedDemandGapId: 'gap-123'
+      focusedDemandGapId: 'gap-123',
+      onPlanningEntrypoint: vi.fn()
     });
 
     const clearButtons = Array.from(mounted.container.querySelectorAll('button')).filter(b => b.textContent === 'Clear focus');
@@ -276,7 +278,8 @@ describe('InspectorDemandTab', () => {
       },
       onPositionFocus,
       onDemandGapFocus: vi.fn(),
-      focusedDemandGapId: 'gap-123'
+      focusedDemandGapId: 'gap-123',
+      onPlanningEntrypoint: vi.fn()
     });
 
     const textContent = mounted.container.textContent;
@@ -294,5 +297,131 @@ describe('InspectorDemandTab', () => {
     });
 
     expect(onPositionFocus).toHaveBeenCalledWith({ lng: 1, lat: 1 });
+  });
+
+  it('renders and handles coverage planning action entrypoint', () => {
+    const mockGap: DemandGapRankingItem = {
+      id: 'gap-123',
+      kind: 'uncaptured-residential',
+      position: { lng: 10, lat: 20 },
+      activeWeight: 10,
+      baseWeight: 10,
+      nearestStopDistanceMeters: 500,
+      capturingStopCount: 0,
+      note: 'Test note'
+    };
+
+    const mockRanking: DemandGapRankingProjection = {
+      status: 'ready',
+      activeTimeBandId: 'morning-rush',
+      uncapturedResidentialGaps: [mockGap],
+      capturedButUnservedResidentialGaps: [],
+      capturedButUnreachableWorkplaceGaps: [],
+      summary: { totalGapCount: 1 }
+    };
+
+    const mockPlanning: FocusedDemandGapPlanningProjection = {
+      status: 'ready',
+      focusedGapId: 'gap-123',
+      actionKind: 'add-stop-coverage',
+      title: 'Coverage gap',
+      primaryAction: 'Action',
+      supportingContext: 'Context',
+      caveat: 'Caveat',
+      evidence: []
+    };
+
+    const onPlanningEntrypoint = vi.fn();
+
+    mounted = renderTab({
+      scenarioDemandCaptureProjection: MOCK_SCENARIO_PROJECTION,
+      servedDemandProjection: MOCK_SERVED_PROJECTION,
+      demandGapRankingProjection: mockRanking,
+      demandGapOdContextProjection: MOCK_OD_CONTEXT,
+      demandGapOdCandidateListProjection: MOCK_CANDIDATE_LIST,
+      focusedDemandGapPlanningProjection: mockPlanning,
+      onPositionFocus: vi.fn(),
+      onDemandGapFocus: vi.fn(),
+      focusedDemandGapId: 'gap-123',
+      onPlanningEntrypoint
+    });
+
+    const textContent = mounted.container.textContent;
+    expect(textContent).toContain('Start stop placement');
+    
+    const actionButton = Array.from(mounted.container.querySelectorAll('button')).find(b => b.textContent?.includes('Start stop placement'));
+    expect(actionButton).toBeDefined();
+
+    act(() => {
+      actionButton?.click();
+    });
+
+    expect(onPlanningEntrypoint).toHaveBeenCalledWith({
+      kind: 'start-stop-placement-near-gap',
+      position: { lng: 10, lat: 20 }
+    });
+  });
+
+  it('renders and handles line planning action entrypoint', () => {
+    const mockGap: DemandGapRankingItem = {
+      id: 'gap-456',
+      kind: 'captured-unserved-residential',
+      position: { lng: 30, lat: 40 },
+      activeWeight: 10,
+      baseWeight: 10,
+      nearestStopDistanceMeters: 500,
+      capturingStopCount: 1,
+      note: 'Test note'
+    };
+
+    const mockRanking: DemandGapRankingProjection = {
+      status: 'ready',
+      activeTimeBandId: 'morning-rush',
+      uncapturedResidentialGaps: [],
+      capturedButUnservedResidentialGaps: [mockGap],
+      capturedButUnreachableWorkplaceGaps: [],
+      summary: { totalGapCount: 1 }
+    };
+
+    const mockPlanning: FocusedDemandGapPlanningProjection = {
+      status: 'ready',
+      focusedGapId: 'gap-456',
+      actionKind: 'connect-origin-to-destination',
+      title: 'Unserved',
+      primaryAction: 'Action',
+      supportingContext: 'Context',
+      caveat: 'Caveat',
+      evidence: []
+    };
+
+    const onPlanningEntrypoint = vi.fn();
+
+    mounted = renderTab({
+      scenarioDemandCaptureProjection: MOCK_SCENARIO_PROJECTION,
+      servedDemandProjection: MOCK_SERVED_PROJECTION,
+      demandGapRankingProjection: mockRanking,
+      demandGapOdContextProjection: MOCK_OD_CONTEXT,
+      demandGapOdCandidateListProjection: MOCK_CANDIDATE_LIST,
+      focusedDemandGapPlanningProjection: mockPlanning,
+      onPositionFocus: vi.fn(),
+      onDemandGapFocus: vi.fn(),
+      focusedDemandGapId: 'gap-456',
+      onPlanningEntrypoint
+    });
+
+    const textContent = mounted.container.textContent;
+    expect(textContent).toContain('Start line planning');
+    
+    const actionButton = Array.from(mounted.container.querySelectorAll('button')).find(b => b.textContent?.includes('Start line planning'));
+    expect(actionButton).toBeDefined();
+
+    act(() => {
+      actionButton?.click();
+    });
+
+    expect(onPlanningEntrypoint).toHaveBeenCalledWith({
+      kind: 'start-line-planning-near-gap',
+      position: { lng: 30, lat: 40 }
+    });
   });
 });

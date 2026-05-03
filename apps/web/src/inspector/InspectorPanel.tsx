@@ -22,6 +22,7 @@ import type { ServicePressureProjection } from '../domain/projection/servicePres
 import type { SelectedLineDemandContributionProjection } from '../domain/projection/selectedLineDemandContributionProjection';
 import type { DemandGapRankingProjection, DemandGapRankingItem } from '../domain/projection/demandGapProjection';
 import type { DemandGapOdContextProjection } from '../domain/projection/demandGapOdContextProjection';
+import type { FocusedDemandGapPlanningEntrypointRequest } from './InspectorDemandTab';
 
 import { InspectorTabBar } from './InspectorTabBar';
 import { InspectorScrollArea } from './InspectorScrollArea';
@@ -73,6 +74,7 @@ interface InspectorPanelProps {
   readonly onPositionFocus: (position: { lng: number; lat: number }) => void;
   readonly onDemandGapFocus: (gap: DemandGapRankingItem | null) => void;
   readonly focusedDemandGapId: string | null;
+  readonly onPlanningEntrypoint: (request: FocusedDemandGapPlanningEntrypointRequest) => void;
 }
 
 const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
@@ -132,7 +134,8 @@ export function InspectorPanel({
   focusedDemandGapPlanningProjection,
   onPositionFocus,
   onDemandGapFocus,
-  focusedDemandGapId
+  focusedDemandGapId,
+  onPlanningEntrypoint
 }: InspectorPanelProps): ReactElement {
   const [activeTabId, setActiveTabId] = useState<InspectorTabId>('overview');
   const globalStateLabel = useMemo(() => resolveGlobalStateLabel(inspectorPanelState), [inspectorPanelState]);
@@ -193,6 +196,7 @@ export function InspectorPanel({
                 onPositionFocus={onPositionFocus}
                 onDemandGapFocus={onDemandGapFocus}
                 focusedDemandGapId={focusedDemandGapId}
+                onPlanningEntrypoint={onPlanningEntrypoint}
               />
             )}
 
