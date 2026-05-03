@@ -2,8 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   applyFocusedDemandGapPlanningEntrypoint,
   resolveFocusedDemandGapPlanningEntrypointToolMode,
-  type FocusedDemandGapPlanningEntrypointRequest,
-  type FocusedDemandGapPlanningEntrypointHandlers
+  type FocusedDemandGapPlanningEntrypointRequest
 } from './focusedDemandGapPlanningEntrypoint';
 
 const getSingleInvocationOrder = (
@@ -16,6 +15,7 @@ const getSingleInvocationOrder = (
   }
   return callOrder;
 };
+
 describe('focusedDemandGapPlanningEntrypoint', () => {
   describe('resolveFocusedDemandGapPlanningEntrypointToolMode', () => {
     it('resolves start-stop-placement-near-gap to place-stop', () => {
@@ -28,45 +28,57 @@ describe('focusedDemandGapPlanningEntrypoint', () => {
   });
 
   describe('applyFocusedDemandGapPlanningEntrypoint', () => {
-    it('focuses map and selects place-stop mode for stop placement request', () => {
+    it('triggers map focus, tool mode selection, and planning context for stop placement', () => {
       const focusPosition = vi.fn();
       const selectToolMode = vi.fn();
-      const handlers: FocusedDemandGapPlanningEntrypointHandlers = { focusPosition, selectToolMode };
-      
+      const setPlanningContext = vi.fn();
+
       const request: FocusedDemandGapPlanningEntrypointRequest = {
         kind: 'start-stop-placement-near-gap',
-        position: { lng: 10, lat: 20 }
+        position: { lng: 10, lat: 53 }
       };
 
-      applyFocusedDemandGapPlanningEntrypoint(request, handlers);
+      applyFocusedDemandGapPlanningEntrypoint(request, {
+        focusPosition,
+        selectToolMode,
+        setPlanningContext
+      });
 
-      expect(focusPosition).toHaveBeenCalledWith({ lng: 10, lat: 20 });
+      expect(focusPosition).toHaveBeenCalledWith({ lng: 10, lat: 53 });
       expect(selectToolMode).toHaveBeenCalledWith('place-stop');
-      
+      expect(setPlanningContext).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'stop-placement',
+        title: 'Stop placement started'
+      }));
+
       // Ensure focus happens before tool mode selection for better UX sequencing
       const focusCallOrder = getSingleInvocationOrder(focusPosition, 'focusPosition');
       const selectModeCallOrder = getSingleInvocationOrder(selectToolMode, 'selectToolMode');
       expect(focusCallOrder).toBeLessThan(selectModeCallOrder);
     });
 
-    it('focuses map and selects build-line mode for line planning request', () => {
+    it('triggers map focus, tool mode selection, and planning context for line planning', () => {
       const focusPosition = vi.fn();
       const selectToolMode = vi.fn();
-      const handlers: FocusedDemandGapPlanningEntrypointHandlers = { focusPosition, selectToolMode };
-      
+      const setPlanningContext = vi.fn();
+
       const request: FocusedDemandGapPlanningEntrypointRequest = {
         kind: 'start-line-planning-near-gap',
-        position: { lng: 30, lat: 40 }
+        position: { lng: 10.1, lat: 53.5 }
       };
 
-      applyFocusedDemandGapPlanningEntrypoint(request, handlers);
+      applyFocusedDemandGapPlanningEntrypoint(request, {
+        focusPosition,
+        selectToolMode,
+        setPlanningContext
+      });
 
-      expect(focusPosition).toHaveBeenCalledWith({ lng: 30, lat: 40 });
+      expect(focusPosition).toHaveBeenCalledWith({ lng: 10.1, lat: 53.5 });
       expect(selectToolMode).toHaveBeenCalledWith('build-line');
-      
-      const focusCallOrder = getSingleInvocationOrder(focusPosition, 'focusPosition');
-      const selectModeCallOrder = getSingleInvocationOrder(selectToolMode, 'selectToolMode');
-      expect(focusCallOrder).toBeLessThan(selectModeCallOrder);
+      expect(setPlanningContext).toHaveBeenCalledWith(expect.objectContaining({
+        kind: 'line-planning',
+        title: 'Line planning started'
+      }));
     });
   });
 });

@@ -1,9 +1,11 @@
 import type { WorkspaceToolMode } from '../session/sessionTypes';
+import {
+  resolveFocusedDemandGapPlanningContext,
+  type FocusedDemandGapPlanningContext,
+  type FocusedDemandGapPlanningEntrypointKind
+} from './focusedDemandGapPlanningContext';
 
-/** Identifies which existing planning workflow a focused demand gap action should open. */
-export type FocusedDemandGapPlanningEntrypointKind =
-  | 'start-stop-placement-near-gap'
-  | 'start-line-planning-near-gap';
+export type { FocusedDemandGapPlanningEntrypointKind };
 
 /** Carries a focused demand gap action request from Inspector UI to the app shell. */
 export interface FocusedDemandGapPlanningEntrypointRequest {
@@ -15,6 +17,8 @@ export interface FocusedDemandGapPlanningEntrypointRequest {
 export interface FocusedDemandGapPlanningEntrypointHandlers {
   readonly focusPosition: (position: { readonly lng: number; readonly lat: number }) => void;
   readonly selectToolMode: (mode: WorkspaceToolMode) => void;
+  /** Sets the transient planning context for UI display. */
+  readonly setPlanningContext: (context: FocusedDemandGapPlanningContext | null) => void;
 }
 
 /** Resolves the existing workspace tool mode opened by a planning entrypoint. */
@@ -24,11 +28,12 @@ export const resolveFocusedDemandGapPlanningEntrypointToolMode = (
   return kind === 'start-stop-placement-near-gap' ? 'place-stop' : 'build-line';
 };
 
-/** Applies a planning entrypoint by focusing the map and switching an existing tool mode. */
+/** Applies a planning entrypoint by focusing the map, switching an existing tool mode, and setting context. */
 export const applyFocusedDemandGapPlanningEntrypoint = (
   request: FocusedDemandGapPlanningEntrypointRequest,
   handlers: FocusedDemandGapPlanningEntrypointHandlers
 ): void => {
   handlers.focusPosition(request.position);
   handlers.selectToolMode(resolveFocusedDemandGapPlanningEntrypointToolMode(request.kind));
+  handlers.setPlanningContext(resolveFocusedDemandGapPlanningContext(request.kind));
 };

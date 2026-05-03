@@ -3,6 +3,7 @@
 @import './styles/app-shell.css';
 @import './styles/map-workspace.css';
 @import './styles/map-workspace-overlays.css';
+@import './styles/planning-context-banner.css';
 
 @import './styles/map-workspace-layers.css';
 @import './styles/demand-gap-legend.css';

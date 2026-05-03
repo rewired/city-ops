@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 177 — Demand Gap Planning Entrypoint Context Banner**:
+    - Added a transient, dismissible planning context banner in the UI shell after triggering a planning entrypoint from a demand gap.
+    - Implemented shell-owned state and transient context model to provide guided workflow continuity.
+    - Wired context clearing to manual dismissal, clearing demand gap focus, or returning to inspect mode.
+    - Added ADR 0178 documenting non-authoritative transient UI context boundaries.
 - **Slice 176 — Focused Demand Gap Planning Action Entrypoints**:
     - Added explicit map-focus and tool-mode action entrypoints within the Focused Demand Gap Planning Summary.
     - Preserved pure-projection boundaries by delegating mode transitions to the application shell.

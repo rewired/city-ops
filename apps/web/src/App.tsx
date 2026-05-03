@@ -31,6 +31,8 @@ import type { LineId } from './domain/types/line';
 import type { DemandGapRankingItem } from './domain/projection/demandGapProjection';
 import type { FocusedDemandGapPlanningEntrypointRequest } from './app/focusedDemandGapPlanningEntrypoint';
 import { applyFocusedDemandGapPlanningEntrypoint } from './app/focusedDemandGapPlanningEntrypoint';
+import type { FocusedDemandGapPlanningContext } from './app/focusedDemandGapPlanningContext';
+import { PlanningContextBanner } from './ui/PlanningContextBanner';
 
 import { AppShell } from './AppShell';
 import { loadScenarioRegistry } from './domain/scenario/loadScenarioRegistry';
@@ -148,6 +150,7 @@ export default function App(): ReactElement {
   const [osmStopCandidates, setOsmStopCandidates] = useState<readonly OsmStopCandidate[]>([]);
   const [selectedOsmCandidateAnchor, setSelectedOsmCandidateAnchor] = useState<OsmStopCandidateStreetAnchorResolution | null>(null);
   const [focusedDemandGapId, setFocusedDemandGapId] = useState<string | null>(null);
+  const [transientPlanningContext, setTransientPlanningContext] = useState<FocusedDemandGapPlanningContext | null>(null);
 
   const osmStopCandidateGroups = useMemo(
     () => consolidateOsmStopCandidates(osmStopCandidates),
@@ -349,16 +352,25 @@ const toolModeControlOptions: ReadonlyArray<{
   const handleDemandGapFocus = (gap: DemandGapRankingItem | null): void => {
     if (!gap) {
       setFocusedDemandGapId(null);
+      setTransientPlanningContext(null);
       return;
     }
     setFocusedDemandGapId(gap.id);
     handlePositionFocus(gap.position);
   };
 
+  useEffect(() => {
+    // Clear planning context if user manually returns to inspect mode
+    if (sessionController.activeToolMode === 'inspect') {
+      setTransientPlanningContext(null);
+    }
+  }, [sessionController.activeToolMode]);
+
   const handlePlanningEntrypoint = useCallback((request: FocusedDemandGapPlanningEntrypointRequest) => {
     applyFocusedDemandGapPlanningEntrypoint(request, {
       focusPosition: handlePositionFocus,
-      selectToolMode: sessionController.handleToolModeSelection
+      selectToolMode: sessionController.handleToolModeSelection,
+      setPlanningContext: setTransientPlanningContext
     });
   }, [handlePositionFocus, sessionController.handleToolModeSelection]);
 
@@ -513,6 +525,12 @@ const toolModeControlOptions: ReadonlyArray<{
           demandGapOdContextProjection={projections.demandGapOdContextProjection}
         />
 
+        {transientPlanningContext && (
+          <PlanningContextBanner
+            context={transientPlanningContext}
+            onDismiss={() => setTransientPlanningContext(null)}
+          />
+        )}
       </main>
 
       <InspectorPanel
