@@ -8,12 +8,15 @@ import { MVP_TIME_BAND_IDS } from '../constants/timeBands';
 describe('projectDemandGapOdContext', () => {
   const mockTimeBandId: TimeBandId = 'morning-rush';
   
-  const createMockTimeBandWeights = (): Record<TimeBandId, number> => {
-    return MVP_TIME_BAND_IDS.reduce((acc, id) => {
-      acc[id] = 1.0;
-      return acc;
-    }, {} as Record<TimeBandId, number>);
-  };
+  const createMockTimeBandWeights = (): Record<TimeBandId, number> => ({
+    'morning-rush': 1.0,
+    'late-morning': 1.0,
+    'midday': 1.0,
+    'afternoon': 1.0,
+    'evening-rush': 1.0,
+    'evening': 1.0,
+    'night': 1.0
+  });
 
   const mockNode1: ScenarioDemandNode = {
     id: 'node-res-1',

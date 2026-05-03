@@ -5,10 +5,13 @@ import { calculateGreatCircleDistanceMeters } from '../../lib/geometry';
 import { calculateActiveDemandWeight } from './demandWeight';
 import { DEMAND_GAP_OD_CONTEXT_MAX_CANDIDATES } from '../constants/scenarioDemand';
 
+/** Status of the OD context projection based on readiness of dependencies. */
 export type DemandGapOdContextStatus = 'unavailable' | 'ready';
 
+/** Indicates whether the gap represents an origin or a destination problem. */
 export type DemandGapOdContextProblemSide = 'origin' | 'destination';
 
+/** Represents a candidate node to resolve a focused demand gap. */
 export interface DemandGapOdContextCandidate {
   readonly id: string;
   readonly role: 'origin' | 'destination';
@@ -19,6 +22,11 @@ export interface DemandGapOdContextCandidate {
   readonly distanceMeters: number;
 }
 
+/** 
+ * Derived planning context providing likely origin or destination candidates 
+ * for a focused demand gap. This is pure projection context and does not 
+ * represent exact simulation passenger flow truth or route geometry.
+ */
 export interface DemandGapOdContextProjection {
   readonly status: DemandGapOdContextStatus;
   readonly activeTimeBandId: TimeBandId;
@@ -102,14 +110,22 @@ export function projectDemandGapOdContext(
 
   const { problemSide, guidance } = resolveProblemSideAndGuidance(gapItem.kind);
 
-  // Determine what kind of nodes we need to search for as candidates
-  const targetNodeRole = problemSide === 'origin' ? 'destination' : 'origin';
-  const targetNodeClass = problemSide === 'origin' ? 'workplace' : 'residential';
+  // Determine candidate nodes through type guards to preserve strict typing
+  const isWorkplaceDestinationNode = (
+    node: ScenarioDemandNode
+  ): node is ScenarioDemandNode & { readonly role: 'destination'; readonly class: 'workplace' } => {
+    return node.role === 'destination' && node.class === 'workplace';
+  };
 
-  // Filter artifact nodes for the opposite end of the journey
-  const candidateNodes = artifact.nodes.filter(
-    n => n.role === targetNodeRole && n.class === targetNodeClass
-  );
+  const isResidentialOriginNode = (
+    node: ScenarioDemandNode
+  ): node is ScenarioDemandNode & { readonly role: 'origin'; readonly class: 'residential' } => {
+    return node.role === 'origin' && node.class === 'residential';
+  };
+
+  const candidateNodes = problemSide === 'origin'
+    ? artifact.nodes.filter(isWorkplaceDestinationNode)
+    : artifact.nodes.filter(isResidentialOriginNode);
 
   const candidates: DemandGapOdContextCandidate[] = [];
 
@@ -124,8 +140,8 @@ export function projectDemandGapOdContext(
 
     candidates.push({
       id: node.id,
-      role: node.role as 'origin' | 'destination',
-      demandClass: node.class as 'residential' | 'workplace',
+      role: node.role,
+      demandClass: node.class,
       position: node.position,
       activeWeight,
       baseWeight: node.baseWeight,

@@ -134,9 +134,35 @@ const mockDemandGapOdContextProjection: DemandGapOdContextProjection = {
   guidance: null
 };
 
-const mockLineFrequencyInput: LineFrequencyInputByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: '' }), {} as Record<string, string>) as LineFrequencyInputByTimeBand;
-const mockLineFrequencyControl: LineFrequencyControlByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: 'no-service' as LineFrequencyControlState }), {} as Record<string, LineFrequencyControlState>) as LineFrequencyControlByTimeBand;
-const mockLineFrequencyValidation: LineFrequencyValidationByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: null }), {} as Record<string, string | null>) as LineFrequencyValidationByTimeBand;
+const mockLineFrequencyInput: LineFrequencyInputByTimeBand = {
+  'morning-rush': '',
+  'late-morning': '',
+  'midday': '',
+  'afternoon': '',
+  'evening-rush': '',
+  'evening': '',
+  'night': ''
+};
+
+const mockLineFrequencyControl: LineFrequencyControlByTimeBand = {
+  'morning-rush': 'no-service',
+  'late-morning': 'no-service',
+  'midday': 'no-service',
+  'afternoon': 'no-service',
+  'evening-rush': 'no-service',
+  'evening': 'no-service',
+  'night': 'no-service'
+};
+
+const mockLineFrequencyValidation: LineFrequencyValidationByTimeBand = {
+  'morning-rush': null,
+  'late-morning': null,
+  'midday': null,
+  'afternoon': null,
+  'evening-rush': null,
+  'evening': null,
+  'night': null
+};
 
 interface RenderResult {
   readonly container: HTMLDivElement;

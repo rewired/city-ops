@@ -22,6 +22,7 @@ We introduce a pure projection (`DemandGapOdContextProjection`) to derive and di
 2. **Deterministic Ranking**: Candidates are ranked by active time-band weight (descending), geographic distance (ascending), and stable ID (ascending) to guarantee determinism.
 3. **Capping**: The number of visible candidates is strictly capped (e.g., `DEMAND_GAP_OD_CONTEXT_MAX_CANDIDATES = 5`) to prevent UI clutter and unbounded iterations.
 4. **Inspector-First UI**: The OD context is rendered exclusively within the `InspectorDemandTab` under the focused gap. Map-based desire-line rendering is explicitly deferred to preserve the integrity of the MVP map pipeline and prevent uncontrolled scope sprawl.
+5. **Explicit Non-Claim Boundary**: These candidates are presented strictly as contextual planning guidance. They do not represent exact real-world Origin-Destination flow truth, they do not imply route geometry, and they are not a substitute for passenger-flow simulation.
 
 ## Consequences
 
