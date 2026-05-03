@@ -75,4 +75,7 @@ export const DEMAND_GAP_RANKING_MAX_ITEMS_PER_CATEGORY = 5;
  */
 export const DEMAND_GAP_RANKING_MIN_ACTIVE_WEIGHT = 0.1;
 
-
+/**
+ * Maximum number of OD context candidates to display for a focused demand gap.
+ */
+export const DEMAND_GAP_OD_CONTEXT_MAX_CANDIDATES = 5;

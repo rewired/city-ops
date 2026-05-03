@@ -7,6 +7,7 @@ interface InspectorDemandTabProps {
   readonly scenarioDemandCaptureProjection: import('../domain/projection/scenarioDemandCaptureProjection').ScenarioDemandCaptureProjection;
   readonly servedDemandProjection: import('../domain/projection/servedDemandProjection').ServedDemandProjection;
   readonly demandGapRankingProjection: import('../domain/projection/demandGapProjection').DemandGapRankingProjection;
+  readonly demandGapOdContextProjection: import('../domain/projection/demandGapOdContextProjection').DemandGapOdContextProjection;
   readonly onPositionFocus: (position: { lng: number; lat: number }) => void;
   readonly onDemandGapFocus: (gap: import('../domain/projection/demandGapProjection').DemandGapRankingItem | null) => void;
   readonly focusedDemandGapId: string | null;
@@ -25,6 +26,7 @@ export function InspectorDemandTab({
   scenarioDemandCaptureProjection,
   servedDemandProjection,
   demandGapRankingProjection,
+  demandGapOdContextProjection,
   onPositionFocus,
   onDemandGapFocus,
   focusedDemandGapId
@@ -175,14 +177,43 @@ export function InspectorDemandTab({
             demandGapRankingProjection.capturedButUnreachableWorkplaceGaps.length === 0 ? (
             <p className="inspector-dialog__note">No major demand gaps identified.</p>
           ) : (
-            <InspectorDisclosure
-              summaryText="Identify gaps"
-              summaryBadge={`${demandGapRankingProjection.uncapturedResidentialGaps.length + demandGapRankingProjection.capturedButUnservedResidentialGaps.length + demandGapRankingProjection.capturedButUnreachableWorkplaceGaps.length} areas`}
-            >
-              {renderGapList(demandGapRankingProjection.capturedButUnservedResidentialGaps, 'Unserved homes')}
-              {renderGapList(demandGapRankingProjection.uncapturedResidentialGaps, 'Uncaptured homes')}
-              {renderGapList(demandGapRankingProjection.capturedButUnreachableWorkplaceGaps, 'Unreachable workplaces')}
-            </InspectorDisclosure>
+            <>
+              <InspectorDisclosure
+                summaryText="Identify gaps"
+                summaryBadge={`${demandGapRankingProjection.uncapturedResidentialGaps.length + demandGapRankingProjection.capturedButUnservedResidentialGaps.length + demandGapRankingProjection.capturedButUnreachableWorkplaceGaps.length} areas`}
+              >
+                {renderGapList(demandGapRankingProjection.capturedButUnservedResidentialGaps, 'Unserved homes')}
+                {renderGapList(demandGapRankingProjection.uncapturedResidentialGaps, 'Uncaptured homes')}
+                {renderGapList(demandGapRankingProjection.capturedButUnreachableWorkplaceGaps, 'Unreachable workplaces')}
+              </InspectorDisclosure>
+
+              {focusedDemandGapId && demandGapOdContextProjection.status === 'ready' && (
+                <div className="inspector-demand-gaps__od-context">
+                  <h4 className="inspector-demand-gaps__section-title">Planning context</h4>
+                  <p className="inspector-dialog__note">{demandGapOdContextProjection.guidance}</p>
+                  {demandGapOdContextProjection.candidates.length > 0 && (
+                    <table className="inspector-compact-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Candidate {demandGapOdContextProjection.problemSide === 'origin' ? 'destination' : 'origin'}</th>
+                          <th scope="col">Weight</th>
+                          <th scope="col">Dist.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {demandGapOdContextProjection.candidates.map(candidate => (
+                          <tr key={candidate.id}>
+                            <td>{candidate.id.split('-').pop()?.slice(0, 8)}</td>
+                            <td>{candidate.activeWeight.toFixed(1)}</td>
+                            <td>{(candidate.distanceMeters / 1000).toFixed(1)}km</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

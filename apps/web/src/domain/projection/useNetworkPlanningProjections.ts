@@ -14,6 +14,7 @@ import type { SimulationMinuteOfDay, SimulationSecondOfDay } from '../types/simu
 import type { LineRouteSegment, RouteStatus } from '../types/lineRoute';
 import { projectSelectedLineDemandContribution, type SelectedLineDemandContributionProjection } from './selectedLineDemandContributionProjection';
 import { projectDemandGapRanking, type DemandGapRankingProjection } from './demandGapProjection';
+import { projectDemandGapOdContext, type DemandGapOdContextProjection } from './demandGapOdContextProjection';
 
 const MAX_READINESS_ISSUES_VISIBLE = 5;
 
@@ -69,6 +70,7 @@ export interface NetworkPlanningProjections {
   readonly servicePressureProjection: ServicePressureProjection;
   readonly selectedLineDemandContribution: SelectedLineDemandContributionProjection | null;
   readonly demandGapRankingProjection: DemandGapRankingProjection;
+  readonly demandGapOdContextProjection: DemandGapOdContextProjection;
 }
 
 
@@ -112,7 +114,8 @@ export const useNetworkPlanningProjections = (
   activeSimulationTimeBandId: TimeBandId,
   currentSimulationMinuteOfDay: SimulationMinuteOfDay,
   currentSimulationSecondOfDay: SimulationSecondOfDay,
-  scenarioDemandArtifact: ScenarioDemandArtifact | null
+  scenarioDemandArtifact: ScenarioDemandArtifact | null,
+  focusedDemandGapId: string | null
 ): NetworkPlanningProjections => {
   const staticNetworkSummaryKpis = projectStaticNetworkSummaryKpis(sessionStops.length, sessionLines, selectedLine);
   const routeBaselinesByLineId = new Map(
@@ -196,6 +199,13 @@ export const useNetworkPlanningProjections = (
     activeSimulationTimeBandId
   );
 
+  const demandGapOdContextProjection = projectDemandGapOdContext(
+    scenarioDemandArtifact,
+    demandGapRankingProjection,
+    focusedDemandGapId,
+    activeSimulationTimeBandId
+  );
+
   return {
     staticNetworkSummaryKpis,
     selectedLineRouteBaseline,
@@ -211,6 +221,7 @@ export const useNetworkPlanningProjections = (
     servedDemandProjection,
     servicePressureProjection,
     selectedLineDemandContribution,
-    demandGapRankingProjection
+    demandGapRankingProjection,
+    demandGapOdContextProjection
   };
 };

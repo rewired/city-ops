@@ -226,7 +226,8 @@ export default function App(): ReactElement {
     clockController.activeSimulationTimeBandId,
     clockController.currentSimulationMinuteOfDay,
     clockController.currentSimulationSecondOfDay,
-    scenarioDemandArtifactState.status === 'loaded' ? scenarioDemandArtifactState.artifact : null
+    scenarioDemandArtifactState.status === 'loaded' ? scenarioDemandArtifactState.artifact : null,
+    focusedDemandGapId
   );
 
   const inspectorPanelState = resolveInspectorPanelState(
@@ -521,6 +522,7 @@ const toolModeControlOptions: ReadonlyArray<{
         servicePressureProjection={projections.servicePressureProjection}
         selectedLineDemandContribution={projections.selectedLineDemandContribution}
         demandGapRankingProjection={projections.demandGapRankingProjection}
+        demandGapOdContextProjection={projections.demandGapOdContextProjection}
         lineFrequencyInputByTimeBand={sessionController.lineFrequencyInputByTimeBand}
         lineFrequencyControlByTimeBand={sessionController.lineFrequencyControlByTimeBand}
         lineFrequencyValidationByTimeBand={sessionController.lineFrequencyValidationByTimeBand}

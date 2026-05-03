@@ -14,6 +14,7 @@ import type { ScenarioDemandCaptureProjection, CapturedEntitySummary } from '../
 import type { ServedDemandProjection } from '../domain/projection/servedDemandProjection';
 import type { ServicePressureProjection } from '../domain/projection/servicePressureProjection';
 import type { DemandGapRankingProjection } from '../domain/projection/demandGapProjection';
+import type { DemandGapOdContextProjection } from '../domain/projection/demandGapOdContextProjection';
 import type { LineFrequencyInputByTimeBand, LineFrequencyControlByTimeBand, LineFrequencyValidationByTimeBand, LineFrequencyControlState } from '../session/useNetworkSessionState';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -121,6 +122,18 @@ const mockDemandGapRankingProjection: DemandGapRankingProjection = {
   summary: { totalGapCount: 0 }
 };
 
+const mockDemandGapOdContextProjection: DemandGapOdContextProjection = {
+  status: 'unavailable',
+  activeTimeBandId: 'morning-rush',
+  focusedGapId: null,
+  focusedGapKind: null,
+  problemSide: null,
+  focusedPosition: null,
+  candidates: [],
+  summary: { candidateCount: 0, topActiveWeight: 0 },
+  guidance: null
+};
+
 const mockLineFrequencyInput: LineFrequencyInputByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: '' }), {} as Record<string, string>) as LineFrequencyInputByTimeBand;
 const mockLineFrequencyControl: LineFrequencyControlByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: 'no-service' as LineFrequencyControlState }), {} as Record<string, LineFrequencyControlState>) as LineFrequencyControlByTimeBand;
 const mockLineFrequencyValidation: LineFrequencyValidationByTimeBand = MVP_TIME_BAND_IDS.reduce((acc, id) => ({ ...acc, [id]: null }), {} as Record<string, string | null>) as LineFrequencyValidationByTimeBand;
@@ -155,6 +168,7 @@ const renderInspectorPanel = (): RenderResult => {
         servedDemandProjection={mockServedDemandProjection}
         servicePressureProjection={mockServicePressureProjection}
         demandGapRankingProjection={mockDemandGapRankingProjection}
+        demandGapOdContextProjection={mockDemandGapOdContextProjection}
         selectedLineRouteBaseline={null}
         selectedLineServiceProjection={null}
         selectedLineServiceInspectorProjection={null}
