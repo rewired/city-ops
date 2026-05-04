@@ -3,6 +3,16 @@ import {
   decodeDemandNodeIdFromFeature, 
   decodeDemandNodeIdFromFeatureProperties 
 } from './demandNodeFeatureInteraction';
+import type { MapLibreGeoJsonFeature } from './maplibreGlobal';
+import type { ScenarioDemandPreviewFeatureProperties } from './scenarioDemandPreviewGeoJson';
+
+const createMockFeature = (
+  properties?: Partial<ScenarioDemandPreviewFeatureProperties>
+): MapLibreGeoJsonFeature<ScenarioDemandPreviewFeatureProperties> => ({
+  type: 'Feature',
+  geometry: { type: 'Point', coordinates: [0, 0] },
+  properties: properties as ScenarioDemandPreviewFeatureProperties
+});
 
 describe('decodeDemandNodeIdFromFeatureProperties', () => {
   it('returns null for undefined properties', () => {
@@ -34,7 +44,7 @@ describe('decodeDemandNodeIdFromFeatureProperties', () => {
       entityKind: 'node'
     };
 
-    expect(decodeDemandNodeIdFromFeatureProperties(properties as Record<string, unknown>)).toBeNull();
+    expect(decodeDemandNodeIdFromFeatureProperties(properties as unknown as Record<string, unknown>)).toBeNull();
   });
 
   it('returns null for empty entityId', () => {
@@ -53,7 +63,7 @@ describe('decodeDemandNodeIdFromFeature', () => {
   });
 
   it('returns null for feature without properties', () => {
-    expect(decodeDemandNodeIdFromFeature({ type: 'Feature' } as unknown as import('./maplibreGlobal').MapLibreGeoJsonFeature<import('./scenarioDemandPreviewGeoJson').ScenarioDemandPreviewFeatureProperties>)).toBeNull();
+    expect(decodeDemandNodeIdFromFeature(createMockFeature(undefined))).toBeNull();
   });
 
   it('returns entityId for valid scenario demand node feature', () => {

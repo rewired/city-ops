@@ -100,6 +100,8 @@ import {
 } from './mapRenderConstants';
 import type { DemandGapRankingProjection } from '../domain/projection/demandGapProjection';
 import type { DemandGapOdContextProjection } from '../domain/projection/demandGapOdContextProjection';
+import type { DemandNodeInspectionProjection } from '../domain/projection/demandNodeInspectionProjection';
+import type { DemandNodeContextHintProperties } from './demandNodeContextHintGeoJson';
 
 interface TestGeoJsonSource {
   setData: ReturnType<typeof vi.fn>;
@@ -341,6 +343,97 @@ describe('mapWorkspaceSourceSync integration', () => {
         ]
       })
     );
+  });
+
+  it('prioritizes selected demand node context hints over focused demand gap hints', () => {
+    const map = createMockMap();
+    const sourceIds = [
+      MAP_SOURCE_ID_COMPLETED_LINES, MAP_SOURCE_ID_DRAFT_LINE, 
+      MAP_SOURCE_ID_STOPS, MAP_SOURCE_ID_VEHICLES, 
+      MAP_SOURCE_ID_OSM_STOP_CANDIDATES, MAP_SOURCE_ID_SCENARIO_DEMAND_PREVIEW, 
+      MAP_SOURCE_ID_SCENARIO_ROUTING_COVERAGE, MAP_SOURCE_ID_DEMAND_GAP_OVERLAY,
+      MAP_SOURCE_ID_DEMAND_GAP_OD_CONTEXT
+    ];
+    sourceIds.forEach(id => map.addSource(id, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } }));
+
+    const mockOdProjection: DemandGapOdContextProjection = {
+      status: 'ready',
+      activeTimeBandId: 'morning-rush',
+      focusedPosition: { lat: 10, lng: 10 },
+      focusedGapId: 'gap-1',
+      focusedGapKind: 'uncaptured-residential',
+      problemSide: 'origin',
+      candidates: [
+        {
+          id: 'workplace-od',
+          role: 'destination',
+          demandClass: 'workplace',
+          position: { lng: 11, lat: 11 },
+          activeWeight: 10,
+          baseWeight: 10,
+          distanceMeters: 500
+        }
+      ],
+      summary: { candidateCount: 1, topActiveWeight: 10 },
+      guidance: null
+    };
+
+    const mockInspectionProjection: DemandNodeInspectionProjection = {
+      status: 'ready',
+      selectedNodeId: 'node-res-1',
+      inspectedTimeBandId: 'morning-rush',
+      inspectedTimeBandLabel: 'Morning Rush',
+      followsSimulationTimeBand: true,
+      title: 'Test Node',
+      summary: 'Summary',
+      problemStatus: 'captured-and-served',
+      primaryAction: 'Action',
+      caveat: 'Caveat',
+      evidence: [],
+      contextCandidates: [
+        {
+          ordinal: 1,
+          candidateId: 'workplace-inspection',
+          label: 'Workplace',
+          roleLabel: 'Destination',
+          demandClassLabel: 'workplace',
+          activeWeightLabel: '10.0',
+          distanceLabel: '100m',
+          position: { lng: 10.001, lat: 50 }
+        }
+      ],
+      selectedNodePosition: { lng: 10, lat: 50 },
+      selectedNodeRole: 'origin'
+    };
+
+    syncExistingMapWorkspaceSourceData({
+      map,
+      demandGapOdContextProjection: mockOdProjection,
+      demandNodeInspectionProjection: mockInspectionProjection
+    });
+
+    const source = map.getSource(MAP_SOURCE_ID_DEMAND_GAP_OD_CONTEXT) as unknown as TestGeoJsonSource;
+    if (!source) throw new Error('Expected source to be defined');
+
+    // Should contain the inspection candidate, not the OD candidate
+    expect(source.setData).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'FeatureCollection',
+        features: expect.arrayContaining([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              candidateId: 'workplace-inspection'
+            })
+          })
+        ])
+      })
+    );
+    
+    // Verify it does NOT contain the OD candidate
+    const setDataCall = source.setData.mock.calls[0]![0];
+    const features = setDataCall.features as Array<{ properties: DemandNodeContextHintProperties }>;
+    const candidateIds = features.map((f) => f.properties.candidateId);
+    expect(candidateIds).not.toContain('workplace-od');
   });
 });
 

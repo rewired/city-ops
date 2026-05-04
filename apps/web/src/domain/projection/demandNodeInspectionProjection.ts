@@ -5,7 +5,10 @@ import type { ScenarioDemandCaptureProjection } from './scenarioDemandCapturePro
 import type { ServedDemandProjection } from './servedDemandProjection';
 import { calculateGreatCircleDistanceMeters } from '../../lib/geometry';
 import { calculateActiveDemandWeight } from './demandWeight';
-import { DEMAND_GAP_OD_CONTEXT_MAX_CANDIDATES } from '../constants/scenarioDemand';
+import { 
+  DEMAND_GAP_OD_CONTEXT_MAX_CANDIDATES,
+  DEMAND_NODE_CONTEXT_DISTANCE_DECAY_METERS 
+} from '../constants/scenarioDemand';
 import { TIME_BAND_DISPLAY_LABELS } from '../constants/timeBands';
 import type { FocusedDemandGapPlanningEvidenceItem } from './focusedDemandGapPlanningProjection';
 
@@ -170,7 +173,12 @@ export function projectDemandNodeInspection(
     ? artifact.nodes.filter(isWorkplaceDestinationNode)
     : artifact.nodes.filter(isResidentialOriginNode);
 
-  const rawCandidates: Array<{ node: ScenarioDemandNode; activeWeight: number; distanceMeters: number }> = [];
+  const rawCandidates: Array<{ 
+    node: ScenarioDemandNode; 
+    activeWeight: number; 
+    distanceMeters: number;
+    contextScore: number;
+  }> = [];
 
   for (const node of candidateNodes) {
     const nodeActiveWeight = calculateActiveDemandWeight(node, inspectedTimeBandId);
@@ -181,23 +189,31 @@ export function projectDemandNodeInspection(
       [node.position.lng, node.position.lat]
     );
 
+    // Hyperbolic distance decay: score = weight / (1 + distance / decay)
+    const contextScore = nodeActiveWeight / (1 + distanceMeters / DEMAND_NODE_CONTEXT_DISTANCE_DECAY_METERS);
+
     rawCandidates.push({
       node,
       activeWeight: nodeActiveWeight,
-      distanceMeters
+      distanceMeters,
+      contextScore
     });
   }
 
   // Sort candidates deterministically:
-  // 1. Descending active weight
+  // 1. Descending locality-aware contextScore
   // 2. Ascending distance
-  // 3. Ascending stable ID
+  // 3. Descending active weight
+  // 4. Ascending stable ID
   rawCandidates.sort((a, b) => {
-    if (b.activeWeight !== a.activeWeight) {
-      return b.activeWeight - a.activeWeight;
+    if (Math.abs(b.contextScore - a.contextScore) > 0.0001) {
+      return b.contextScore - a.contextScore;
     }
     if (a.distanceMeters !== b.distanceMeters) {
       return a.distanceMeters - b.distanceMeters;
+    }
+    if (b.activeWeight !== a.activeWeight) {
+      return b.activeWeight - a.activeWeight;
     }
     return a.node.id.localeCompare(b.node.id);
   });

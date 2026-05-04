@@ -210,4 +210,72 @@ describe('projectDemandNodeInspection', () => {
     expect(result.contextCandidates[0]!.candidateId).toBe('node-work-many-0');
     expect(result.contextCandidates[4]!.candidateId).toBe('node-work-many-4');
   });
+
+  it('selects candidates by locality-aware score, not weight alone', () => {
+    // Decay is 4000m.
+    // node-res-1 is at (10, 50)
+    
+    // Near node: ~110m away, weight 10. 
+    // score = 10 / (1 + 110/4000) = ~9.73
+    const nearNode: ScenarioDemandNode = {
+      id: 'node-work-near',
+      role: 'destination',
+      class: 'workplace',
+      position: { lng: 10.001, lat: 50 },
+      baseWeight: 10,
+      timeBandWeights: createMockTimeBandWeights()
+    };
+    
+    // Far node: ~11km away (0.1 degree), weight 20. 
+    // score = 20 / (1 + 11000/4000) = 20 / 3.75 = 5.33
+    const farNode: ScenarioDemandNode = {
+      id: 'node-work-far',
+      role: 'destination',
+      class: 'workplace',
+      position: { lng: 10.1, lat: 50 },
+      baseWeight: 20,
+      timeBandWeights: createMockTimeBandWeights()
+    };
+    
+    const result = projectDemandNodeInspection({ 
+      ...defaultInput, 
+      artifact: { ...artifact, nodes: [mockNode1, nearNode, farNode] } 
+    });
+    
+    expect(result.contextCandidates.length).toBe(2);
+    // Near node wins because of locality score despite lower base weight
+    expect(result.contextCandidates[0]!.candidateId).toBe('node-work-near');
+    expect(result.contextCandidates[1]!.candidateId).toBe('node-work-far');
+  });
+
+  it('allows a sufficiently strong far candidate to outrank a weak near candidate', () => {
+    // Near weak: ~110m, weight 1. score ~0.97
+    const nearWeakNode: ScenarioDemandNode = {
+      id: 'node-work-near-weak',
+      role: 'destination',
+      class: 'workplace',
+      position: { lng: 10.001, lat: 50 },
+      baseWeight: 1,
+      timeBandWeights: createMockTimeBandWeights()
+    };
+    
+    // Far strong: ~11km, weight 100. score = 100 / 3.75 = 26.6
+    const farStrongNode: ScenarioDemandNode = {
+      id: 'node-work-far-strong',
+      role: 'destination',
+      class: 'workplace',
+      position: { lng: 10.1, lat: 50 },
+      baseWeight: 100,
+      timeBandWeights: createMockTimeBandWeights()
+    };
+    
+    const result = projectDemandNodeInspection({ 
+      ...defaultInput, 
+      artifact: { ...artifact, nodes: [mockNode1, nearWeakNode, farStrongNode] } 
+    });
+    
+    // Far strong wins because its weight overpowers the distance decay
+    expect(result.contextCandidates[0]!.candidateId).toBe('node-work-far-strong');
+    expect(result.contextCandidates[1]!.candidateId).toBe('node-work-near-weak');
+  });
 });

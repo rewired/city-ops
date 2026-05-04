@@ -79,3 +79,10 @@ export const DEMAND_GAP_RANKING_MIN_ACTIVE_WEIGHT = 0.1;
  * Maximum number of OD context candidates to display for a focused demand gap.
  */
 export const DEMAND_GAP_OD_CONTEXT_MAX_CANDIDATES = 5;
+
+/**
+ * Hyperbolic distance decay meters for ranking demand node context candidates.
+ * 4,000m ensures city-scale commute context is preserved while remaining locality-aware.
+ * This is a ranking weight decay, not a walking/access radius.
+ */
+export const DEMAND_NODE_CONTEXT_DISTANCE_DECAY_METERS = 4000;
