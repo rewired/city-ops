@@ -359,6 +359,27 @@ const toolModeControlOptions: ReadonlyArray<{
     handlePositionFocus(gap.position);
   };
 
+  const handleDemandGapFocusById = useCallback((gapId: string | null) => {
+    if (!gapId) {
+      handleDemandGapFocus(null);
+      return;
+    }
+
+    const projection = projections.demandGapRankingProjection;
+    if (projection.status !== 'ready') {
+      return;
+    }
+
+    const gap = 
+      projection.uncapturedResidentialGaps.find(g => g.id === gapId) ??
+      projection.capturedButUnservedResidentialGaps.find(g => g.id === gapId) ??
+      projection.capturedButUnreachableWorkplaceGaps.find(g => g.id === gapId);
+
+    if (gap) {
+      handleDemandGapFocus(gap);
+    }
+  }, [projections.demandGapRankingProjection]);
+
   useEffect(() => {
     // Clear planning context if user manually returns to inspect mode
     if (sessionController.activeToolMode === 'inspect') {
@@ -523,6 +544,7 @@ const toolModeControlOptions: ReadonlyArray<{
           demandGapRankingProjection={projections.demandGapRankingProjection}
           focusedDemandGapId={focusedDemandGapId}
           demandGapOdContextProjection={projections.demandGapOdContextProjection}
+          onDemandGapFocus={handleDemandGapFocusById}
         />
 
         {transientPlanningContext && (

@@ -289,6 +289,8 @@ export interface MapLibreMap {
   setLayoutProperty(layerId: string, name: string, value: MapLibreExpressionValue): void;
   /** Applies scenario-level max-bounds to the map workspace instance to prevent out-of-coverage drift. */
   setMaxBounds(bounds: [MapLibreLngLatTuple, MapLibreLngLatTuple] | null): void;
+  /** Returns the map's canvas element. */
+  getCanvas(): HTMLCanvasElement;
 }
 
 /**

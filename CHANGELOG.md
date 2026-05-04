@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Slice 182**: Map Demand Gap Focus Interaction. Players can now click on visible demand gap point features on the map to focus them, triggering the same planning summary and OD context as the Inspector buttons. Includes pointer cursor affordance and safe feature decoding.
+
+### Added
 - **Slice 181 — Demand Gap Overlay Visual Softening**:
     - Softened the demand gap heatmap by reducing opacity (0.85 → 0.6) and intensity (2-6 → 1.1-2.6) to better integrate with the dark basemap.
     - Subdued the demand gap category colors (Red/Orange/Purple) to more grounded versions and lowered point radius (5 → 4px) and opacity (0.8 → 0.5).

@@ -6,7 +6,9 @@ import type { WorkspaceToolMode } from '../session/sessionTypes';
 import {
   MAP_LAYER_ID_COMPLETED_LINES,
   MAP_LAYER_ID_STOPS_CIRCLE,
-  MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE
+  MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
+  MAP_LAYER_ID_DEMAND_GAP_OVERLAY_CIRCLE,
+  MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS
 } from './mapRenderConstants';
 import { createOsmStopCandidateGroupId, type OsmStopCandidateGroupId } from '../domain/types/osmStopCandidate';
 import type { OsmStopCandidateHoverPayload } from './mapWorkspaceOsmCandidateHover';
@@ -86,6 +88,7 @@ export interface MapWorkspaceSurfaceInteractionsContracts {
   readonly onValidPlacement: (lng: number, lat: number, labelCandidate: string | null) => Stop;
   readonly buildLineContracts: BuildLineModeMapClickContracts;
   readonly onOsmCandidateHoverChange?: (nextHover: OsmStopCandidateHoverPayload | null) => void;
+  readonly onDemandGapFocus?: (gapId: string) => void;
   readonly routingCoverage: ScenarioRoutingCoverage | null;
 }
 
@@ -171,7 +174,9 @@ export const hasInteractiveSelectionFeatureAtPoint = (map: RenderedFeatureLayerQ
   const interactiveSelectionLayers: readonly string[] = [
     MAP_LAYER_ID_STOPS_CIRCLE,
     MAP_LAYER_ID_COMPLETED_LINES,
-    MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE
+    MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
+    MAP_LAYER_ID_DEMAND_GAP_OVERLAY_CIRCLE,
+    MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS
   ];
   const renderedFeatures = queryRenderedFeaturesForExistingLayers(map, event.point, interactiveSelectionLayers);
 
@@ -240,6 +245,7 @@ export const setupMapWorkspaceInteractions = ({
   onValidPlacement,
   buildLineContracts,
   onOsmCandidateHoverChange,
+  onDemandGapFocus,
   routingCoverage
 }: MapWorkspaceSurfaceInteractionsContracts): MapWorkspaceInteractionBinding => {
   const neutralTelemetryHandlers = createNeutralMapTelemetryHandlers({ setInteractionState });
@@ -311,6 +317,14 @@ export const setupMapWorkspaceInteractions = ({
     if (!onOsmCandidateHoverChange) return;
     onOsmCandidateHoverChange(null);
   };
+  
+  const onPointerInteractiveMouseEnter = (): void => {
+    map.getCanvas().style.cursor = 'pointer';
+  };
+
+  const onPointerInteractiveMouseLeave = (): void => {
+    map.getCanvas().style.cursor = '';
+  };
 
   const onGeneralMouseMove = (event: MapLibreInteractionEvent): void => {
     neutralTelemetryHandlers.onPointerMove(event);
@@ -333,18 +347,35 @@ export const setupMapWorkspaceInteractions = ({
   map.on('mousemove', onGeneralMouseMove);
   map.on('click', onMapClick);
 
-  const stopMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseEnter);
+  const stopMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_STOPS_CIRCLE, (e) => {
+    onStopMouseEnter(e);
+    onPointerInteractiveMouseEnter();
+  });
   const stopMouseMoveBinding = bindSafeLayerInteraction(map, 'mousemove', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseMove);
-  const stopMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_STOPS_CIRCLE, onStopMouseLeave);
+  const stopMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_STOPS_CIRCLE, () => {
+    onStopMouseLeave();
+    onPointerInteractiveMouseLeave();
+  });
+
+  const demandGapMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_DEMAND_GAP_OVERLAY_CIRCLE, onPointerInteractiveMouseEnter);
+  const demandGapMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_DEMAND_GAP_OVERLAY_CIRCLE, onPointerInteractiveMouseLeave);
+  const demandGapFocusMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS, onPointerInteractiveMouseEnter);
+  const demandGapFocusMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS, onPointerInteractiveMouseLeave);
 
   let osmMouseEnterBinding: MapWorkspaceInteractionBinding | null = null;
   let osmMouseMoveBinding: MapWorkspaceInteractionBinding | null = null;
   let osmMouseLeaveBinding: MapWorkspaceInteractionBinding | null = null;
 
   if (onOsmCandidateHoverChange) {
-    osmMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseEnter);
+    osmMouseEnterBinding = bindSafeLayerInteraction(map, 'mouseenter', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, (e) => {
+      onOsmCandidateMouseEnter(e);
+      onPointerInteractiveMouseEnter();
+    });
     osmMouseMoveBinding = bindSafeLayerInteraction(map, 'mousemove', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseMove);
-    osmMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateMouseLeave);
+    osmMouseLeaveBinding = bindSafeLayerInteraction(map, 'mouseleave', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, () => {
+      onOsmCandidateMouseLeave();
+      onPointerInteractiveMouseLeave();
+    });
   }
 
   return {
@@ -355,6 +386,11 @@ export const setupMapWorkspaceInteractions = ({
       stopMouseEnterBinding.dispose();
       stopMouseMoveBinding.dispose();
       stopMouseLeaveBinding.dispose();
+
+      demandGapMouseEnterBinding.dispose();
+      demandGapMouseLeaveBinding.dispose();
+      demandGapFocusMouseEnterBinding.dispose();
+      demandGapFocusMouseLeaveBinding.dispose();
 
       osmMouseEnterBinding?.dispose();
       osmMouseMoveBinding?.dispose();
@@ -405,4 +441,20 @@ export const bindOsmCandidateFeatureInteractions = (
   onOsmCandidateFeatureClick: (event: MapLibreInteractionEvent) => void
 ): MapWorkspaceInteractionBinding => {
   return bindSafeLayerInteraction(map, 'click', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE, onOsmCandidateFeatureClick);
+};
+
+/** Binds click interactions for rendered demand gap point features and provides a dispose hook. */
+export const bindDemandGapFeatureInteractions = (
+  map: MapLibreMap,
+  onDemandGapFeatureClick: (event: MapLibreInteractionEvent) => void
+): MapWorkspaceInteractionBinding => {
+  const circleBinding = bindSafeLayerInteraction(map, 'click', MAP_LAYER_ID_DEMAND_GAP_OVERLAY_CIRCLE, onDemandGapFeatureClick);
+  const focusBinding = bindSafeLayerInteraction(map, 'click', MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS, onDemandGapFeatureClick);
+
+  return {
+    dispose: () => {
+      circleBinding.dispose();
+      focusBinding.dispose();
+    }
+  };
 };

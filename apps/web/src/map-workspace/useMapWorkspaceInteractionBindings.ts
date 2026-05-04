@@ -15,6 +15,7 @@ import {
   bindCompletedLineFeatureInteractions,
   bindStopFeatureInteractions,
   bindOsmCandidateFeatureInteractions,
+  bindDemandGapFeatureInteractions,
   decodeLineIdFromFeatureProperties,
   decodeStopIdFromFeatureProperties,
   decodeOsmCandidateGroupIdFromFeatureProperties,
@@ -22,6 +23,10 @@ import {
   resolveInspectModeMapClickSelection,
   setupMapWorkspaceInteractions
 } from './mapWorkspaceInteractions';
+
+import {
+  decodeDemandGapIdFromFeatureProperties
+} from './demandGapFeatureInteraction';
 
 import {
   resolveOsmStopCandidateHover,
@@ -48,6 +53,7 @@ export interface UseMapWorkspaceInteractionBindingsInput {
   readonly onSelectedLineIdChange: (nextSelectedLineId: Line['id'] | null) => void;
   readonly onOsmCandidateSelectionChange: (nextSelectionId: OsmStopCandidateGroupId | null) => void;
   readonly onOsmCandidateAnchorResolved: (resolution: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution | null) => void;
+  readonly onDemandGapFocus: (gapId: string | null) => void;
   readonly createStop: (
     nextOrdinal: number,
     lng: number,
@@ -108,7 +114,13 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
 
           return createdStop;
         },
-        routingCoverage: input.routingCoverage
+        routingCoverage: input.routingCoverage,
+        onDemandGapFocus: (gapId) => {
+          if (input.activeToolModeRef.current !== 'inspect') {
+            return;
+          }
+          input.onDemandGapFocus(gapId);
+        }
       });
 
     const osmCandidateInteractionBinding = bindOsmCandidateFeatureInteractions(mapInstance, (event) => {
@@ -139,9 +151,25 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
       }
     });
 
+    const demandGapInteractionBinding = bindDemandGapFeatureInteractions(mapInstance, (event) => {
+      if (input.activeToolModeRef.current !== 'inspect') {
+        return;
+      }
+
+      const clickedFeature = event.features?.[0];
+      const target = decodeDemandGapIdFromFeatureProperties(clickedFeature?.properties);
+
+      if (!target) {
+        return;
+      }
+
+      input.onDemandGapFocus(target.gapId);
+    });
+
     return () => {
       interactions.dispose();
       osmCandidateInteractionBinding.dispose();
+      demandGapInteractionBinding.dispose();
     };
   }, [
     input.activeToolMode,
