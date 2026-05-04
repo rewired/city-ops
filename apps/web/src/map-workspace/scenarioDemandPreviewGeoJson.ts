@@ -26,6 +26,9 @@ export interface ScenarioDemandPreviewFeatureProperties {
   readonly attractorScale?: string;
   readonly gatewayKind?: string;
   readonly gatewayScale?: string;
+
+  /** Catch-all for additional properties supported by MapLibre feature storage. */
+  readonly [key: string]: unknown;
 }
 
 /**

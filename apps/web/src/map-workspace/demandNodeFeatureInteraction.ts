@@ -2,18 +2,14 @@ import type { MapLibreGeoJsonFeature } from './maplibreGlobal';
 import type { ScenarioDemandPreviewFeatureProperties } from './scenarioDemandPreviewGeoJson';
 
 /**
- * Safely decodes a scenario demand node ID from a MapLibre rendered feature.
+ * Safely decodes a scenario demand node ID from raw MapLibre feature properties.
  * 
- * @param feature A MapLibre feature from the scenario demand preview layer.
+ * @param properties The properties record from a rendered map feature.
  */
-export function decodeDemandNodeIdFromFeature(
-  feature: MapLibreGeoJsonFeature<ScenarioDemandPreviewFeatureProperties> | undefined
+export function decodeDemandNodeIdFromFeatureProperties(
+  properties: Record<string, unknown> | undefined
 ): string | null {
-  if (!feature || !feature.properties) {
-    return null;
-  }
-
-  const { entityId, entityKind } = feature.properties;
+  const entityId = properties?.entityId;
 
   // We only treat 'node', 'attractor', or 'gateway' as selectable if they have an entityId.
   // In the current scenario demand preview projection, these all map to scenario demand nodes.
@@ -22,4 +18,15 @@ export function decodeDemandNodeIdFromFeature(
   }
 
   return null;
+}
+
+/**
+ * Safely decodes a scenario demand node ID from a MapLibre rendered feature.
+ * 
+ * @param feature A MapLibre feature from the scenario demand preview layer.
+ */
+export function decodeDemandNodeIdFromFeature(
+  feature: MapLibreGeoJsonFeature<ScenarioDemandPreviewFeatureProperties> | undefined
+): string | null {
+  return decodeDemandNodeIdFromFeatureProperties(feature?.properties);
 }

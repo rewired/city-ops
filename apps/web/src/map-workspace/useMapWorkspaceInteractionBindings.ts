@@ -33,7 +33,9 @@ import {
   resolveOsmStopCandidateHover,
   resolveCachedOsmStopCandidateStreetAnchor
 } from './mapWorkspaceOsmCandidateHover';
-import { decodeDemandNodeIdFromFeature } from './demandNodeFeatureInteraction';
+import { 
+  decodeDemandNodeIdFromFeatureProperties 
+} from './demandNodeFeatureInteraction';
 
 /** Inputs required to bind map workspace feature and map-surface interactions. */
 export interface UseMapWorkspaceInteractionBindingsInput {
@@ -175,7 +177,7 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
         return;
       }
 
-      const nodeId = decodeDemandNodeIdFromFeature(event.features?.[0] as any);
+      const nodeId = decodeDemandNodeIdFromFeatureProperties(event.features?.[0]?.properties);
 
       if (!nodeId) {
         return;

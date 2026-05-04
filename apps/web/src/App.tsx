@@ -154,6 +154,7 @@ export default function App(): ReactElement {
   const [selectedDemandNodeId, setSelectedDemandNodeId] = useState<string | null>(null);
   const [inspectDemandTimeBandSelection, setInspectDemandTimeBandSelection] = useState<'follow-simulation' | TimeBandId>('follow-simulation');
   const [transientPlanningContext, setTransientPlanningContext] = useState<FocusedDemandGapPlanningContext | null>(null);
+  const [activeInspectorTabId, setActiveInspectorTabId] = useState<import('./inspector/inspectorTabs').InspectorTabId>('overview');
 
   const osmStopCandidateGroups = useMemo(
     () => consolidateOsmStopCandidates(osmStopCandidates),
@@ -364,6 +365,7 @@ const toolModeControlOptions: ReadonlyArray<{
     }
     setFocusedDemandGapId(gap.id);
     handlePositionFocus(gap.position);
+    setActiveInspectorTabId('demand');
   };
 
   const handleDemandGapFocusById = useCallback((gapId: string | null) => {
@@ -396,6 +398,7 @@ const toolModeControlOptions: ReadonlyArray<{
       if (node) {
         handlePositionFocus(node.position);
       }
+      setActiveInspectorTabId('demand');
     }
   }, [scenarioDemandArtifactState, handlePositionFocus]);
 
@@ -636,6 +639,8 @@ const toolModeControlOptions: ReadonlyArray<{
         osmStopCandidateGroups={osmStopCandidateGroups}
         selectedOsmCandidateAnchor={selectedOsmCandidateAnchor}
         adoptedOsmCandidateGroupIds={sessionController.adoptedOsmCandidateGroupIds}
+        activeTabId={activeInspectorTabId}
+        onTabChange={setActiveInspectorTabId}
       />
 
       <DebugModal

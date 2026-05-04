@@ -207,7 +207,7 @@ interface RenderResult {
   readonly root: Root;
 }
 
-const renderInspectorPanel = (): RenderResult => {
+const renderInspectorPanel = (activeTabId: import('./inspectorTabs').InspectorTabId = 'overview', onTabChange: (id: import('./inspectorTabs').InspectorTabId) => void = vi.fn()): RenderResult => {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = createRoot(container);
@@ -259,6 +259,8 @@ const renderInspectorPanel = (): RenderResult => {
         onInspectDemandTimeBandSelectionChange={vi.fn()}
         inspectDemandTimeBandSelection="follow-simulation"
         onPlanningEntrypoint={vi.fn()}
+        activeTabId={activeTabId}
+        onTabChange={onTabChange}
       />
     );
   });
@@ -282,7 +284,65 @@ afterEach(() => {
 
 describe('InspectorPanel', () => {
   it('renders with Overview tab by default and switches to other tabs', () => {
-    mounted = renderInspectorPanel();
+    let currentTab: import('./inspectorTabs').InspectorTabId = 'overview';
+    const onTabChange = vi.fn((id) => { currentTab = id; rerender(); });
+    
+    const rerender = () => {
+      act(() => {
+        mounted?.root.render(
+          <InspectorPanel
+            inspectorPanelState={mockPanelState}
+            staticNetworkSummaryKpis={mockKpis}
+            placedStops={[]}
+            completedLines={[]}
+            activeTimeBandId="morning-rush"
+            onStopSelectionChange={vi.fn()}
+            onSelectedLineIdChange={vi.fn()}
+            onLineRename={vi.fn()}
+            onStopRename={vi.fn()}
+            onLineSequenceStopFocus={vi.fn()}
+            onPositionFocus={vi.fn()}
+            vehicleNetworkProjection={mockVehicleProjection}
+            networkServicePlanProjection={mockServicePlanProjection}
+            scenarioDemandCaptureProjection={mockDemandCaptureProjection}
+            servedDemandProjection={mockServedDemandProjection}
+            servicePressureProjection={mockServicePressureProjection}
+            demandGapRankingProjection={mockDemandGapRankingProjection}
+            demandGapOdContextProjection={mockDemandGapOdContextProjection}
+            demandGapOdCandidateListProjection={mockDemandGapOdCandidateListProjection}
+            focusedDemandGapPlanningProjection={mockFocusedDemandGapPlanningProjection}
+            focusedDemandGapLifecycleProjection={mockFocusedDemandGapLifecycleProjection}
+            scenarioDemandProvenanceProjection={mockScenarioDemandProvenanceProjection}
+            demandNodeInspectionProjection={mockDemandNodeInspectionProjection}
+            selectedLineRouteBaseline={null}
+            selectedLineServiceProjection={null}
+            selectedLineServiceInspectorProjection={null}
+            selectedLinePlanningVehicleProjection={null}
+            lineFrequencyInputByTimeBand={mockLineFrequencyInput}
+            lineFrequencyControlByTimeBand={mockLineFrequencyControl}
+            lineFrequencyValidationByTimeBand={mockLineFrequencyValidation}
+            onFrequencyChange={vi.fn()}
+            openDialogIntent={null}
+            onOpenDialogIntentConsumed={vi.fn()}
+            onOsmCandidateAdopt={vi.fn()}
+            osmStopCandidateGroups={[]}
+            selectedOsmCandidateAnchor={null}
+            adoptedOsmCandidateGroupIds={new Set()}
+            selectedLineDemandContribution={null}
+            onDemandGapFocus={vi.fn()}
+            focusedDemandGapId={null}
+            onDemandNodeSelectionChange={vi.fn()}
+            onInspectDemandTimeBandSelectionChange={vi.fn()}
+            inspectDemandTimeBandSelection="follow-simulation"
+            onPlanningEntrypoint={vi.fn()}
+            activeTabId={currentTab}
+            onTabChange={onTabChange}
+          />
+        );
+      });
+    };
+
+    mounted = renderInspectorPanel(currentTab, onTabChange);
 
     // Should show Overview content by default
     const overviewTab = mounted.container.querySelector('button[aria-label="Overview"]');
@@ -296,6 +356,7 @@ describe('InspectorPanel', () => {
     act(() => {
       (demandTab as HTMLElement).click();
     });
+    expect(onTabChange).toHaveBeenCalledWith('demand');
     expect(demandTab?.getAttribute('aria-selected')).toBe('true');
     expect(overviewTab?.getAttribute('aria-selected')).toBe('false');
     expect(mounted.container.textContent).toContain('Demand capture');
@@ -306,6 +367,7 @@ describe('InspectorPanel', () => {
     act(() => {
       (serviceTab as HTMLElement).click();
     });
+    expect(onTabChange).toHaveBeenCalledWith('service');
     expect(serviceTab?.getAttribute('aria-selected')).toBe('true');
     expect(mounted.container.textContent).toContain('Service pressure');
     
@@ -315,6 +377,7 @@ describe('InspectorPanel', () => {
     act(() => {
       (linesTab as HTMLElement).click();
     });
+    expect(onTabChange).toHaveBeenCalledWith('lines');
     expect(linesTab?.getAttribute('aria-selected')).toBe('true');
     expect(mounted.container.textContent).toContain('Lines');
   });

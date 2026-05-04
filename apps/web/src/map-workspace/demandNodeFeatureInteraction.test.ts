@@ -1,5 +1,51 @@
 import { describe, expect, it } from 'vitest';
-import { decodeDemandNodeIdFromFeature } from './demandNodeFeatureInteraction';
+import { 
+  decodeDemandNodeIdFromFeature, 
+  decodeDemandNodeIdFromFeatureProperties 
+} from './demandNodeFeatureInteraction';
+
+describe('decodeDemandNodeIdFromFeatureProperties', () => {
+  it('returns null for undefined properties', () => {
+    expect(decodeDemandNodeIdFromFeatureProperties(undefined)).toBeNull();
+  });
+
+  it('returns entityId for valid properties', () => {
+    const properties = {
+      entityId: 'node-123',
+      entityKind: 'node',
+      label: 'Node 123'
+    };
+
+    expect(decodeDemandNodeIdFromFeatureProperties(properties)).toBe('node-123');
+  });
+
+  it('returns null for missing entityId', () => {
+    const properties = {
+      entityKind: 'node',
+      label: 'Node 123'
+    };
+
+    expect(decodeDemandNodeIdFromFeatureProperties(properties as any)).toBeNull();
+  });
+
+  it('returns null for non-string entityId', () => {
+    const properties = {
+      entityId: 123,
+      entityKind: 'node'
+    };
+
+    expect(decodeDemandNodeIdFromFeatureProperties(properties as any)).toBeNull();
+  });
+
+  it('returns null for empty entityId', () => {
+    const properties = {
+      entityId: '',
+      entityKind: 'node'
+    };
+
+    expect(decodeDemandNodeIdFromFeatureProperties(properties)).toBeNull();
+  });
+});
 
 describe('decodeDemandNodeIdFromFeature', () => {
   it('returns null for undefined feature', () => {
@@ -7,8 +53,7 @@ describe('decodeDemandNodeIdFromFeature', () => {
   });
 
   it('returns null for feature without properties', () => {
-    // @ts-expect-error - testing invalid input
-    expect(decodeDemandNodeIdFromFeature({ type: 'Feature' })).toBeNull();
+    expect(decodeDemandNodeIdFromFeature({ type: 'Feature' } as any)).toBeNull();
   });
 
   it('returns entityId for valid scenario demand node feature', () => {

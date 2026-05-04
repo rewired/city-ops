@@ -82,6 +82,8 @@ interface InspectorPanelProps {
   readonly onInspectDemandTimeBandSelectionChange: (selection: 'follow-simulation' | import('../domain/types/timeBand').TimeBandId) => void;
   readonly inspectDemandTimeBandSelection: 'follow-simulation' | import('../domain/types/timeBand').TimeBandId;
   readonly onPlanningEntrypoint: (request: FocusedDemandGapPlanningEntrypointRequest) => void;
+  readonly activeTabId: InspectorTabId;
+  readonly onTabChange: (tabId: InspectorTabId) => void;
 }
 
 const resolveGlobalStateLabel = (panelState: InspectorPanelState): string => {
@@ -148,9 +150,10 @@ export function InspectorPanel({
   onDemandNodeSelectionChange,
   onInspectDemandTimeBandSelectionChange,
   inspectDemandTimeBandSelection,
-  onPlanningEntrypoint
+  onPlanningEntrypoint,
+  activeTabId,
+  onTabChange
 }: InspectorPanelProps): ReactElement {
-  const [activeTabId, setActiveTabId] = useState<InspectorTabId>('overview');
   const globalStateLabel = useMemo(() => resolveGlobalStateLabel(inspectorPanelState), [inspectorPanelState]);
 
   return (
@@ -180,7 +183,7 @@ export function InspectorPanel({
         <>
           <InspectorTabBar 
             activeTabId={activeTabId} 
-            onTabChange={setActiveTabId} 
+            onTabChange={onTabChange} 
           />
 
           <InspectorScrollArea>

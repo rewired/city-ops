@@ -23,6 +23,8 @@ We will implement a map-first demand node inspection workflow:
     *   Capture and service problem status.
     *   Likely context candidates (workplaces for origins, residential for destinations).
 5.  **Non-Authoritative Framing**: All context candidates and guidance are explicitly labeled as planning hints derived from the scenario model, not as exact passenger flow truth.
+6.  **Visibility Repair**: The shell controls the active Inspector tab. Selecting a demand node (or focusing a demand gap) automatically requests the 'Demand' tab to ensure the context is immediately visible.
+7.  **Safe Feature Decoding**: Map interaction bindings decode entity IDs from safe feature properties using narrowed helpers, avoiding broad unchecked casts.
 
 ## Consequences
 
@@ -31,3 +33,5 @@ We will implement a map-first demand node inspection workflow:
 *   Architectural boundaries are preserved by keeping the inspection logic in a pure projection, independent of simulation state or passenger flow modeling.
 *   The introduction of a UI-only time-band override allows for temporal exploration without side effects on simulation or service truth.
 *   "Clear selection" and "Clear focus" affordances are provided to allow players to return to a neutral state.
+*   Type safety is preserved by decoding map features via safe property narrowing instead of unsafe casts.
+*   UI workflow is improved by automatically switching to the relevant inspector tab upon map-originated selection.
