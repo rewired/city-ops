@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { MaterialIcon } from '../ui/icons/MaterialIcon';
 import { InspectorDisclosure } from '../ui/InspectorDisclosure';
-import { TIME_BAND_DISPLAY_LABELS } from '../domain/constants/timeBands';
+import { TIME_BAND_DISPLAY_LABELS, MVP_TIME_BAND_IDS } from '../domain/constants/timeBands';
 
 import type { ScenarioDemandCaptureProjection } from '../domain/projection/scenarioDemandCaptureProjection';
 import type { ServedDemandProjection } from '../domain/projection/servedDemandProjection';
@@ -11,8 +11,10 @@ import type { DemandGapOdCandidateListProjection } from '../domain/projection/de
 import type { FocusedDemandGapPlanningProjection } from '../domain/projection/focusedDemandGapPlanningProjection';
 import type { FocusedDemandGapLifecycleProjection } from '../domain/projection/focusedDemandGapLifecycleProjection';
 import type { ScenarioDemandProvenanceProjection } from '../domain/projection/scenarioDemandProvenanceProjection';
+import type { DemandNodeInspectionProjection } from '../domain/projection/demandNodeInspectionProjection';
 
-import type { FocusedDemandGapPlanningEntrypointKind, FocusedDemandGapPlanningEntrypointRequest } from '../app/focusedDemandGapPlanningEntrypoint';
+import type { FocusedDemandGapPlanningEntrypointRequest, FocusedDemandGapPlanningEntrypointKind } from '../app/focusedDemandGapPlanningEntrypoint';
+import type { TimeBandId } from '../domain/types/timeBand';
 
 interface InspectorDemandTabProps {
   readonly scenarioDemandCaptureProjection: ScenarioDemandCaptureProjection;
@@ -23,31 +25,47 @@ interface InspectorDemandTabProps {
   readonly focusedDemandGapPlanningProjection: FocusedDemandGapPlanningProjection;
   readonly focusedDemandGapLifecycleProjection: FocusedDemandGapLifecycleProjection;
   readonly scenarioDemandProvenanceProjection: ScenarioDemandProvenanceProjection;
+  readonly demandNodeInspectionProjection: DemandNodeInspectionProjection;
   readonly onPositionFocus: (position: { lng: number; lat: number }) => void;
-  readonly onDemandGapFocus: (gap: DemandGapRankingItem | null) => void;
+  readonly onDemandGapFocus: (gapId: string | null) => void;
   readonly focusedDemandGapId: string | null;
+  readonly onDemandNodeSelectionChange: (nodeId: string | null) => void;
+  readonly onInspectDemandTimeBandSelectionChange: (selection: 'follow-simulation' | TimeBandId) => void;
+  readonly inspectDemandTimeBandSelection: 'follow-simulation' | TimeBandId;
   readonly onPlanningEntrypoint: (request: FocusedDemandGapPlanningEntrypointRequest) => void;
 }
-
-
 
 /**
  * Renders demand-related projections, including capture summaries, served demand, and identified gaps.
  */
-export function InspectorDemandTab({
-  scenarioDemandCaptureProjection,
-  servedDemandProjection,
-  demandGapRankingProjection,
-  demandGapOdContextProjection,
-  demandGapOdCandidateListProjection,
-  focusedDemandGapPlanningProjection,
-  focusedDemandGapLifecycleProjection,
-  scenarioDemandProvenanceProjection,
-  onPositionFocus,
-  onDemandGapFocus,
-  focusedDemandGapId,
-  onPlanningEntrypoint
-}: InspectorDemandTabProps): ReactElement {
+export function InspectorDemandTab(props: InspectorDemandTabProps): ReactElement {
+  const {
+    scenarioDemandCaptureProjection,
+    servedDemandProjection,
+    demandGapRankingProjection,
+    demandGapOdContextProjection,
+    demandGapOdCandidateListProjection,
+    focusedDemandGapPlanningProjection,
+    focusedDemandGapLifecycleProjection,
+    scenarioDemandProvenanceProjection,
+    demandNodeInspectionProjection,
+    onPositionFocus,
+    onDemandGapFocus,
+    focusedDemandGapId,
+    onDemandNodeSelectionChange,
+    onInspectDemandTimeBandSelectionChange,
+    inspectDemandTimeBandSelection,
+    onPlanningEntrypoint
+  } = props;
+
+  const handleClearFocus = (): void => {
+    onDemandGapFocus(null);
+  };
+
+  const handleClearNodeSelection = (): void => {
+    onDemandNodeSelectionChange(null);
+  };
+
   const renderGapList = (gaps: readonly DemandGapRankingItem[], title: string): ReactElement | null => {
     if (gaps.length === 0) return null;
 
@@ -68,7 +86,7 @@ export function InspectorDemandTab({
                 type="button"
                 className={`inspector-demand-gaps__focus-button ${isFocused ? 'inspector-demand-gaps__focus-button--active' : ''}`}
                 title="Focus on map"
-                onClick={() => onDemandGapFocus(gap)}
+                onClick={() => onDemandGapFocus(gap.id)}
               >
                 <MaterialIcon name="center_focus_strong" />
               </button>
@@ -81,6 +99,96 @@ export function InspectorDemandTab({
 
   return (
     <section className="inspector-demand-tab" aria-label="Demand">
+      {/* Selected demand node section */}
+      {demandNodeInspectionProjection.status === 'ready' && (
+        <section className="inspector-demand-section" id="inspector-demand-selected-node">
+          <div className="inspector-demand-section-header">
+            <h3 className="inspector-demand-section-title">
+              {demandNodeInspectionProjection.title}
+            </h3>
+            <button
+              className="inspector-demand-clear-button"
+              onClick={handleClearNodeSelection}
+              id="inspector-demand-clear-node-selection"
+            >
+              Clear selection
+            </button>
+          </div>
+
+          <div className="inspector-demand-node-timeband-picker">
+            <label htmlFor="inspector-demand-timeband-select" className="inspector-demand-timeband-label">
+              Inspection time band:
+            </label>
+            <select
+              id="inspector-demand-timeband-select"
+              className="inspector-demand-timeband-select"
+              value={inspectDemandTimeBandSelection}
+              onChange={(e) => onInspectDemandTimeBandSelectionChange(e.target.value as 'follow-simulation' | TimeBandId)}
+            >
+              <option value="follow-simulation">Follow simulation</option>
+              {MVP_TIME_BAND_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {TIME_BAND_DISPLAY_LABELS[id]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="inspector-demand-summary-card">
+            <p className="inspector-demand-summary-text">
+              {demandNodeInspectionProjection.summary}
+            </p>
+          </div>
+
+          <div className="inspector-demand-evidence-grid">
+            {demandNodeInspectionProjection.evidence.map((item) => (
+              <div key={item.label} className="inspector-demand-evidence-item">
+                <span className="inspector-demand-evidence-label">{item.label}</span>
+                <span className="inspector-demand-evidence-value">{item.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {demandNodeInspectionProjection.primaryAction && (
+            <div className="inspector-demand-primary-action">
+              <p className="inspector-demand-action-text">
+                {demandNodeInspectionProjection.primaryAction}
+              </p>
+            </div>
+          )}
+
+          {demandNodeInspectionProjection.contextCandidates.length > 0 && (
+            <div className="inspector-demand-candidates">
+              <h4 className="inspector-demand-candidates-title">
+                Likely {demandNodeInspectionProjection.selectedNodeId?.includes('res') ? 'workplace' : 'residential'} context:
+              </h4>
+              <ul className="inspector-demand-candidate-list">
+                {demandNodeInspectionProjection.contextCandidates.map((candidate) => (
+                  <li key={candidate.candidateId} className="inspector-demand-candidate-item">
+                    <div className="inspector-demand-candidate-header">
+                      <span className="inspector-demand-candidate-ordinal">{candidate.ordinal}.</span>
+                      <span className="inspector-demand-candidate-label">{candidate.label}</span>
+                      <span className="inspector-demand-candidate-weight">{candidate.activeWeightLabel} weight</span>
+                    </div>
+                    <div className="inspector-demand-candidate-details">
+                      <span className="inspector-demand-candidate-distance">{candidate.distanceLabel} away</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {demandNodeInspectionProjection.caveat && (
+            <p className="inspector-demand-caveat">
+              {demandNodeInspectionProjection.caveat}
+            </p>
+          )}
+        </section>
+      )}
+
+      {/* Existing Demand gap ranking section */}
+      <section className="inspector-demand-section" id="inspector-demand-ranking">
       <h3>Demand</h3>
 
       {scenarioDemandProvenanceProjection.status === 'ready' && (
@@ -250,7 +358,7 @@ export function InspectorDemandTab({
                       <button
                         type="button"
                         className="inspector-button-secondary inspector-button-secondary--small"
-                        onClick={() => onDemandGapFocus(null)}
+                        onClick={handleClearFocus}
                       >
                         Clear focus
                       </button>
@@ -375,5 +483,6 @@ export function InspectorDemandTab({
         </div>
       )}
     </section>
+  </section>
   );
 }

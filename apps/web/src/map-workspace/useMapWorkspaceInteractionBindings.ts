@@ -16,6 +16,7 @@ import {
   bindStopFeatureInteractions,
   bindOsmCandidateFeatureInteractions,
   bindDemandGapFeatureInteractions,
+  bindDemandNodeFeatureInteractions,
   decodeLineIdFromFeatureProperties,
   decodeStopIdFromFeatureProperties,
   decodeOsmCandidateGroupIdFromFeatureProperties,
@@ -32,6 +33,7 @@ import {
   resolveOsmStopCandidateHover,
   resolveCachedOsmStopCandidateStreetAnchor
 } from './mapWorkspaceOsmCandidateHover';
+import { decodeDemandNodeIdFromFeature } from './demandNodeFeatureInteraction';
 
 /** Inputs required to bind map workspace feature and map-surface interactions. */
 export interface UseMapWorkspaceInteractionBindingsInput {
@@ -54,6 +56,7 @@ export interface UseMapWorkspaceInteractionBindingsInput {
   readonly onOsmCandidateSelectionChange: (nextSelectionId: OsmStopCandidateGroupId | null) => void;
   readonly onOsmCandidateAnchorResolved: (resolution: import('../domain/osm/osmStopCandidateAnchorTypes').OsmStopCandidateStreetAnchorResolution | null) => void;
   readonly onDemandGapFocus: (gapId: string | null) => void;
+  readonly onDemandNodeSelectionChange: (nodeId: string | null) => void;
   readonly createStop: (
     nextOrdinal: number,
     lng: number,
@@ -112,16 +115,17 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
           return [...currentStops, nextStop];
         });
 
-          return createdStop;
-        },
-        routingCoverage: input.routingCoverage,
-        onDemandGapFocus: (gapId) => {
-          if (input.activeToolModeRef.current !== 'inspect') {
-            return;
-          }
-          input.onDemandGapFocus(gapId);
+        return createdStop;
+      },
+      routingCoverage: input.routingCoverage,
+      onDemandGapFocus: (gapId) => {
+        if (input.activeToolModeRef.current !== 'inspect') {
+          return;
         }
-      });
+        input.onDemandGapFocus(gapId);
+      },
+      onDemandNodeSelectionChange: input.onDemandNodeSelectionChange
+    });
 
     const osmCandidateInteractionBinding = bindOsmCandidateFeatureInteractions(mapInstance, (event) => {
       if (input.activeToolModeRef.current !== 'inspect') {
@@ -166,16 +170,32 @@ export function useMapWorkspaceInteractionBindings(input: UseMapWorkspaceInterac
       input.onDemandGapFocus(target.gapId);
     });
 
+    const demandNodeInteractionBinding = bindDemandNodeFeatureInteractions(mapInstance, (event) => {
+      if (input.activeToolModeRef.current !== 'inspect') {
+        return;
+      }
+
+      const nodeId = decodeDemandNodeIdFromFeature(event.features?.[0] as any);
+
+      if (!nodeId) {
+        return;
+      }
+
+      input.onDemandNodeSelectionChange(nodeId);
+    });
+
     return () => {
       interactions.dispose();
       osmCandidateInteractionBinding.dispose();
       demandGapInteractionBinding.dispose();
+      demandNodeInteractionBinding.dispose();
     };
   }, [
     input.activeToolMode,
     input.onPlacedStopsChange,
     input.onStopSelectionChange,
     input.onOsmCandidateSelectionChange,
+    input.onDemandNodeSelectionChange,
     input.isMapStyleReady
   ]);
 

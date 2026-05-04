@@ -20,7 +20,7 @@ import type { ScenarioDemandCaptureProjection } from '../domain/projection/scena
 import type { ServedDemandProjection } from '../domain/projection/servedDemandProjection';
 import type { ServicePressureProjection } from '../domain/projection/servicePressureProjection';
 import type { SelectedLineDemandContributionProjection } from '../domain/projection/selectedLineDemandContributionProjection';
-import type { DemandGapRankingProjection, DemandGapRankingItem } from '../domain/projection/demandGapProjection';
+import type { DemandGapRankingProjection } from '../domain/projection/demandGapProjection';
 import type { DemandGapOdContextProjection } from '../domain/projection/demandGapOdContextProjection';
 import type { ScenarioDemandProvenanceProjection } from '../domain/projection/scenarioDemandProvenanceProjection';
 import type { FocusedDemandGapPlanningEntrypointRequest } from '../app/focusedDemandGapPlanningEntrypoint';
@@ -74,9 +74,13 @@ interface InspectorPanelProps {
   readonly focusedDemandGapPlanningProjection: import('../domain/projection/focusedDemandGapPlanningProjection').FocusedDemandGapPlanningProjection;
   readonly focusedDemandGapLifecycleProjection: import('../domain/projection/focusedDemandGapLifecycleProjection').FocusedDemandGapLifecycleProjection;
   readonly scenarioDemandProvenanceProjection: ScenarioDemandProvenanceProjection;
+  readonly demandNodeInspectionProjection: import('../domain/projection/demandNodeInspectionProjection').DemandNodeInspectionProjection;
   readonly onPositionFocus: (position: { lng: number; lat: number }) => void;
-  readonly onDemandGapFocus: (gap: DemandGapRankingItem | null) => void;
+  readonly onDemandGapFocus: (gapId: string | null) => void;
   readonly focusedDemandGapId: string | null;
+  readonly onDemandNodeSelectionChange: (nodeId: string | null) => void;
+  readonly onInspectDemandTimeBandSelectionChange: (selection: 'follow-simulation' | import('../domain/types/timeBand').TimeBandId) => void;
+  readonly inspectDemandTimeBandSelection: 'follow-simulation' | import('../domain/types/timeBand').TimeBandId;
   readonly onPlanningEntrypoint: (request: FocusedDemandGapPlanningEntrypointRequest) => void;
 }
 
@@ -137,9 +141,13 @@ export function InspectorPanel({
   focusedDemandGapPlanningProjection,
   focusedDemandGapLifecycleProjection,
   scenarioDemandProvenanceProjection,
+  demandNodeInspectionProjection,
   onPositionFocus,
   onDemandGapFocus,
   focusedDemandGapId,
+  onDemandNodeSelectionChange,
+  onInspectDemandTimeBandSelectionChange,
+  inspectDemandTimeBandSelection,
   onPlanningEntrypoint
 }: InspectorPanelProps): ReactElement {
   const [activeTabId, setActiveTabId] = useState<InspectorTabId>('overview');
@@ -200,9 +208,13 @@ export function InspectorPanel({
                 focusedDemandGapPlanningProjection={focusedDemandGapPlanningProjection}
                 focusedDemandGapLifecycleProjection={focusedDemandGapLifecycleProjection}
                 scenarioDemandProvenanceProjection={scenarioDemandProvenanceProjection}
+                demandNodeInspectionProjection={demandNodeInspectionProjection}
                 onPositionFocus={onPositionFocus}
                 onDemandGapFocus={onDemandGapFocus}
                 focusedDemandGapId={focusedDemandGapId}
+                onDemandNodeSelectionChange={onDemandNodeSelectionChange}
+                onInspectDemandTimeBandSelectionChange={onInspectDemandTimeBandSelectionChange}
+                inspectDemandTimeBandSelection={inspectDemandTimeBandSelection}
                 onPlanningEntrypoint={onPlanningEntrypoint}
               />
             )}

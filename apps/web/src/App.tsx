@@ -32,6 +32,7 @@ import type { DemandGapRankingItem } from './domain/projection/demandGapProjecti
 import type { FocusedDemandGapPlanningEntrypointRequest } from './app/focusedDemandGapPlanningEntrypoint';
 import { applyFocusedDemandGapPlanningEntrypoint } from './app/focusedDemandGapPlanningEntrypoint';
 import type { FocusedDemandGapPlanningContext } from './app/focusedDemandGapPlanningContext';
+import type { TimeBandId } from './domain/types/timeBand';
 import { PlanningContextBanner } from './ui/PlanningContextBanner';
 
 import { AppShell } from './AppShell';
@@ -150,6 +151,8 @@ export default function App(): ReactElement {
   const [osmStopCandidates, setOsmStopCandidates] = useState<readonly OsmStopCandidate[]>([]);
   const [selectedOsmCandidateAnchor, setSelectedOsmCandidateAnchor] = useState<OsmStopCandidateStreetAnchorResolution | null>(null);
   const [focusedDemandGapId, setFocusedDemandGapId] = useState<string | null>(null);
+  const [selectedDemandNodeId, setSelectedDemandNodeId] = useState<string | null>(null);
+  const [inspectDemandTimeBandSelection, setInspectDemandTimeBandSelection] = useState<'follow-simulation' | TimeBandId>('follow-simulation');
   const [transientPlanningContext, setTransientPlanningContext] = useState<FocusedDemandGapPlanningContext | null>(null);
 
   const osmStopCandidateGroups = useMemo(
@@ -232,7 +235,9 @@ export default function App(): ReactElement {
     clockController.currentSimulationMinuteOfDay,
     clockController.currentSimulationSecondOfDay,
     scenarioDemandArtifactState.status === 'loaded' ? scenarioDemandArtifactState.artifact : null,
-    focusedDemandGapId
+    focusedDemandGapId,
+    selectedDemandNodeId,
+    inspectDemandTimeBandSelection
   );
 
   const inspectorPanelState = resolveInspectorPanelState(
@@ -320,6 +325,7 @@ const toolModeControlOptions: ReadonlyArray<{
       sessionController.setSelectedLineId(null);
       sessionController.setSelectedStop({ selectedStopId: stopId });
       setFocusedDemandGapId(null);
+      setSelectedDemandNodeId(null);
       setMapFocusIntent({ target: { type: 'stop', id: stopId }, requestId: Date.now() });
     },
     [sessionController]
@@ -330,6 +336,7 @@ const toolModeControlOptions: ReadonlyArray<{
       sessionController.setSelectedStop(null);
       sessionController.setSelectedLineId(lineId);
       setFocusedDemandGapId(null);
+      setSelectedDemandNodeId(null);
       setMapFocusIntent({ target: { type: 'line', id: lineId }, requestId: Date.now() });
     },
     [sessionController]
@@ -379,6 +386,18 @@ const toolModeControlOptions: ReadonlyArray<{
       handleDemandGapFocus(gap);
     }
   }, [projections.demandGapRankingProjection]);
+
+  const handleDemandNodeSelection = useCallback((nodeId: string | null) => {
+    setSelectedDemandNodeId(nodeId);
+    if (nodeId) {
+      const node = scenarioDemandArtifactState.status === 'loaded' 
+        ? scenarioDemandArtifactState.artifact.nodes.find(n => n.id === nodeId)
+        : null;
+      if (node) {
+        handlePositionFocus(node.position);
+      }
+    }
+  }, [scenarioDemandArtifactState, handlePositionFocus]);
 
   useEffect(() => {
     // Clear planning context if user manually returns to inspect mode
@@ -545,6 +564,7 @@ const toolModeControlOptions: ReadonlyArray<{
           focusedDemandGapId={focusedDemandGapId}
           demandGapOdContextProjection={projections.demandGapOdContextProjection}
           onDemandGapFocus={handleDemandGapFocusById}
+          onDemandNodeSelectionChange={handleDemandNodeSelection}
         />
 
         {transientPlanningContext && (
@@ -577,6 +597,7 @@ const toolModeControlOptions: ReadonlyArray<{
         focusedDemandGapPlanningProjection={projections.focusedDemandGapPlanningProjection}
         focusedDemandGapLifecycleProjection={projections.focusedDemandGapLifecycleProjection}
         scenarioDemandProvenanceProjection={projections.scenarioDemandProvenanceProjection}
+        demandNodeInspectionProjection={projections.demandNodeInspectionProjection}
         lineFrequencyInputByTimeBand={sessionController.lineFrequencyInputByTimeBand}
         lineFrequencyControlByTimeBand={sessionController.lineFrequencyControlByTimeBand}
         lineFrequencyValidationByTimeBand={sessionController.lineFrequencyValidationByTimeBand}
@@ -585,8 +606,11 @@ const toolModeControlOptions: ReadonlyArray<{
         onStopSelectionChange={handleStopInventorySelection}
         onLineSequenceStopFocus={handleLineSequenceStopFocus}
         onPositionFocus={handlePositionFocus}
-        onDemandGapFocus={handleDemandGapFocus}
+        onDemandGapFocus={handleDemandGapFocusById}
         focusedDemandGapId={focusedDemandGapId}
+        onDemandNodeSelectionChange={handleDemandNodeSelection}
+        onInspectDemandTimeBandSelectionChange={setInspectDemandTimeBandSelection}
+        inspectDemandTimeBandSelection={inspectDemandTimeBandSelection}
         onPlanningEntrypoint={handlePlanningEntrypoint}
         onStopRename={sessionController.renameStopLabel}
         onLineRename={sessionController.renameLineLabel}

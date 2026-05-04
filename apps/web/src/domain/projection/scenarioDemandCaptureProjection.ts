@@ -105,11 +105,11 @@ export function projectScenarioDemandCapture(
       accessRadiusMeters,
       stopCount: stops.length,
       activeTimeBandId,
-      nodeSummary: createEmptySummary(),
-      attractorSummary: createEmptySummary(),
-      gatewaySummary: createEmptySummary(),
-      residentialSummary: createEmptySummary(),
-      workplaceSummary: createEmptySummary(),
+      nodeSummary: createEmptyCapturedEntitySummary(),
+      attractorSummary: createEmptyCapturedEntitySummary(),
+      gatewaySummary: createEmptyCapturedEntitySummary(),
+      residentialSummary: createEmptyCapturedEntitySummary(),
+      workplaceSummary: createEmptyCapturedEntitySummary(),
       nearestStopByEntityId: new Map()
     };
   }
@@ -231,7 +231,8 @@ export function projectScenarioDemandCapture(
 }
 
 
-function createEmptySummary(): CapturedEntitySummary {
+/** Creates an empty entity capture summary for initialization or unavailable states. */
+export function createEmptyCapturedEntitySummary(): CapturedEntitySummary {
   return {
     totalCount: 0,
     capturedCount: 0,

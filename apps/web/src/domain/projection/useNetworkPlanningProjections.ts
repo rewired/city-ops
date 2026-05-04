@@ -19,6 +19,7 @@ import { projectFocusedDemandGapPlanningSummary, type FocusedDemandGapPlanningPr
 import { projectDemandGapOdCandidateList, type DemandGapOdCandidateListProjection } from './demandGapOdCandidateListProjection';
 import { projectFocusedDemandGapLifecycle, type FocusedDemandGapLifecycleProjection } from './focusedDemandGapLifecycleProjection';
 import { projectScenarioDemandProvenance, type ScenarioDemandProvenanceProjection } from './scenarioDemandProvenanceProjection';
+import { projectDemandNodeInspection, type DemandNodeInspectionProjection } from './demandNodeInspectionProjection';
 
 const MAX_READINESS_ISSUES_VISIBLE = 5;
 
@@ -79,6 +80,7 @@ export interface NetworkPlanningProjections {
   readonly focusedDemandGapPlanningProjection: FocusedDemandGapPlanningProjection;
   readonly focusedDemandGapLifecycleProjection: FocusedDemandGapLifecycleProjection;
   readonly scenarioDemandProvenanceProjection: ScenarioDemandProvenanceProjection;
+  readonly demandNodeInspectionProjection: DemandNodeInspectionProjection;
 }
 
 
@@ -123,7 +125,9 @@ export const useNetworkPlanningProjections = (
   currentSimulationMinuteOfDay: SimulationMinuteOfDay,
   currentSimulationSecondOfDay: SimulationSecondOfDay,
   scenarioDemandArtifact: ScenarioDemandArtifact | null,
-  focusedDemandGapId: string | null
+  focusedDemandGapId: string | null,
+  selectedDemandNodeId: string | null,
+  inspectDemandTimeBandSelection: 'follow-simulation' | TimeBandId
 ): NetworkPlanningProjections => {
   const staticNetworkSummaryKpis = projectStaticNetworkSummaryKpis(sessionStops.length, sessionLines, selectedLine);
   const routeBaselinesByLineId = new Map(
@@ -167,6 +171,11 @@ export const useNetworkPlanningProjections = (
   const selectedLineServiceInspectorProjection = selectedLineServiceProjection
     ? projectLineSelectedServiceInspector(selectedLineServiceProjection, MAX_READINESS_ISSUES_VISIBLE)
     : null;
+
+
+  const inspectedTimeBandId = inspectDemandTimeBandSelection === 'follow-simulation'
+    ? activeSimulationTimeBandId
+    : inspectDemandTimeBandSelection;
 
 
   const selectedLinePlanningVehicleProjection = selectedLine
@@ -233,6 +242,16 @@ export const useNetworkPlanningProjections = (
     scenarioDemandArtifact
   );
 
+  const demandNodeInspectionProjection = projectDemandNodeInspection({
+    artifact: scenarioDemandArtifact,
+    selectedNodeId: selectedDemandNodeId,
+    inspectedTimeBandId,
+    followsSimulationTimeBand: inspectDemandTimeBandSelection === 'follow-simulation',
+    scenarioDemandCaptureProjection,
+    servedDemandProjection,
+    demandGapRankingProjection
+  });
+
   return {
     staticNetworkSummaryKpis,
     selectedLineRouteBaseline,
@@ -253,6 +272,7 @@ export const useNetworkPlanningProjections = (
     demandGapOdCandidateListProjection,
     focusedDemandGapPlanningProjection,
     focusedDemandGapLifecycleProjection,
-    scenarioDemandProvenanceProjection
+    scenarioDemandProvenanceProjection,
+    demandNodeInspectionProjection
   };
 };

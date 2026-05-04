@@ -11,6 +11,7 @@ import type { StaticNetworkSummaryKpis } from '../domain/projection/useNetworkPl
 import type { LineVehicleNetworkProjection } from '../domain/types/lineVehicleProjection';
 import type { LineServicePlanProjection } from '../domain/types/lineServicePlanProjection';
 import type { ScenarioDemandCaptureProjection, CapturedEntitySummary } from '../domain/projection/scenarioDemandCaptureProjection';
+import { createEmptyCapturedEntitySummary } from '../domain/projection/scenarioDemandCaptureProjection';
 import type { ServedDemandProjection } from '../domain/projection/servedDemandProjection';
 import type { ServicePressureProjection } from '../domain/projection/servicePressureProjection';
 import type { DemandGapRankingProjection } from '../domain/projection/demandGapProjection';
@@ -19,21 +20,6 @@ import type { FocusedDemandGapPlanningProjection } from '../domain/projection/fo
 import type { LineFrequencyInputByTimeBand, LineFrequencyControlByTimeBand, LineFrequencyValidationByTimeBand, LineFrequencyControlState } from '../session/useNetworkSessionState';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-const createEmptyCapturedEntitySummary = (): CapturedEntitySummary => ({
-  totalCount: 0,
-  capturedCount: 0,
-  uncapturedCount: 0,
-  totalWeight: 0,
-  capturedWeight: 0,
-  uncapturedWeight: 0,
-  totalActiveWeight: 0,
-  capturedActiveWeight: 0,
-  uncapturedActiveWeight: 0,
-  capturedPercentageByCount: 0,
-  capturedPercentageByWeight: 0,
-  capturedPercentageByActiveWeight: 0
-});
 
 // Minimal mock data
 const mockPanelState: InspectorPanelState = {
@@ -93,7 +79,7 @@ const mockServedDemandProjection: ServedDemandProjection = {
   capturedWorkplaceActiveWeight: 0,
   servedResidentialActiveWeight: 0,
   unservedResidentialActiveWeight: 0,
-  reachableWorkplaceActiveWeight: 0,
+  reachableWorkplaceActiveWeight: 250,
   activeServiceLineCount: 0,
   inactiveOrNoServiceLineCount: 0,
   blockedLineCount: 0,
@@ -169,6 +155,20 @@ const mockScenarioDemandProvenanceProjection: import('../domain/projection/scena
   generatorLabel: null,
   sourceRows: []
 };
+const mockDemandNodeInspectionProjection: import('../domain/projection/demandNodeInspectionProjection').DemandNodeInspectionProjection = {
+  status: 'unavailable',
+  selectedNodeId: null,
+  inspectedTimeBandId: null,
+  inspectedTimeBandLabel: null,
+  followsSimulationTimeBand: true,
+  title: null,
+  summary: null,
+  problemStatus: null,
+  primaryAction: null,
+  caveat: null,
+  evidence: [],
+  contextCandidates: []
+};
 
 const mockLineFrequencyInput: LineFrequencyInputByTimeBand = {
   'morning-rush': '',
@@ -235,6 +235,7 @@ const renderInspectorPanel = (): RenderResult => {
         focusedDemandGapPlanningProjection={mockFocusedDemandGapPlanningProjection}
         focusedDemandGapLifecycleProjection={mockFocusedDemandGapLifecycleProjection}
         scenarioDemandProvenanceProjection={mockScenarioDemandProvenanceProjection}
+        demandNodeInspectionProjection={mockDemandNodeInspectionProjection}
         selectedLineRouteBaseline={null}
         selectedLineServiceProjection={null}
         selectedLineServiceInspectorProjection={null}
@@ -252,6 +253,9 @@ const renderInspectorPanel = (): RenderResult => {
         selectedLineDemandContribution={null}
         onDemandGapFocus={vi.fn()}
         focusedDemandGapId={null}
+        onDemandNodeSelectionChange={vi.fn()}
+        onInspectDemandTimeBandSelectionChange={vi.fn()}
+        inspectDemandTimeBandSelection="follow-simulation"
         onPlanningEntrypoint={vi.fn()}
       />
     );

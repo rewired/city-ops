@@ -8,7 +8,8 @@ import {
   MAP_LAYER_ID_STOPS_CIRCLE,
   MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
   MAP_LAYER_ID_DEMAND_GAP_OVERLAY_CIRCLE,
-  MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS
+  MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS,
+  MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE
 } from './mapRenderConstants';
 import { createOsmStopCandidateGroupId, type OsmStopCandidateGroupId } from '../domain/types/osmStopCandidate';
 import type { OsmStopCandidateHoverPayload } from './mapWorkspaceOsmCandidateHover';
@@ -89,6 +90,7 @@ export interface MapWorkspaceSurfaceInteractionsContracts {
   readonly buildLineContracts: BuildLineModeMapClickContracts;
   readonly onOsmCandidateHoverChange?: (nextHover: OsmStopCandidateHoverPayload | null) => void;
   readonly onDemandGapFocus?: (gapId: string) => void;
+  readonly onDemandNodeSelectionChange: (nodeId: string | null) => void;
   readonly routingCoverage: ScenarioRoutingCoverage | null;
 }
 
@@ -176,7 +178,8 @@ export const hasInteractiveSelectionFeatureAtPoint = (map: RenderedFeatureLayerQ
     MAP_LAYER_ID_COMPLETED_LINES,
     MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
     MAP_LAYER_ID_DEMAND_GAP_OVERLAY_CIRCLE,
-    MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS
+    MAP_LAYER_ID_DEMAND_GAP_OVERLAY_FOCUS,
+    MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE
   ];
   const renderedFeatures = queryRenderedFeaturesForExistingLayers(map, event.point, interactiveSelectionLayers);
 
@@ -246,6 +249,7 @@ export const setupMapWorkspaceInteractions = ({
   buildLineContracts,
   onOsmCandidateHoverChange,
   onDemandGapFocus,
+  onDemandNodeSelectionChange,
   routingCoverage
 }: MapWorkspaceSurfaceInteractionsContracts): MapWorkspaceInteractionBinding => {
   const neutralTelemetryHandlers = createNeutralMapTelemetryHandlers({ setInteractionState });
@@ -262,6 +266,7 @@ export const setupMapWorkspaceInteractions = ({
 
     if (activeToolMode === 'inspect' && !hasInteractiveSelectionFeatureAtPoint(map, event)) {
       buildLineContracts.onInspectModeNonFeatureMapClick();
+      onDemandNodeSelectionChange(null);
     }
   };
 
@@ -457,4 +462,12 @@ export const bindDemandGapFeatureInteractions = (
       focusBinding.dispose();
     }
   };
+};
+
+/** Binds click interactions for rendered scenario demand preview features and provides a dispose hook. */
+export const bindDemandNodeFeatureInteractions = (
+  map: MapLibreMap,
+  onDemandNodeFeatureClick: (event: MapLibreInteractionEvent) => void
+): MapWorkspaceInteractionBinding => {
+  return bindSafeLayerInteraction(map, 'click', MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE, onDemandNodeFeatureClick);
 };

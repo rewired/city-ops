@@ -11,7 +11,8 @@ import type { DemandGapOdCandidateListProjection } from '../domain/projection/de
 import type { ScenarioDemandCaptureProjection, CapturedEntitySummary } from '../domain/projection/scenarioDemandCaptureProjection';
 import type { ServedDemandProjection } from '../domain/projection/servedDemandProjection';
 import type { FocusedDemandGapLifecycleProjection } from '../domain/projection/focusedDemandGapLifecycleProjection';
-import type { ScenarioDemandProvenanceProjection } from '../domain/projection/scenarioDemandProvenanceProjection';
+import { type ScenarioDemandProvenanceProjection } from '../domain/projection/scenarioDemandProvenanceProjection';
+import { type DemandNodeInspectionProjection } from '../domain/projection/demandNodeInspectionProjection';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -127,6 +128,51 @@ const MOCK_PROVENANCE_UNAVAILABLE: ScenarioDemandProvenanceProjection = {
   generatorLabel: null,
   sourceRows: []
 };
+const MOCK_INSPECTION_READY: DemandNodeInspectionProjection = {
+  status: 'ready',
+  selectedNodeId: 'node-res-1',
+  inspectedTimeBandId: 'morning-rush',
+  inspectedTimeBandLabel: 'Morning Rush',
+  followsSimulationTimeBand: true,
+  title: 'Residential demand node',
+  summary: 'Residential demand node "node-res-1" with base weight 100.0.',
+  problemStatus: 'not-captured',
+  primaryAction: 'Place a stop near this residential demand.',
+  caveat: 'Context candidates are planning hints from generated scenario demand, not exact passenger flows.',
+  evidence: [
+    { label: 'Role', value: 'Residential origin' },
+    { label: 'Time band', value: 'Morning Rush' },
+    { label: 'Active weight', value: '100.0' },
+    { label: 'Capture status', value: 'Uncaptured' }
+  ],
+  contextCandidates: [
+    {
+      ordinal: 1,
+      candidateId: 'node-work-1',
+      label: 'node-work-1',
+      roleLabel: 'Destination',
+      demandClassLabel: 'workplace',
+      activeWeightLabel: '150.0',
+      distanceLabel: '500m',
+      position: { lng: 0.1, lat: 0.1 }
+    }
+  ]
+};
+
+const MOCK_INSPECTION_UNAVAILABLE: DemandNodeInspectionProjection = {
+  status: 'unavailable',
+  selectedNodeId: null,
+  inspectedTimeBandId: null,
+  inspectedTimeBandLabel: null,
+  followsSimulationTimeBand: true,
+  title: null,
+  summary: null,
+  problemStatus: null,
+  primaryAction: null,
+  caveat: null,
+  evidence: [],
+  contextCandidates: []
+};
 
 interface RenderResult {
   readonly container: HTMLDivElement;
@@ -204,6 +250,10 @@ describe('InspectorDemandTab', () => {
       focusedDemandGapId: 'gap-123',
       focusedDemandGapLifecycleProjection: MOCK_LIFECYCLE_ACTIVE,
       scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      demandNodeInspectionProjection: MOCK_INSPECTION_UNAVAILABLE,
+      onDemandNodeSelectionChange: vi.fn(),
+      onInspectDemandTimeBandSelectionChange: vi.fn(),
+      inspectDemandTimeBandSelection: 'follow-simulation',
       onPlanningEntrypoint: vi.fn()
     });
 
@@ -261,6 +311,10 @@ describe('InspectorDemandTab', () => {
       focusedDemandGapId: 'gap-123',
       focusedDemandGapLifecycleProjection: MOCK_LIFECYCLE_ACTIVE,
       scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      demandNodeInspectionProjection: MOCK_INSPECTION_UNAVAILABLE,
+      onDemandNodeSelectionChange: vi.fn(),
+      onInspectDemandTimeBandSelectionChange: vi.fn(),
+      inspectDemandTimeBandSelection: 'follow-simulation',
       onPlanningEntrypoint: vi.fn()
     });
 
@@ -335,6 +389,10 @@ describe('InspectorDemandTab', () => {
       focusedDemandGapId: 'gap-123',
       focusedDemandGapLifecycleProjection: MOCK_LIFECYCLE_ACTIVE,
       scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      demandNodeInspectionProjection: MOCK_INSPECTION_UNAVAILABLE,
+      onDemandNodeSelectionChange: vi.fn(),
+      onInspectDemandTimeBandSelectionChange: vi.fn(),
+      inspectDemandTimeBandSelection: 'follow-simulation',
       onPlanningEntrypoint: vi.fn()
     });
 
@@ -401,6 +459,10 @@ describe('InspectorDemandTab', () => {
       focusedDemandGapId: 'gap-123',
       focusedDemandGapLifecycleProjection: MOCK_LIFECYCLE_ACTIVE,
       scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      demandNodeInspectionProjection: MOCK_INSPECTION_UNAVAILABLE,
+      onDemandNodeSelectionChange: vi.fn(),
+      onInspectDemandTimeBandSelectionChange: vi.fn(),
+      inspectDemandTimeBandSelection: 'follow-simulation',
       onPlanningEntrypoint
     });
 
@@ -472,6 +534,10 @@ describe('InspectorDemandTab', () => {
         shouldOfferClearFocus: false
       },
       scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      demandNodeInspectionProjection: MOCK_INSPECTION_UNAVAILABLE,
+      onDemandNodeSelectionChange: vi.fn(),
+      onInspectDemandTimeBandSelectionChange: vi.fn(),
+      inspectDemandTimeBandSelection: 'follow-simulation',
       onPlanningEntrypoint
     });
 
@@ -517,10 +583,14 @@ describe('InspectorDemandTab', () => {
       demandGapOdCandidateListProjection: MOCK_CANDIDATE_LIST,
       focusedDemandGapPlanningProjection: MOCK_PLANNING_UNAVAILABLE,
       focusedDemandGapLifecycleProjection: mockLifecycle,
+      scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      demandNodeInspectionProjection: MOCK_INSPECTION_UNAVAILABLE,
       onPositionFocus: vi.fn(),
       onDemandGapFocus: vi.fn(),
       focusedDemandGapId: 'gap-999',
-      scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      onDemandNodeSelectionChange: vi.fn(),
+      onInspectDemandTimeBandSelectionChange: vi.fn(),
+      inspectDemandTimeBandSelection: 'follow-simulation',
       onPlanningEntrypoint: vi.fn()
     });
 
@@ -556,9 +626,13 @@ describe('InspectorDemandTab', () => {
         shouldOfferClearFocus: false
       },
       scenarioDemandProvenanceProjection: MOCK_PROVENANCE_READY,
+      demandNodeInspectionProjection: MOCK_INSPECTION_UNAVAILABLE,
       onPositionFocus: vi.fn(),
       onDemandGapFocus: vi.fn(),
       focusedDemandGapId: null,
+      onDemandNodeSelectionChange: vi.fn(),
+      onInspectDemandTimeBandSelectionChange: vi.fn(),
+      inspectDemandTimeBandSelection: 'follow-simulation',
       onPlanningEntrypoint: vi.fn()
     });
 
@@ -571,5 +645,68 @@ describe('InspectorDemandTab', () => {
     expect(textContent).toContain('Census 2026');
     expect(textContent).toContain('© Test Author');
     expect(textContent).toContain('Generated by: test-gen 1.0.0');
+  });
+
+  it('renders selected demand node section when projection is ready', () => {
+    const onInspectDemandTimeBandSelectionChange = vi.fn();
+    const onDemandNodeSelectionChange = vi.fn();
+
+    mounted = renderTab({
+      scenarioDemandCaptureProjection: MOCK_SCENARIO_PROJECTION,
+      servedDemandProjection: MOCK_SERVED_PROJECTION,
+      demandGapRankingProjection: {
+        status: 'ready',
+        activeTimeBandId: 'morning-rush',
+        uncapturedResidentialGaps: [],
+        capturedButUnservedResidentialGaps: [],
+        capturedButUnreachableWorkplaceGaps: [],
+        summary: { totalGapCount: 0 }
+      },
+      demandGapOdContextProjection: MOCK_OD_CONTEXT,
+      demandGapOdCandidateListProjection: MOCK_CANDIDATE_LIST,
+      focusedDemandGapPlanningProjection: MOCK_PLANNING_UNAVAILABLE,
+      focusedDemandGapLifecycleProjection: {
+        status: 'unfocused',
+        focusedGapId: null,
+        title: null,
+        message: null,
+        shouldOfferClearFocus: false
+      },
+      scenarioDemandProvenanceProjection: MOCK_PROVENANCE_UNAVAILABLE,
+      demandNodeInspectionProjection: MOCK_INSPECTION_READY,
+      onPositionFocus: vi.fn(),
+      onDemandGapFocus: vi.fn(),
+      focusedDemandGapId: null,
+      onDemandNodeSelectionChange,
+      onInspectDemandTimeBandSelectionChange,
+      inspectDemandTimeBandSelection: 'follow-simulation',
+      onPlanningEntrypoint: vi.fn()
+    });
+
+    const textContent = mounted.container.textContent;
+    expect(textContent).toContain('Residential demand node');
+    expect(textContent).toContain('Residential demand node "node-res-1" with base weight 100.0.');
+    expect(textContent).toContain('Place a stop near this residential demand.');
+    expect(textContent).toContain('100.0');
+    expect(textContent).toContain('Uncaptured');
+    expect(textContent).toContain('node-work-1');
+    expect(textContent).toContain('150.0 weight');
+
+    const clearButton = mounted.container.querySelector('#inspector-demand-clear-node-selection') as HTMLButtonElement;
+    expect(clearButton).toBeDefined();
+    act(() => {
+      clearButton.click();
+    });
+    expect(onDemandNodeSelectionChange).toHaveBeenCalledWith(null);
+
+    const select = mounted.container.querySelector('#inspector-demand-timeband-select') as HTMLSelectElement;
+    expect(select).toBeDefined();
+    expect(select.value).toBe('follow-simulation');
+
+    act(() => {
+      select.value = 'morning-rush';
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    expect(onInspectDemandTimeBandSelectionChange).toHaveBeenCalledWith('morning-rush');
   });
 });
