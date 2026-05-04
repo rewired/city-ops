@@ -1,3 +1,5 @@
+import { decodeMapEntityHoverTargetFromFeatureProperties } from './mapEntityHoverTarget';
+
 /**
  * Minimal rendered demand feature shape required to decode scenario demand node IDs.
  */
@@ -14,12 +16,10 @@ export interface DemandNodeFeatureInteractionFeature {
 export function decodeDemandNodeIdFromFeatureProperties(
   properties: Record<string, unknown> | undefined
 ): string | null {
-  const entityId = properties?.entityId;
+  const target = decodeMapEntityHoverTargetFromFeatureProperties(properties);
 
-  // We only treat 'node', 'attractor', or 'gateway' as selectable if they have an entityId.
-  // In the current scenario demand preview projection, these all map to scenario demand nodes.
-  if (typeof entityId === 'string' && entityId.length > 0) {
-    return entityId;
+  if (target?.kind === 'demand-node') {
+    return target.id;
   }
 
   return null;

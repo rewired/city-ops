@@ -238,6 +238,21 @@ export const MAP_OSM_STOP_CANDIDATE_CIRCLE_LAYER_PAINT = {
 } as const;
 
 /**
+ * UI-only circle radius used while an OSM stop candidate map entity is hovered.
+ */
+export const MAP_OSM_STOP_CANDIDATE_HOVER_CIRCLE_RADIUS = 11;
+
+/**
+ * UI-only stroke width used while an OSM stop candidate map entity is hovered.
+ */
+export const MAP_OSM_STOP_CANDIDATE_HOVER_STROKE_WIDTH = 3;
+
+/**
+ * UI-only stroke color used while an OSM stop candidate map entity is hovered.
+ */
+export const MAP_OSM_STOP_CANDIDATE_HOVER_STROKE_COLOR = '#f8fafc';
+
+/**
  * Canonical GeoJSON source id for all scenario demand preview features.
  */
 export const MAP_SOURCE_ID_SCENARIO_DEMAND_PREVIEW = 'openvayra-cities-scenario-demand-preview';
@@ -273,6 +288,21 @@ export const MAP_SCENARIO_DEMAND_PREVIEW_CIRCLE_LAYER_PAINT = {
   'circle-opacity': 0.6,
   'circle-stroke-opacity': 0.8
 } as const;
+
+/**
+ * UI-only circle radius used while a scenario demand node map entity is hovered.
+ */
+export const MAP_SCENARIO_DEMAND_PREVIEW_HOVER_CIRCLE_RADIUS = 9;
+
+/**
+ * UI-only stroke width used while a scenario demand node map entity is hovered.
+ */
+export const MAP_SCENARIO_DEMAND_PREVIEW_HOVER_STROKE_WIDTH = 3;
+
+/**
+ * UI-only stroke color used while a scenario demand node map entity is hovered.
+ */
+export const MAP_SCENARIO_DEMAND_PREVIEW_HOVER_STROKE_COLOR = '#f8fafc';
 
 /**
  * Maximum number of point features to render for the scenario demand preview overlay.

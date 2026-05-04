@@ -5,13 +5,16 @@ import {
   hasInteractiveSelectionFeatureAtPoint,
   isPointInScenarioRoutingCoverage,
   resolveInspectModeMapClickSelection,
-  resolveOsmCandidateFeatureInteractionSelection
+  resolveOsmCandidateFeatureInteractionSelection,
+  setupMapWorkspaceInteractions,
+  type MapWorkspaceInteractionRuntimeMap
 } from './mapWorkspaceInteractions';
 import type { MapLibreInteractionEvent, MapLibreRenderedFeature, MapLibreLayerSpecification } from './maplibreGlobal';
 import { 
   MAP_LAYER_ID_STOPS_CIRCLE, 
   MAP_LAYER_ID_COMPLETED_LINES,
-  MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE
+  MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE,
+  MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE
 } from './mapRenderConstants';
 import { 
   bindSafeLayerInteraction, 
@@ -35,6 +38,55 @@ const createMapMock = (
   };
 
   return mock;
+};
+
+interface SetupInteractionMapMock extends MapWorkspaceInteractionRuntimeMap {
+  readonly canvas: { readonly style: { cursor: string } };
+  readonly setPaintProperty: ReturnType<typeof vi.fn>;
+  readonly getCapturedLayerListener: (
+    eventType: 'mouseenter' | 'mousemove' | 'mouseleave' | 'click',
+    layerId: string
+  ) => ((event: MapLibreInteractionEvent) => void) | undefined;
+}
+
+const createSetupInteractionMapMock = (presentLayerIds: readonly string[]): SetupInteractionMapMock => {
+  const layerSet = new Set(presentLayerIds);
+  const layerListeners = new Map<string, (event: MapLibreInteractionEvent) => void>();
+  const canvas = { style: { cursor: '' } };
+
+  const map: SetupInteractionMapMock = {
+    canvas,
+    getCapturedLayerListener: (eventType, layerId) => layerListeners.get(`${eventType}:${layerId}`),
+    getLayer: (layerId: string): MapLibreLayerSpecification | undefined =>
+      layerSet.has(layerId)
+        ? {
+            id: layerId,
+            type: 'circle',
+            source: 'test'
+          }
+        : undefined,
+    queryRenderedFeatures: vi.fn(() => []),
+    on: vi.fn((
+      eventType: string,
+      layerIdOrListener: string | ((event: MapLibreInteractionEvent) => void),
+      listener?: (event: MapLibreInteractionEvent) => void
+    ) => {
+      if (typeof layerIdOrListener !== 'string' || !listener) {
+        return;
+      }
+
+      layerListeners.set(`${eventType}:${layerIdOrListener}`, listener);
+    }),
+    off: vi.fn(),
+    getStyle: () => ({ layers: [] }),
+    getZoom: () => 14,
+    project: () => ({ x: 0, y: 0 }),
+    querySourceFeatures: () => [],
+    getCanvas: () => canvas,
+    setPaintProperty: vi.fn()
+  };
+
+  return map;
 };
 
 describe('mapWorkspaceInteractions', () => {
@@ -126,6 +178,143 @@ describe('mapWorkspaceInteractions', () => {
 
     it('empty inspect clicks clear selection state through a null stop selection result', () => {
       expect(resolveInspectModeMapClickSelection()).toBeNull();
+    });
+  });
+
+  describe('hover affordance bindings', () => {
+    const baseInteractionContracts = {
+      activeToolMode: 'inspect' as const,
+      setInteractionState: vi.fn(),
+      setPlacementAttemptResult: vi.fn(),
+      onStopSelectionChange: vi.fn(),
+      onStopHoverChange: vi.fn(),
+      onValidPlacement: () => {
+        throw new Error('Unexpected placement in hover test.');
+      },
+      buildLineContracts: {
+        onInspectModeNonFeatureMapClick: vi.fn()
+      },
+      onDemandNodeSelectionChange: vi.fn(),
+      routingCoverage: null
+    };
+
+    it('does not call demand node selection callbacks on demand node hover', () => {
+      const onDemandNodeSelectionChange = vi.fn();
+      const map = createSetupInteractionMapMock([MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE]);
+
+      const binding = setupMapWorkspaceInteractions({
+        map,
+        ...baseInteractionContracts,
+        onDemandNodeSelectionChange
+      });
+
+      const listener = map.getCapturedLayerListener('mouseenter', MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE);
+      if (!listener) {
+        throw new Error('Expected demand node mouseenter listener to be captured.');
+      }
+
+      listener({
+        point: { x: 12, y: 14 },
+        features: [
+          {
+            layer: { id: MAP_LAYER_ID_SCENARIO_DEMAND_PREVIEW_CIRCLE },
+            properties: {
+              entityId: 'node-1',
+              entityKind: 'node'
+            }
+          }
+        ]
+      });
+
+      expect(onDemandNodeSelectionChange).not.toHaveBeenCalled();
+      expect(map.canvas.style.cursor).toBe('pointer');
+
+      binding.dispose();
+    });
+
+    it('does not call selection callbacks on OSM stop candidate hover', () => {
+      const onStopSelectionChange = vi.fn();
+      const onDemandNodeSelectionChange = vi.fn();
+      const onOsmCandidateHoverChange = vi.fn();
+      const map = createSetupInteractionMapMock([MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE]);
+
+      const binding = setupMapWorkspaceInteractions({
+        map,
+        ...baseInteractionContracts,
+        onStopSelectionChange,
+        onDemandNodeSelectionChange,
+        onOsmCandidateHoverChange
+      });
+
+      const listener = map.getCapturedLayerListener('mouseenter', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE);
+      if (!listener) {
+        throw new Error('Expected OSM candidate mouseenter listener to be captured.');
+      }
+
+      listener({
+        point: { x: 12, y: 14 },
+        features: [
+          {
+            layer: { id: MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE },
+            properties: {
+              candidateGroupId: 'osm-group:1',
+              label: 'Candidate',
+              memberCount: 2,
+              memberKinds: 'bus-stop',
+              berthCountHint: 1
+            }
+          }
+        ]
+      });
+
+      expect(onStopSelectionChange).not.toHaveBeenCalled();
+      expect(onDemandNodeSelectionChange).not.toHaveBeenCalled();
+      expect(onOsmCandidateHoverChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          candidateGroupId: 'osm-group:1',
+          label: 'Candidate'
+        })
+      );
+      expect(map.canvas.style.cursor).toBe('pointer');
+
+      binding.dispose();
+      expect(map.canvas.style.cursor).toBe('');
+    });
+
+    it('does not show clickable hover affordance outside inspect mode', () => {
+      const onOsmCandidateHoverChange = vi.fn();
+      const map = createSetupInteractionMapMock([MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE]);
+
+      const binding = setupMapWorkspaceInteractions({
+        map,
+        ...baseInteractionContracts,
+        activeToolMode: 'build-line',
+        onOsmCandidateHoverChange
+      });
+
+      const listener = map.getCapturedLayerListener('mouseenter', MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE);
+      if (!listener) {
+        throw new Error('Expected OSM candidate mouseenter listener to be captured.');
+      }
+
+      listener({
+        point: { x: 12, y: 14 },
+        features: [
+          {
+            layer: { id: MAP_LAYER_ID_OSM_STOP_CANDIDATES_CIRCLE },
+            properties: {
+              candidateGroupId: 'osm-group:1',
+              label: 'Candidate',
+              memberCount: 2
+            }
+          }
+        ]
+      });
+
+      expect(onOsmCandidateHoverChange).not.toHaveBeenCalled();
+      expect(map.canvas.style.cursor).toBe('');
+
+      binding.dispose();
     });
   });
 
