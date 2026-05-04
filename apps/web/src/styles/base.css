@@ -22,8 +22,8 @@ body,
   --openvayra-cities-color-accent-blue-hover: #3c73c0;
 
   /* Wordmark Branding */
-  --openvayra-cities-wordmark-city-color: #ffffff;
-  --openvayra-cities-wordmark-ops-color: #016be6;
+  --openvayra-cities-wordmark-open-color: #ffffff;
+  --openvayra-cities-wordmark-vayra-color: #016be6;
 
   /* Semantic Colors */
   --openvayra-cities-color-success: #9fe3ad;

@@ -16,13 +16,17 @@
   font-size: 2.5rem;
   letter-spacing: 0.03em;
   text-transform: none;
-  color: var(--openvayra-cities-wordmark-ops-color);
   font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
+  font-weight: 300;
 }
 
-.simulation-control-bar__brand strong {
-  color: var(--openvayra-cities-wordmark-city-color);
+.simulation-control-bar__brand-open {
+  color: var(--openvayra-cities-wordmark-open-color);
+  font-weight: 300;
+}
+
+.simulation-control-bar__brand-vayra {
+  color: var(--openvayra-cities-wordmark-vayra-color);
   font-weight: 700;
 }
 

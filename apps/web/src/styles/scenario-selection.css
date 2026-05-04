@@ -61,14 +61,18 @@
 .scenario-selection-screen__brand {
   font-size: 1.5rem;
   letter-spacing: 0.04em;
-  color: var(--openvayra-cities-wordmark-ops-color);
   margin-bottom: 16px;
   font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
+  font-weight: 300;
 }
 
-.scenario-selection-screen__brand strong {
-  color: var(--openvayra-cities-wordmark-city-color);
+.scenario-selection-screen__brand-open {
+  color: var(--openvayra-cities-wordmark-open-color);
+  font-weight: 300;
+}
+
+.scenario-selection-screen__brand-vayra {
+  color: var(--openvayra-cities-wordmark-vayra-color);
   font-weight: 700;
 }
 

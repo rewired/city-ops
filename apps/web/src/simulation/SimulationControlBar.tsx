@@ -30,7 +30,8 @@ export function SimulationControlBar({
   return (
     <section className="simulation-control-bar" aria-label="OpenVayra - Cities top bar">
       <div className="simulation-control-bar__brand" aria-label="Application brand">
-        Open<strong>Vayra</strong>
+        <span className="simulation-control-bar__brand-open">Open</span>
+        <strong className="simulation-control-bar__brand-vayra">Vayra</strong>
         {scenarioTitle && <span className="simulation-control-bar__scenario-title"> — {scenarioTitle}</span>}
       </div>
 

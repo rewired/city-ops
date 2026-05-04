@@ -36,7 +36,8 @@ export function ScenarioSelectionScreen({
         <div className="scenario-selection-screen__content">
           <header className="scenario-selection-screen__header">
             <div className="scenario-selection-screen__brand">
-              Open<strong>Vayra</strong>
+              <span className="scenario-selection-screen__brand-open">Open</span>
+              <strong className="scenario-selection-screen__brand-vayra">Vayra</strong>
             </div>
             <h1 className="scenario-selection-screen__title">Choose Scenario</h1>
             <p className="scenario-selection-screen__subtitle">
