@@ -248,8 +248,7 @@ export const useNetworkPlanningProjections = (
     inspectedTimeBandId,
     followsSimulationTimeBand: inspectDemandTimeBandSelection === 'follow-simulation',
     scenarioDemandCaptureProjection,
-    servedDemandProjection,
-    demandGapRankingProjection
+    servedDemandProjection
   });
 
   return {

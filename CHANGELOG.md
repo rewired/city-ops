@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **Slice 182**: Map Demand Gap Focus Interaction. Players can now click on visible demand gap point features on the map to focus them, triggering the same planning summary and OD context as the Inspector buttons. Includes pointer cursor affordance and safe feature decoding.
+- **Slice 182b**: Demand Node Focus Full-Artifact Context Repair. Decoupled demand node inspection from top-N demand gap rankings by implementing artifact-wide node resolution. Added per-node service sets to `ServedDemandProjection` for accurate service status verification. Updated the `demandNodeInspectionProjection` to derivation context candidates from the full generated scenario demand artifact rather than stale ranking subsets.
 
 ### Added
 - **Slice 181 — Demand Gap Overlay Visual Softening**:

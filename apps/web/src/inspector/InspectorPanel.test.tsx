@@ -88,7 +88,9 @@ const mockServedDemandProjection: ServedDemandProjection = {
     residentialCapturedButNoActiveService: 0,
     residentialNotCaptured: 0,
     workplaceCapturedButUnreachable: 0
-  }
+  },
+  servedResidentialNodeIds: new Set(),
+  reachableWorkplaceNodeIds: new Set()
 };
 
 const mockServicePressureProjection: ServicePressureProjection = { 

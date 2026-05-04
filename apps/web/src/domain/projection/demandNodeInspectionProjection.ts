@@ -2,7 +2,6 @@ import type { TimeBandId } from '../types/timeBand';
 import type { ScenarioDemandArtifact, ScenarioDemandNode } from '../types/scenarioDemand';
 import type { ScenarioDemandCaptureProjection } from './scenarioDemandCaptureProjection';
 import type { ServedDemandProjection } from './servedDemandProjection';
-import type { DemandGapRankingProjection } from './demandGapProjection';
 import { calculateGreatCircleDistanceMeters } from '../../lib/geometry';
 import { calculateActiveDemandWeight } from './demandWeight';
 import { DEMAND_GAP_OD_CONTEXT_MAX_CANDIDATES } from '../constants/scenarioDemand';
@@ -61,7 +60,6 @@ interface ProjectDemandNodeInspectionInput {
   readonly followsSimulationTimeBand: boolean;
   readonly scenarioDemandCaptureProjection: ScenarioDemandCaptureProjection;
   readonly servedDemandProjection: ServedDemandProjection;
-  readonly demandGapRankingProjection: DemandGapRankingProjection;
 }
 
 const createUnavailableProjection = (
@@ -97,8 +95,7 @@ export function projectDemandNodeInspection(
     inspectedTimeBandId,
     followsSimulationTimeBand,
     scenarioDemandCaptureProjection,
-    servedDemandProjection,
-    demandGapRankingProjection
+    servedDemandProjection
   } = input;
 
   if (!artifact || !selectedNodeId) {
@@ -121,34 +118,33 @@ export function projectDemandNodeInspection(
   let problemStatus: DemandNodeInspectionProblemStatus = 'context-only';
   let primaryAction: string | null = null;
 
-  if (demandGapRankingProjection.status === 'ready') {
-    const isUncaptured = demandGapRankingProjection.uncapturedResidentialGaps.some(g => g.id === selectedNodeId);
-    const isUnserved = demandGapRankingProjection.capturedButUnservedResidentialGaps.some(g => g.id === selectedNodeId);
-    const isUnreachable = demandGapRankingProjection.capturedButUnreachableWorkplaceGaps.some(g => g.id === selectedNodeId);
-
-    if (isUncaptured) {
+  if (scenarioDemandCaptureProjection.status === 'ready' && servedDemandProjection.status === 'ready') {
+    const capturingStop = scenarioDemandCaptureProjection.nearestStopByEntityId.get(selectedNodeId);
+    
+    if (!capturingStop) {
       problemStatus = 'not-captured';
       primaryAction = isOrigin 
         ? 'Place a stop near this residential demand.' 
         : 'Place a stop near this workplace destination.';
-    } else if (isUnserved) {
-      problemStatus = 'captured-unserved';
-      primaryAction = 'Connect this captured origin toward a workplace candidate with active service.';
-    } else if (isUnreachable) {
-      problemStatus = 'captured-unreachable-destination';
-      primaryAction = 'Connect likely residential origins toward this workplace with active service.';
     } else {
-      // Check if it's captured and served/reachable
-      const isCaptured = isOrigin 
-        ? scenarioDemandCaptureProjection.status === 'ready' && scenarioDemandCaptureProjection.residentialSummary.capturedCount > 0 // This is a bit weak but we don't have individual capture status easily exposed
-        : scenarioDemandCaptureProjection.status === 'ready' && scenarioDemandCaptureProjection.workplaceSummary.capturedCount > 0;
+      const isServed = isOrigin 
+        ? servedDemandProjection.servedResidentialNodeIds.has(selectedNodeId)
+        : servedDemandProjection.reachableWorkplaceNodeIds.has(selectedNodeId);
 
-      // Actually, we can check servedDemandProjection for better served info if we had individual node status.
-      // For now, let's assume if it's not in the gaps, it's served/reachable.
-      problemStatus = 'captured-and-served';
-      primaryAction = isOrigin 
-        ? 'This origin appears served in the inspected time band.' 
-        : 'This destination appears reachable in the inspected time band.';
+      if (isServed) {
+        problemStatus = 'captured-and-served';
+        primaryAction = isOrigin 
+          ? 'This origin appears served in the inspected time band.' 
+          : 'This destination appears reachable in the inspected time band.';
+      } else {
+        if (isOrigin) {
+          problemStatus = 'captured-unserved';
+          primaryAction = 'Connect this captured origin toward a workplace candidate with active service.';
+        } else {
+          problemStatus = 'captured-unreachable-destination';
+          primaryAction = 'Connect likely residential origins toward this workplace with active service.';
+        }
+      }
     }
   }
 

@@ -16,12 +16,13 @@ We will implement a map-first demand node inspection workflow:
 
 1.  **Selection State**: The shell will own a `selectedDemandNodeId` state, separate from the `focusedDemandGapId`. Clicking a scenario demand node on the map will select it.
 2.  **Inspection Time Band**: A UI-only override state `inspectDemandTimeBandSelection` will be introduced. It defaults to `follow-simulation` but can be set to any canonical time band. This affects only the inspection projection.
-3.  **Projection-Only Context**: We introduce a `demandNodeInspectionProjection` that consumes scenario demand artifacts and existing projections to provide:
+3.  **Artifact-Wide Lookup**: The inspection projection resolves nodes directly from the full generated `ScenarioDemandArtifact`. Selection and inspection are decoupled from the top-N demand gap ranking, ensuring that any rendered node on the map remains inspectable.
+4.  **Projection-Only Context**: We introduce a `demandNodeInspectionProjection` that consumes scenario demand artifacts and existing projections to provide:
     *   Node metadata (ID, role, base weight).
     *   Time-band specific active weight.
     *   Capture and service problem status.
     *   Likely context candidates (workplaces for origins, residential for destinations).
-4.  **Non-Authoritative Framing**: All context candidates and guidance are explicitly labeled as planning hints derived from the scenario model, not as exact passenger flow truth.
+5.  **Non-Authoritative Framing**: All context candidates and guidance are explicitly labeled as planning hints derived from the scenario model, not as exact passenger flow truth.
 
 ## Consequences
 

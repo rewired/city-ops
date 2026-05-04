@@ -182,4 +182,22 @@ describe('servedDemandProjection', () => {
     const result = projectServedDemand(artifact, [stop1, stop2], [line1, line2], activeTimeBandId);
     expect(result.servedResidentialActiveWeight).toBe(150);
   });
+
+  it('exposes per-node served and reachable sets', () => {
+    const stop1 = createTestStop('s1', 0, 0); // captures res1
+    const stop2 = createTestStop('s2', 0.01, 0); // captures work1
+    const line = createTestLine({
+      id: 'l1',
+      stopIds: ['s1', 's2'],
+      frequencyOverrides: {
+        'morning-rush': { kind: 'frequency', headwayMinutes: createLineFrequencyMinutes(10) }
+      }
+    });
+    
+    const result = projectServedDemand(artifact, [stop1, stop2], [line], 'morning-rush');
+    expect(result.servedResidentialNodeIds.has('res1')).toBe(true);
+    expect(result.reachableWorkplaceNodeIds.has('work1')).toBe(true);
+    expect(result.servedResidentialNodeIds.has('work1')).toBe(false);
+    expect(result.reachableWorkplaceNodeIds.has('res1')).toBe(false);
+  });
 });

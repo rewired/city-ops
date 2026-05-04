@@ -40,6 +40,11 @@ export interface ServedDemandProjection {
     readonly residentialNotCaptured: number;
     readonly workplaceCapturedButUnreachable: number;
   };
+
+  /** Set of residential origin node IDs that are served by active service. */
+  readonly servedResidentialNodeIds: ReadonlySet<string>;
+  /** Set of workplace destination node IDs that are reachable by active service. */
+  readonly reachableWorkplaceNodeIds: ReadonlySet<string>;
 }
 
 /**
@@ -225,7 +230,9 @@ export function projectServedDemand(
       residentialCapturedButNoActiveService,
       residentialNotCaptured,
       workplaceCapturedButUnreachable
-    }
+    },
+    servedResidentialNodeIds,
+    reachableWorkplaceNodeIds
   };
 }
 
@@ -247,6 +254,8 @@ function createEmptyProjection(activeTimeBandId: TimeBandId): ServedDemandProjec
       residentialCapturedButNoActiveService: 0,
       residentialNotCaptured: 0,
       workplaceCapturedButUnreachable: 0
-    }
+    },
+    servedResidentialNodeIds: new Set(),
+    reachableWorkplaceNodeIds: new Set()
   };
 }

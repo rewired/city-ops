@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { projectDemandNodeInspection } from './demandNodeInspectionProjection';
-import type { DemandGapRankingProjection } from './demandGapProjection';
 import type { ScenarioDemandArtifact, ScenarioDemandNode } from '../types/scenarioDemand';
 import type { TimeBandId } from '../types/timeBand';
 import type { ScenarioDemandCaptureProjection } from './scenarioDemandCaptureProjection';
@@ -62,7 +61,7 @@ describe('projectDemandNodeInspection', () => {
     residentialSummary: { ...createEmptyCapturedEntitySummary(), totalWeight: 1000, capturedWeight: 500 },
     workplaceSummary: { ...createEmptyCapturedEntitySummary(), totalWeight: 1000, capturedWeight: 500 },
     gatewaySummary: { ...createEmptyCapturedEntitySummary(), totalWeight: 0, capturedWeight: 0 },
-    nearestStopByEntityId: new Map()
+    nearestStopByEntityId: new Map([['node-res-1', { stopId: 's1', distanceMeters: 100 }]])
   };
 
   const mockServed: ServedDemandProjection = {
@@ -81,16 +80,9 @@ describe('projectDemandNodeInspection', () => {
       residentialCapturedButNoActiveService: 0,
       residentialNotCaptured: 0,
       workplaceCapturedButUnreachable: 0
-    }
-  };
-
-  const mockRanking: DemandGapRankingProjection = {
-    status: 'ready',
-    activeTimeBandId: mockTimeBandId,
-    uncapturedResidentialGaps: [],
-    capturedButUnservedResidentialGaps: [],
-    capturedButUnreachableWorkplaceGaps: [],
-    summary: { totalGapCount: 0 }
+    },
+    servedResidentialNodeIds: new Set(['node-res-1']),
+    reachableWorkplaceNodeIds: new Set(['node-work-1'])
   };
 
   const defaultInput = {
@@ -99,8 +91,7 @@ describe('projectDemandNodeInspection', () => {
     inspectedTimeBandId: mockTimeBandId,
     followsSimulationTimeBand: true,
     scenarioDemandCaptureProjection: mockCapture,
-    servedDemandProjection: mockServed,
-    demandGapRankingProjection: mockRanking
+    servedDemandProjection: mockServed
   };
 
   it('returns unavailable when artifact is missing', () => {
@@ -132,30 +123,59 @@ describe('projectDemandNodeInspection', () => {
     expect(result.contextCandidates[0]!.candidateId).toBe('node-res-1');
   });
 
-  it('reflects problem status from ranking (uncaptured residential)', () => {
-    const rankingWithGap: DemandGapRankingProjection = {
-      ...mockRanking,
-      uncapturedResidentialGaps: [{
-        id: 'node-res-1',
-        kind: 'uncaptured-residential',
-        position: { lng: 10, lat: 50 },
-        activeWeight: 100,
-        baseWeight: 100,
-        nearestStopDistanceMeters: null,
-        capturingStopCount: 0,
-        note: ''
-      }],
-      summary: { totalGapCount: 1 }
+  it('derives accurate problem status (not-captured)', () => {
+    const uncapturedCapture: ScenarioDemandCaptureProjection = {
+      ...mockCapture,
+      nearestStopByEntityId: new Map()
     };
     
-    const result = projectDemandNodeInspection({ ...defaultInput, demandGapRankingProjection: rankingWithGap });
+    const result = projectDemandNodeInspection({ 
+      ...defaultInput, 
+      scenarioDemandCaptureProjection: uncapturedCapture 
+    });
     expect(result.problemStatus).toBe('not-captured');
     expect(result.primaryAction).toContain('Place a stop near this residential demand');
   });
 
+  it('derives accurate problem status (captured-unserved)', () => {
+    const unservedServed: ServedDemandProjection = {
+      ...mockServed,
+      servedResidentialNodeIds: new Set()
+    };
+    
+    const result = projectDemandNodeInspection({ 
+      ...defaultInput, 
+      servedDemandProjection: unservedServed 
+    });
+    expect(result.problemStatus).toBe('captured-unserved');
+    expect(result.primaryAction).toContain('Connect this captured origin');
+  });
+
+  it('works for nodes outside of any ranked lists by using full artifact', () => {
+    const extraNode: ScenarioDemandNode = {
+      id: 'node-res-hidden',
+      role: 'origin',
+      class: 'residential',
+      position: { lng: 11, lat: 51 },
+      baseWeight: 10,
+      timeBandWeights: createMockTimeBandWeights()
+    };
+    
+    const result = projectDemandNodeInspection({ 
+      ...defaultInput, 
+      selectedNodeId: 'node-res-hidden',
+      artifact: { ...artifact, nodes: [...artifact.nodes, extraNode] }
+    });
+    
+    expect(result.status).toBe('ready');
+    expect(result.selectedNodeId).toBe('node-res-hidden');
+    expect(result.title).toBe('Residential demand node');
+    // It's not in the capture map, so it should be not-captured
+    expect(result.problemStatus).toBe('not-captured');
+  });
+
   it('respects time-band override without changing simulation time input', () => {
     const nightBand: TimeBandId = 'night';
-    // mockNode1 has weight 1.0 in night band too in our mock
     const result = projectDemandNodeInspection({ 
       ...defaultInput, 
       inspectedTimeBandId: nightBand,
@@ -167,7 +187,7 @@ describe('projectDemandNodeInspection', () => {
     expect(result.followsSimulationTimeBand).toBe(false);
   });
 
-  it('caps and orders candidates deterministically', () => {
+  it('caps and orders candidates deterministically using full artifact', () => {
     const manyNodes = Array.from({ length: 10 }).map((_, i): ScenarioDemandNode => ({
       id: `node-work-many-${i}`,
       role: 'destination',
