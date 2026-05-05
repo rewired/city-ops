@@ -1,73 +1,79 @@
-# Graph Report - .  (2026-05-05)
+# Graph Report - open-vayra-cities  (2026-05-05)
 
 ## Corpus Check
-- Large corpus: 474 files · ~228,703 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- 276 files · ~228,703 words
+- Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1319 nodes · 2499 edges · 111 communities (102 shown, 9 thin omitted)
+- 1319 nodes · 2499 edges · 111 communities (103 shown, 8 thin omitted)
 - Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 312 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `eb669fc0`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Test Utilities and LineDemand Projections|Test Utilities and Line/Demand Projections]]
-- [[_COMMUNITY_OSM Stop Candidate Processing|OSM Stop Candidate Processing]]
-- [[_COMMUNITY_Workspace Configuration and Documentation|Workspace Configuration and Documentation]]
-- [[_COMMUNITY_Focused Demand Gap Planning|Focused Demand Gap Planning]]
-- [[_COMMUNITY_Early ADRs - Workspace and Stop Placement|Early ADRs - Workspace and Stop Placement]]
-- [[_COMMUNITY_Test Framework Infrastructure|Test Framework Infrastructure]]
-- [[_COMMUNITY_Stop Placement and Marker Interaction ADRs|Stop Placement and Marker Interaction ADRs]]
-- [[_COMMUNITY_Demand Gap GeoJSON and Overlays|Demand Gap GeoJSON and Overlays]]
-- [[_COMMUNITY_Routing Adapters and Line Completion|Routing Adapters and Line Completion]]
-- [[_COMMUNITY_Line Overlay and Selection ADRs|Line Overlay and Selection ADRs]]
-- [[_COMMUNITY_Scenario Demand Artifact Loading|Scenario Demand Artifact Loading]]
-- [[_COMMUNITY_Line Route Segment Domain and Routing ADRs|Line Route Segment Domain and Routing ADRs]]
-- [[_COMMUNITY_Dev UI and Debug Disclosure ADRs|Dev UI and Debug Disclosure ADRs]]
-- [[_COMMUNITY_MapLibre Global Contract and Street Snap|MapLibre Global Contract and Street Snap]]
-- [[_COMMUNITY_Demand Node Service Coverage|Demand Node Service Coverage]]
-- [[_COMMUNITY_Simulation Clock|Simulation Clock]]
-- [[_COMMUNITY_Network Planning Projections|Network Planning Projections]]
-- [[_COMMUNITY_Demand and Line Service Projections|Demand and Line Service Projections]]
-- [[_COMMUNITY_Script Test Framework|Script Test Framework]]
-- [[_COMMUNITY_Selected Line Export Validation|Selected Line Export Validation]]
-- [[_COMMUNITY_Test Group 20|Test Group 20]]
+- [[_COMMUNITY_Community 0|Community 0]]
+- [[_COMMUNITY_Community 1|Community 1]]
+- [[_COMMUNITY_Community 2|Community 2]]
+- [[_COMMUNITY_Community 3|Community 3]]
+- [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 7|Community 7]]
+- [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 15|Community 15]]
+- [[_COMMUNITY_Community 16|Community 16]]
+- [[_COMMUNITY_Community 17|Community 17]]
+- [[_COMMUNITY_Community 18|Community 18]]
+- [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 20|Community 20]]
 - [[_COMMUNITY_Community 21|Community 21]]
-- [[_COMMUNITY_TypeScript Module 22|TypeScript Module 22]]
+- [[_COMMUNITY_Community 22|Community 22]]
 - [[_COMMUNITY_Community 23|Community 23]]
-- [[_COMMUNITY_TypeScript Module 24|TypeScript Module 24]]
-- [[_COMMUNITY_TypeScript Module 25|TypeScript Module 25]]
+- [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
 - [[_COMMUNITY_Community 26|Community 26]]
-- [[_COMMUNITY_Test Group 27|Test Group 27]]
-- [[_COMMUNITY_Test Group 28|Test Group 28]]
+- [[_COMMUNITY_Community 27|Community 27]]
+- [[_COMMUNITY_Community 28|Community 28]]
 - [[_COMMUNITY_Community 29|Community 29]]
-- [[_COMMUNITY_Test Group 30|Test Group 30]]
+- [[_COMMUNITY_Community 30|Community 30]]
 - [[_COMMUNITY_Community 31|Community 31]]
 - [[_COMMUNITY_Community 32|Community 32]]
-- [[_COMMUNITY_TypeScript Module 33|TypeScript Module 33]]
-- [[_COMMUNITY_Test Group 34|Test Group 34]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
-- [[_COMMUNITY_TypeScript Module 37|TypeScript Module 37]]
+- [[_COMMUNITY_Community 38|Community 38]]
 - [[_COMMUNITY_Community 39|Community 39]]
-- [[_COMMUNITY_Test Group 40|Test Group 40]]
-- [[_COMMUNITY_TypeScript Module 41|TypeScript Module 41]]
+- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
 - [[_COMMUNITY_Community 44|Community 44]]
-- [[_COMMUNITY_Test Group 45|Test Group 45]]
+- [[_COMMUNITY_Community 45|Community 45]]
 - [[_COMMUNITY_Community 46|Community 46]]
 - [[_COMMUNITY_Community 47|Community 47]]
 - [[_COMMUNITY_Community 48|Community 48]]
-- [[_COMMUNITY_Test Group 49|Test Group 49]]
-- [[_COMMUNITY_TypeScript Module 50|TypeScript Module 50]]
+- [[_COMMUNITY_Community 49|Community 49]]
+- [[_COMMUNITY_Community 50|Community 50]]
 - [[_COMMUNITY_Community 51|Community 51]]
-- [[_COMMUNITY_Architecture Decisions 52|Architecture Decisions 52]]
+- [[_COMMUNITY_Community 52|Community 52]]
 - [[_COMMUNITY_Community 53|Community 53]]
 - [[_COMMUNITY_Community 54|Community 54]]
 - [[_COMMUNITY_Community 58|Community 58]]
 - [[_COMMUNITY_Community 60|Community 60]]
-- [[_COMMUNITY_Architecture Decisions 67|Architecture Decisions 67]]
+- [[_COMMUNITY_Community 67|Community 67]]
 - [[_COMMUNITY_Community 108|Community 108]]
-- [[_COMMUNITY_Architecture Decisions 109|Architecture Decisions 109]]
+- [[_COMMUNITY_Community 109|Community 109]]
 - [[_COMMUNITY_Community 110|Community 110]]
 
 ## God Nodes (most connected - your core abstractions)
@@ -140,189 +146,193 @@
 - **Demand Node Inspection Slice 183-186** — 0183_demand_node_focus, 0184_context_candidate_locality, 0185_service_coverage_projection, 0186_service_coverage_map [EXTRACTED 1.00]
 - **OSM Data Pipeline** — census_grid_source_material, osm_attractor_source_material, local_osm_stop_candidates, local_osrm_routing [INFERRED 0.85]
 
-## Communities (111 total, 9 thin omitted)
+## Communities (111 total, 8 thin omitted)
 
-### Community 0 - "Test Utilities and Line/Demand Projections"
+### Community 0 - "Community 0"
 Cohesion: 0.05
 Nodes (67): convertLineServiceByTimeBand(), convertSelectedLineExportPayloadToSession(), generateLineLabel(), generateUniqueLineLabel(), normaliseLabel(), normalizeAcceptedLineLabel(), buildCollection(), buildLine() (+59 more)
 
-### Community 1 - "OSM Stop Candidate Processing"
+### Community 1 - "Community 1"
 Cohesion: 0.05
 Nodes (48): decodeDemandGapIdFromFeatureProperties(), decodeDemandNodeIdFromFeature(), decodeDemandNodeIdFromFeatureProperties(), buildDemandNodeHoverFilter(), buildOsmStopCandidateHoverFilter(), createMapEntityHoverAffordanceController(), decodeMapEntityHoverTargetFromFeatureProperties(), hasNonEmptyString() (+40 more)
 
-### Community 2 - "Workspace Configuration and Documentation"
+### Community 2 - "Community 2"
 Cohesion: 0.05
 Nodes (80): BBBike Download Helper HTML (hvv-mvp), BBBike Download Helper HTML (OSM path), pnpm-workspace.yaml - Workspace Configuration, Architecture Decision Records, Agent Skills System, Blocking Data Operation Modal, Bounded Context: Demand, Bounded Context: Economy (+72 more)
 
-### Community 3 - "Focused Demand Gap Planning"
+### Community 3 - "Community 3"
 Cohesion: 0.05
 Nodes (31): resolveFocusedDemandGapPlanningContext(), applyFocusedDemandGapPlanningEntrypoint(), resolveFocusedDemandGapPlanningEntrypointToolMode(), isLikelyJsonFile(), parseSelectedLineExportFile(), parseSelectedLineExportJsonText(), createStopFromOsmCandidateGroup(), evaluateOsmStopCandidateAdoptionEligibility() (+23 more)
 
-### Community 4 - "Early ADRs - Workspace and Stop Placement"
+### Community 4 - "Community 4"
 Cohesion: 0.05
 Nodes (61): ADR 0009: Explicit Workspace Tool Mode State for Map Click Gating, ADR 0010: Split Neutral Click Telemetry from Stop-Placement Click Validation, ADR 0011: Keep Placed Stops in Local Map State with Canonical Minimal Stop Type, ADR 0012: Keep Stop-Placement Feature Queries on Narrow Typed MapLibre Contract, ADR 0013: Consolidate Stop-Placement Slice 008 Boundaries and Non-Goals, ADR 0014: Keep Map Workspace Selection Local and Stop-Only (Superseded), ADR 0015: Project Selected Stop Details from Map Workspace to Shell Inspector, ADR 0016: Define Explicit Stop Selection Transitions with Minimal Inspector Contract (+53 more)
 
-### Community 5 - "Test Framework Infrastructure"
+### Community 5 - "Community 5"
 Cohesion: 0.08
 Nodes (46): fail(), main(), validateTimeBandWeights(), fail(), main(), parseCensusGridCsv(), splitCsvLine(), cleanup() (+38 more)
 
-### Community 6 - "Stop Placement and Marker Interaction ADRs"
+### Community 6 - "Community 6"
 Cohesion: 0.06
 Nodes (53): ADR 0034: Stop marker interaction affordance and draft-membership state, ADR 0035: Stale marker mode click handling and Material icons rendering fix, ADR 0036: Material Symbols ligature rendering contract alignment, ADR 0037: Street stop placement eligibility and snap resolution split, ADR 0038: Map overlay refresh lifecycle and schematic copy clarification, ADR 0039: Stop-marker anchor/offset typing and visual-center alignment, ADR 0040: Render-lifecycle projection refresh binding for line overlay, ADR 0041: Stop rendering via GeoJSON source/layers and feature click interactions (+45 more)
 
-### Community 7 - "Demand Gap GeoJSON and Overlays"
+### Community 7 - "Community 7"
 Cohesion: 0.06
 Nodes (27): buildDemandGapOdContextFeatureCollection(), buildDemandGapOverlayFeatureCollection(), buildDemandNodeContextHintFeatureCollection(), buildCompletedLineFeatureCollection(), buildDraftLineFeatureCollection(), buildLineCoordinatesFromRouteSegments(), buildLineCoordinatesFromStops(), countSourceFeatures() (+19 more)
 
-### Community 8 - "Routing Adapters and Line Completion"
+### Community 8 - "Community 8"
 Cohesion: 0.06
 Nodes (22): LineCompletionDialog(), applyBasemapSemanticReadabilityOverrides(), applyPaintOverride(), applyMapLayerVisibility(), buildMapWorkspaceDebugSnapshot(), applyMapMaxBounds(), applyMapWorkspaceFocusIntent(), resolveLineFocusBounds() (+14 more)
 
-### Community 9 - "Line Overlay and Selection ADRs"
+### Community 9 - "Community 9"
 Cohesion: 0.08
 Nodes (36): ADR 0025: Line overlay pointer-event contract, ADR 0027: Inspector selection-priority state machine, ADR 0030: Line-selected frequency editing, ADR 0033: Explicit user-triggered build-line completion, ADR 0034: Stop marker interaction affordance, ADR 0038: Map overlay refresh lifecycle, ADR 0039: Stop-marker anchor/offset typing, ADR 0040: Render-lifecycle projection refresh (+28 more)
 
-### Community 10 - "Scenario Demand Artifact Loading"
+### Community 10 - "Community 10"
 Cohesion: 0.11
 Nodes (37): cleanup(), runAll(), runGenerator(), setup(), testCreateOutputDir(), testDuplicateIds(), testHamburgManifest(), testInvalidSeedShape() (+29 more)
 
-### Community 11 - "Line Route Segment Domain and Routing ADRs"
+### Community 11 - "Community 11"
 Cohesion: 0.1
 Nodes (39): ADR 0047: Canonical line-route segment domain types, ADR 0048: Canonical routing baseline constants, ADR 0049: Fallback line route segment generation on line completion, ADR 0050: Route-segment-first completed-line GeoJSON assembly, ADR 0051: Line-selected route baseline structural debug inspector, ADR 0052: Fallback routing unit test runner baseline, ADR 0053: Routing-support boundary and fallback truth contract, ADR 0054: Canonical shell-owned stop session state for map workspace sync (+31 more)
 
-### Community 12 - "Dev UI and Debug Disclosure ADRs"
+### Community 12 - "Community 12"
 Cohesion: 0.1
 Nodes (36): ADR 0084: Slice 026 dev UI control bar and inspector declutter, ADR 0085: Map workspace debug disclosure compaction, ADR 0085: Slice 027 dev UI density and debug disclosure, ADR 0086: Tool mode control compaction and icon-first accessibility, ADR 0087: Selected-line inspector disclosure compaction, ADR 0088: Static network summary debug disclosure compaction, ADR 0089: Unified top-bar simulation and session actions, ADR 0090: Switch map bootstrap style to CARTO Dark Matter GL (+28 more)
 
-### Community 13 - "MapLibre Global Contract and Street Snap"
+### Community 13 - "Community 13"
 Cohesion: 0.16
 Nodes (22): getSourceRefsForLayerIds(), compareSnapCandidates(), hasStreetLineGeometryInSourceFallback(), includesHint(), isLineGeometry(), isLineStringCoordinates(), isMultiLineStringCoordinates(), resolveBestSnapCandidateFromFeatures() (+14 more)
 
-### Community 14 - "Demand Node Service Coverage"
+### Community 14 - "Community 14"
+Cohesion: 0.15
+Nodes (15): createEmptyProjection(), projectDemandGapOdCandidateList(), projectFocusedDemandGapLifecycle(), projectLineDepartureScheduleNetwork(), projectLinePlanningVehicles(), projectNetworkPlanningVehicles(), projectLineSelectedServiceInspector(), projectLineServicePlan() (+7 more)
+
+### Community 15 - "Community 15"
+Cohesion: 0.1
+Nodes (4): formatTimeBandWindow(), MaterialIcon(), resolveActiveBandSummary(), Toast()
+
+### Community 16 - "Community 16"
 Cohesion: 0.19
 Nodes (17): createCandidateMatches(), createDiagnostics(), createEmptyProjection(), createProjection(), findCoveringStops(), findStructuralLineMatches(), formatDistanceLabel(), hasActiveLineService() (+9 more)
 
-### Community 15 - "Simulation Clock"
+### Community 17 - "Community 17"
 Cohesion: 0.25
 Nodes (16): advanceSimulationClock(), applySimulationClockCommand(), createInitialSimulationClockState(), createSimulationDayIndex(), createSimulationMinuteOfDay(), createSimulationSecondOfDay(), deriveSimulationSecondOfDay(), deriveTimeBandIdFromMinuteOfDay() (+8 more)
 
-### Community 16 - "Network Planning Projections"
-Cohesion: 0.19
-Nodes (13): projectFocusedDemandGapLifecycle(), projectLineDepartureScheduleNetwork(), projectLinePlanningVehicles(), projectNetworkPlanningVehicles(), projectLineSelectedServiceInspector(), projectLineServicePlan(), projectLineVehicleNetwork(), projectScenarioDemandCapture() (+5 more)
+### Community 18 - "Community 18"
+Cohesion: 0.22
+Nodes (10): calculateGreatCircleDistanceMeters(), toRadians(), createEmptyProjection(), projectDemandGapRanking(), createUnavailableProjection(), projectDemandNodeInspection(), calculateActiveAttractorSinkWeight(), calculateActiveDemandWeight() (+2 more)
 
-### Community 17 - "Demand and Line Service Projections"
-Cohesion: 0.2
-Nodes (12): calculateGreatCircleDistanceMeters(), toRadians(), createEmptyProjection(), projectDemandGapRanking(), isPositiveFiniteNumber(), projectLineServicePlanForLine(), resolveProjectionStatus(), toProjectionNotes() (+4 more)
-
-### Community 18 - "Script Test Framework"
+### Community 19 - "Community 19"
 Cohesion: 0.29
 Nodes (17): cleanup(), runAll(), runScript(), setup(), testActionableErrors(), testDestatisAutodetect(), testDestatisPreset(), testDuplicateIds() (+9 more)
 
-### Community 19 - "Selected Line Export Validation"
+### Community 20 - "Community 20"
 Cohesion: 0.22
 Nodes (13): getFixturePath(), getValidatedFixturePayload(), readFixtureCandidate(), isFiniteNumber(), isRecord(), isStopCoordinateInRange(), parseIsoTimestamp(), cloneFixturePayload() (+5 more)
-
-### Community 20 - "Test Group 20"
-Cohesion: 0.2
-Nodes (6): createUnavailableProjection(), projectDemandNodeInspection(), calculateActiveAttractorSinkWeight(), calculateActiveDemandWeight(), calculateActiveGatewayTransferWeight(), createEmptyCapturedEntitySummary()
 
 ### Community 21 - "Community 21"
 Cohesion: 0.33
 Nodes (14): cleanup(), runAll(), runScript(), setup(), testDuplicateIds(), testInvalidGeoJsonFailure(), testManifestReferences(), testMissingCensusCsvFailure() (+6 more)
 
-### Community 23 - "Community 23"
+### Community 22 - "Community 22"
 Cohesion: 0.15
 Nodes (14): Replacement Semantics Instead of Merge for Session Load, Validated Selected-Line Export Session Loader, Current-Value Refs for Load-Time Synchronization, Loaded-Session Map Source Synchronization Fix, Single syncAllMapWorkspaceSources Helper, Map Workspace Unified Source Synchronization Helper, Creation Path vs Data-Write Path Split, Style-Readiness Limited to Source/Layer Creation Not setData (+6 more)
 
-### Community 24 - "TypeScript Module 24"
+### Community 23 - "Community 23"
 Cohesion: 0.28
 Nodes (12): resolveTimeBandIdForMinuteOfDay(), createDepartureMinutes(), deriveDepartureProjectionStatus(), deriveUnavailableReason(), isServiceProjectionDepartureReady(), projectLineDepartureScheduleForLine(), projectLineDepartureScheduleForServiceProjection(), projectLineSelectedDepartureInspector() (+4 more)
 
-### Community 25 - "TypeScript Module 25"
-Cohesion: 0.26
-Nodes (9): addFrequencyBandDepartures(), normalizeMinute(), projectLineDepartureTimetable(), projectOriginDepartures(), projectRouteBaselineSummary(), resolveActiveBandSummary(), resolveBandMinutes(), resolveStopLabels() (+1 more)
-
-### Community 26 - "Community 26"
+### Community 24 - "Community 24"
 Cohesion: 0.21
 Nodes (13): Canonical Speed Set (1x/5x/10x/20x), Pure Clock Transition Functions Outside React, Slice 019 Simulation Clock and Pause/Speed Controls Baseline, Canonical Time-Band Derivation from Minute-of-Day, Current Time-Band Departure Schedule Projection, Deterministic Headway Raster for Departure Minutes, Current-Minute Line Vehicle Projection Boundary, Vehicle Projection Status (projected/degraded-projected/unavailable) (+5 more)
 
-### Community 27 - "Test Group 27"
-Cohesion: 0.2
-Nodes (4): formatMinuteOfDayToClock(), formatTimeBandWindow(), formatSimulationMinuteOfDay(), createMinuteOfDay()
+### Community 25 - "Community 25"
+Cohesion: 0.27
+Nodes (8): addFrequencyBandDepartures(), normalizeMinute(), projectLineDepartureTimetable(), projectOriginDepartures(), projectRouteBaselineSummary(), resolveBandMinutes(), resolveStopLabels(), resolveStopOffsets()
 
-### Community 28 - "Test Group 28"
+### Community 26 - "Community 26"
 Cohesion: 0.42
 Nodes (11): runAll(), runWrapper(), testCustomImageDryRun(), testDryRunDefaults(), testFailureMissingArea(), testFailureMissingScenario(), testImageEnsureDryRun(), testNoCityopsName() (+3 more)
 
-### Community 29 - "Community 29"
+### Community 27 - "Community 27"
 Cohesion: 0.2
 Nodes (12): Issue Severity and Issue Code Types, Line Service Readiness Evaluator Boundary, evaluateLineServiceReadiness Pure Domain Evaluator, Readiness Status Union (ready/partially-ready/blocked), Line Service Readiness Diagnostic Code/Severity Constant Ownership, Canonical Readiness Constants Module, Inspector as Read-Only Projection Surface, Selected-Line Readiness Inspector Projection Boundary (+4 more)
 
-### Community 30 - "Test Group 30"
+### Community 28 - "Community 28"
 Cohesion: 0.35
 Nodes (6): createVehicleNetworkProjection(), findSegmentProgress(), projectVehiclesForLine(), clampRouteSegmentProgressRatio(), projectCoordinateAlongRouteGeometry(), createLineVehicleProjectionId()
 
-### Community 31 - "Community 31"
-Cohesion: 0.18
-Nodes (11): OD Context Candidate Cap, Demand Gap OD Context Projection, OD Context Deterministic Ranking, Focused Demand Gap Planning Summary Projection, Planning Summary Evidence, focusedDemandGapPlanningProjection, Connectivity Gap Build Line Entrypoint, Focused Demand Gap Planning Action Entrypoints (+3 more)
-
-### Community 32 - "Community 32"
+### Community 29 - "Community 29"
 Cohesion: 0.2
 Nodes (11): Demand Node Focus and Time-Band Inspection, demandNodeInspectionProjection, inspectDemandTimeBandSelection State, selectedDemandNodeId State, Demand Node Context Candidate Locality, DEMAND_NODE_CONTEXT_DISTANCE_DECAY_METERS, Hyperbolic Distance Decay Scoring, Service Coverage Logic (+3 more)
 
-### Community 33 - "TypeScript Module 33"
+### Community 30 - "Community 30"
+Cohesion: 0.18
+Nodes (11): OD Context Candidate Cap, Demand Gap OD Context Projection, OD Context Deterministic Ranking, Focused Demand Gap Planning Summary Projection, Planning Summary Evidence, focusedDemandGapPlanningProjection, Connectivity Gap Build Line Entrypoint, Focused Demand Gap Planning Action Entrypoints (+3 more)
+
+### Community 31 - "Community 31"
 Cohesion: 0.4
 Nodes (8): getExpectedForwardRouteSegmentCount(), getExpectedForwardRouteSegmentStopPair(), countConfiguredTimeBands(), evaluateLineServiceReadiness(), isKnownRouteStatus(), isNonEmptyString(), isNonNegativeFiniteNumber(), isPositiveFiniteNumber()
 
-### Community 35 - "Community 35"
+### Community 32 - "Community 32"
+Cohesion: 0.33
+Nodes (7): isPositiveFiniteNumber(), projectLineServicePlanForLine(), resolveProjectionStatus(), toProjectionNotes(), createEmptyProjection(), projectServedDemand(), resolveLineServiceBandHeadwayMinutes()
+
+### Community 33 - "Community 33"
+Cohesion: 0.2
+Nodes (4): InspectorLinesTab(), InspectorOverviewTab(), InspectorScrollArea(), InspectorTabBar()
+
+### Community 34 - "Community 34"
 Cohesion: 0.42
 Nodes (7): extractOsmNodeId(), normalizeStopCandidateFeatures(), parseOsmiumIntermediateText(), runTests(), testExtractOsmNodeId(), testNormalizeStopCandidateFeatures(), testParseOsmiumIntermediateText()
 
-### Community 36 - "Community 36"
+### Community 35 - "Community 35"
 Cohesion: 0.22
 Nodes (10): OSM Candidate Adoption Readiness, OSM Stop Candidate Inspection and Adoption Readiness, OSM Stop Candidate Inspection Projection, Local OSM Stop Candidate Generation, Local OSRM Routing Baseline, OSM Stop Adoption Workflow, OSM Stop Candidate Consolidation, OSM Stop Street Anchor Resolution (+2 more)
 
-### Community 39 - "Community 39"
+### Community 38 - "Community 38"
 Cohesion: 0.22
 Nodes (9): DemandGapOdContextProjection, demandGapOdContextGeoJson Builder, demand-gap-od-context Layer, Demand Gap OD Desire Hint Map Context, OD Desire Hints, Candidate Map-Focus Action, DemandGapOdCandidateListProjection, Demand Gap OD Candidate Focus and Readability (+1 more)
 
-### Community 40 - "Test Group 40"
+### Community 39 - "Community 39"
 Cohesion: 0.36
 Nodes (4): createEmptyProjection(), findFocusedGapItem(), projectDemandGapOdContext(), resolveProblemSideAndGuidance()
 
-### Community 41 - "TypeScript Module 41"
-Cohesion: 0.25
-Nodes (3): InspectorLinesTab(), InspectorScrollArea(), InspectorTabBar()
-
-### Community 42 - "Community 42"
+### Community 41 - "Community 41"
 Cohesion: 0.25
 Nodes (8): Departures Per Hour as Theoretical Planning Metric, Projection Separate from Execution Simulation, Line Service Plan Projection Status and Summary Boundary, Service Status Union (blocked/not-configured/degraded/configured), Compact Line-Selected Inspector Projection Helper, Line-Selected Service Inspector Projection Consumption, Total Completed Line Count Field, Active-Service Network Summary Projection Consumption
 
-### Community 43 - "Community 43"
+### Community 42 - "Community 42"
 Cohesion: 0.29
 Nodes (8): DemandGapLegend Component, Demand Gap Overlay Tuning, Heatmap Tuning, Visual Weight Property, DemandMapLegend Component, Gap Circle Visual Softening, Heatmap Visual Softening, Demand Gap Overlay Visual Softening
 
-### Community 44 - "Community 44"
+### Community 43 - "Community 43"
 Cohesion: 0.29
 Nodes (8): Scenario Demand Provenance Projection, Census Grid Pipeline, Census Grid Source-Material Preparation, Census Data Sources, OSM Attractor Tag Categories, OSM Attractor Licensing, OSM Attractor Pipeline, OSM Attractor Source-Material Preparation
 
-### Community 45 - "Test Group 45"
+### Community 44 - "Community 44"
 Cohesion: 0.38
 Nodes (3): createEmptyProjection(), findFocusedGapItem(), projectFocusedDemandGapPlanningSummary()
 
 ### Community 46 - "Community 46"
 Cohesion: 0.4
-Nodes (6): Vehicle GeoJSON Feature Builder, Map Vehicle Render Contracts from Derived Projections, Vehicle Circle-Layer Rendering Contract, Circle Layer Instead of Symbol Layer for Vehicle Markers, Degraded vs Normal Marker Styling Semantics, Vehicle Circle Layer Semantics and Map-Native GeoJSON Boundary
+Nodes (3): formatMinuteOfDayToClock(), formatSimulationMinuteOfDay(), createMinuteOfDay()
 
 ### Community 47 - "Community 47"
+Cohesion: 0.4
+Nodes (6): Vehicle GeoJSON Feature Builder, Map Vehicle Render Contracts from Derived Projections, Vehicle Circle-Layer Rendering Contract, Circle Layer Instead of Symbol Layer for Vehicle Markers, Degraded vs Normal Marker Styling Semantics, Vehicle Circle Layer Semantics and Map-Native GeoJSON Boundary
+
+### Community 48 - "Community 48"
 Cohesion: 0.33
 Nodes (6): Demand Gap Focus Workflow, focusedDemandGapId State, Demand Gap Overlay Focus Layer, Demand Gap Planning Guidance, Focused Demand Gap Lifecycle Feedback, Focused Demand Gap Lifecycle Projection
 
-### Community 48 - "Community 48"
+### Community 49 - "Community 49"
 Cohesion: 0.7
 Nodes (4): main(), printDiagnostics(), validateAreaConfig(), waitPort()
 
-### Community 50 - "TypeScript Module 50"
+### Community 50 - "Community 50"
 Cohesion: 0.67
 Nodes (3): deriveSimulationWeekdayId(), formatSimulationWeekdayShort(), SimulationControlBar()
 
@@ -330,7 +340,7 @@ Nodes (3): deriveSimulationWeekdayId(), formatSimulationWeekdayShort(), Simulati
 Cohesion: 0.83
 Nodes (3): fail(), main(), splitCsvLine()
 
-### Community 52 - "Architecture Decisions 52"
+### Community 52 - "Community 52"
 Cohesion: 0.83
 Nodes (4): ADR 0018: Set Hamburg-Focused Map Bootstrap Baseline for Desktop Stop Placement, ADR 0019: Adopt Hamburg-Centered Street-Legible Map Baseline as Playable Bootstrap Reference, Hamburg Map Bootstrap Baseline, Map Bootstrap Config (mapBootstrapConfig.ts)
 
@@ -349,14 +359,14 @@ Nodes (3): Inspector Disclosure Polish, Shell CSS Tokens, Shell Panel Spacing an
 ## Knowledge Gaps
 - **88 isolated node(s):** `DESIGN.md - Design System (Externally Owned)`, `pnpm-workspace.yaml - Workspace Configuration`, `Web App Entry Point HTML`, `BBBike Download Helper HTML (OSM path)`, `ADR 0003 - Initial Desktop Shell Layout` (+83 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Vitest` connect `Test Utilities and Line/Demand Projections` to `OSM Stop Candidate Processing`, `Focused Demand Gap Planning`, `Demand Gap GeoJSON and Overlays`, `Routing Adapters and Line Completion`, `Line Overlay and Selection ADRs`, `Scenario Demand Artifact Loading`, `Simulation Clock`, `Demand and Line Service Projections`, `Selected Line Export Validation`, `Test Group 20`, `TypeScript Module 22`, `Test Group 27`, `Test Group 30`, `Test Group 34`, `Test Group 38`, `Test Group 40`, `Test Group 45`, `Test Group 49`, `Test Group 55`, `Test Group 56`?**
+- **Why does `Vitest` connect `Community 0` to `Community 1`, `Community 3`, `Community 7`, `Community 8`, `Community 9`, `Community 10`, `Community 14`, `Community 15`, `Community 17`, `Community 18`, `Community 20`, `Community 28`, `Community 37`, `Community 39`, `Community 40`, `Community 44`, `Community 45`, `Community 46`, `Community 55`, `Community 56`?**
   _High betweenness centrality (0.215) - this node is a cross-community bridge._
-- **Why does `ADR 0052: Fallback routing unit test runner` connect `Line Overlay and Selection ADRs` to `Test Utilities and Line/Demand Projections`?**
+- **Why does `ADR 0052: Fallback routing unit test runner` connect `Community 9` to `Community 0`?**
   _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **Are the 10 inferred relationships involving `createStopId()` (e.g. with `convertSelectedLineExportPayloadToSession()` and `createStopFromOsmCandidateGroup()`) actually correct?**
   _`createStopId()` has 10 INFERRED edges - model-reasoned connections that need verification._
